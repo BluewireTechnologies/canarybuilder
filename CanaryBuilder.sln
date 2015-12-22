@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CanaryBuilder", "CanaryBuilder\CanaryBuilder.csproj", "{D6E6BA6E-3981-4ACD-A204-E619BCA672DE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CanaryBuilder.Common", "CanaryBuilder.Common\CanaryBuilder.Common.csproj", "{C66A3F12-79E2-46BD-8AAB-D75414E14B6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CanaryBuilder.UnitTests", "CanaryBuilder.UnitTests\CanaryBuilder.UnitTests.csproj", "{4A38AD6B-7385-479C-9C22-7CFCE8434006}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{C66A3F12-79E2-46BD-8AAB-D75414E14B6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C66A3F12-79E2-46BD-8AAB-D75414E14B6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C66A3F12-79E2-46BD-8AAB-D75414E14B6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A38AD6B-7385-479C-9C22-7CFCE8434006}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A38AD6B-7385-479C-9C22-7CFCE8434006}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A38AD6B-7385-479C-9C22-7CFCE8434006}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A38AD6B-7385-479C-9C22-7CFCE8434006}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
