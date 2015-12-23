@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using CanaryBuilder.Common.Shell;
 
 namespace CanaryBuilder.Common.Git
 {

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CanaryBuilder.Common.Git
 {
     public class GitFinder
     {
-        public Git FromEnvironment()
+        public async Task<Git> FromEnvironment()
         {
             const string binaryName = "git.exe";
 
@@ -20,7 +21,7 @@ namespace CanaryBuilder.Common.Git
                 if (File.Exists(maybeGitPath))
                 {
                     var git = new Git(maybeGitPath);
-                    git.Validate();
+                    await git.Validate();
                     return git;
                 }
             }

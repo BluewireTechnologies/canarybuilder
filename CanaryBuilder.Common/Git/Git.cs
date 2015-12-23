@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CanaryBuilder.Common.Git.Model;
+using CanaryBuilder.Common.Shell;
 
 namespace CanaryBuilder.Common.Git
 {
@@ -43,20 +45,14 @@ namespace CanaryBuilder.Common.Git
             return versionString.Substring(expectedPrefix.Length).Trim();
         }
 
-        private static IEnumerable<string> AsNativeLines(StringWriter writer)
-        {
-            return writer.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-        }
-
         private static async Task<IEnumerable<string>> ReadStdoutFromInvocation(string workingDirectory, CommandLine commandLine)
         {
-            var stdout = new StringWriter();
-            var stderr = new StringWriter();
-            var process = new CommandLineInvoker(workingDirectory).Start(commandLine, stdout, stderr);
-            var code = await process.CompletedAsync();
-            if (code != 0) throw new GitException(commandLine, code, stderr.ToString());
+            var process = new CommandLineInvoker(workingDirectory).Start(commandLine);
 
-            return AsNativeLines(stdout);
+            var code = await process.Completed;
+            if (code != 0) throw new GitException(commandLine, code, String.Join(Environment.NewLine, process.StdErr.ToEnumerable()));
+
+            return process.StdOut.ToEnumerable();
         }
 
         public async Task<Ref> GetCurrentBranch(GitWorkingCopy workingCopy)
@@ -92,4 +88,6 @@ namespace CanaryBuilder.Common.Git
             return !modified.Any();
         }
     }
+
+
 }

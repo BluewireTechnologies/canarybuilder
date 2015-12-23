@@ -1,9 +1,8 @@
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 
-namespace CanaryBuilder.Common
+namespace CanaryBuilder.Common.Shell
 {
     public class CommandLine
     {

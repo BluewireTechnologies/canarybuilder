@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using CanaryBuilder.Common.Shell;
 using NUnit.Framework;
 
 namespace CanaryBuilder.Common.Tests
@@ -23,7 +24,7 @@ namespace CanaryBuilder.Common.Tests
             Assume.That(!Directory.Exists(Path.Combine(invoker.WorkingDirectory, "doesnotexist")));
 
             var process = invoker.Start(new CommandLine(CMD_EXE, "/C", "cd", "doesnotexist"));
-            var exitCode = await process.CompletedAsync();
+            var exitCode = await process.Completed;
 
             Assert.That(exitCode, Is.EqualTo(1));
         }
@@ -32,13 +33,12 @@ namespace CanaryBuilder.Common.Tests
         public async Task CollectsStdOut()
         {
             var invoker = new CommandLineInvoker();
-
-            var stdout = new StringWriter();
-            var process = invoker.Start(new CommandLine(CMD_EXE, "/C", "cd"), stdout);
-            await process.CompletedAsync();
+            
+            var process = invoker.Start(new CommandLine(CMD_EXE, "/C", "cd"));
+            await process.Completed;
             
 
-            Assert.That(stdout.ToString(), Is.EqualTo($"{invoker.WorkingDirectory}{Environment.NewLine}"));
+            Assert.That(await process.StdOut.ToStringAsync(), Is.EqualTo($"{invoker.WorkingDirectory}{Environment.NewLine}"));
         }
 
         [Test]
@@ -46,12 +46,23 @@ namespace CanaryBuilder.Common.Tests
         {
             var invoker = new CommandLineInvoker();
             Assume.That(!Directory.Exists(Path.Combine(invoker.WorkingDirectory, "doesnotexist")));
+            
+            var process = invoker.Start(new CommandLine(CMD_EXE, "/C", "cd", "doesnotexist"));
+            await process.Completed;
 
-            var stderr = new StringWriter();
-            var process = invoker.Start(new CommandLine(CMD_EXE, "/C", "cd", "doesnotexist"), TextWriter.Null, stderr);
-            await process.CompletedAsync();
+            Assert.That(await process.StdErr.ToStringAsync(), Is.EqualTo($"The system cannot find the path specified.{Environment.NewLine}"));
+        }
 
-            Assert.That(stderr.ToString(), Is.EqualTo($"The system cannot find the path specified.{Environment.NewLine}"));
+        [Test]
+        public async Task KillingProcessSetsCompleted()
+        {
+            var invoker = new CommandLineInvoker();
+            
+            var process = invoker.Start(new CommandLine(CMD_EXE, "/C", "pause"));
+            process.Kill();
+            var exitCode = await process.Completed;
+
+            Assert.That(exitCode, Is.EqualTo(-1));
         }
     }
 }

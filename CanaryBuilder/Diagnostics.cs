@@ -9,7 +9,7 @@ namespace CanaryBuilder
     {
         public async Task<int> Run(TextWriter writer)
         {
-            var git = new GitFinder().FromEnvironment();
+            var git = await new GitFinder().FromEnvironment();
             if (git == null)
             {
                 writer.WriteLine("Unable to find git.exe in the current PATH.");

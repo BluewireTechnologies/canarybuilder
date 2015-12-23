@@ -28,10 +28,4 @@ namespace CanaryBuilder.Parsers
 
         private const char COMMENT_MARKER = '#';
     }
-
-    public struct ScriptLine
-    {
-        public int LineNumber { get; set; }
-        public string Content { get; set; }
-    }
 }

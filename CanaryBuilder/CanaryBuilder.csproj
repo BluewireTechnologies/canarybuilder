@@ -63,6 +63,7 @@
     <Compile Include="Merge\NoWorkingCopyVerifier.cs" />
     <Compile Include="Parsers\JobScriptSyntaxErrorException.cs" />
     <Compile Include="Parsers\MissingParameterException.cs" />
+    <Compile Include="Parsers\ScriptLine.cs" />
     <Compile Include="Parsers\ScriptReader.cs" />
     <Compile Include="Parsers\DuplicateDirectiveException.cs" />
     <Compile Include="Parsers\JobScriptException.cs" />
