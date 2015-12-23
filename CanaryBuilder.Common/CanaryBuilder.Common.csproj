@@ -50,7 +50,9 @@
     <Compile Include="Git\GitWorkingCopy.cs" />
     <Compile Include="Git\Model\Ref.cs" />
     <Compile Include="Git\UnexpectedGitOutputFormatException.cs" />
+    <Compile Include="IConsoleProcess.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Util\ProcessExtensions.cs" />
     <Compile Include="Util\TextReaderExtensions.cs" />
   </ItemGroup>
   <ItemGroup />

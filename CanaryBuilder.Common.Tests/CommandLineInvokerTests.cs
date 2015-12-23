@@ -22,7 +22,8 @@ namespace CanaryBuilder.Common.Tests
             var invoker = new CommandLineInvoker();
             Assume.That(!Directory.Exists(Path.Combine(invoker.WorkingDirectory, "doesnotexist")));
 
-            var exitCode = await invoker.Run(new CommandLine(CMD_EXE, "/C", "cd", "doesnotexist"), CancellationToken.None);
+            var process = invoker.Start(new CommandLine(CMD_EXE, "/C", "cd", "doesnotexist"));
+            var exitCode = await process.CompletedAsync();
 
             Assert.That(exitCode, Is.EqualTo(1));
         }
@@ -33,7 +34,8 @@ namespace CanaryBuilder.Common.Tests
             var invoker = new CommandLineInvoker();
 
             var stdout = new StringWriter();
-            await invoker.Run(new CommandLine(CMD_EXE, "/C", "cd"), CancellationToken.None, stdout);
+            var process = invoker.Start(new CommandLine(CMD_EXE, "/C", "cd"), stdout);
+            await process.CompletedAsync();
             
 
             Assert.That(stdout.ToString(), Is.EqualTo($"{invoker.WorkingDirectory}{Environment.NewLine}"));
@@ -46,8 +48,8 @@ namespace CanaryBuilder.Common.Tests
             Assume.That(!Directory.Exists(Path.Combine(invoker.WorkingDirectory, "doesnotexist")));
 
             var stderr = new StringWriter();
-            await invoker.Run(new CommandLine(CMD_EXE, "/C", "cd", "doesnotexist"), CancellationToken.None, TextWriter.Null, stderr);
-
+            var process = invoker.Start(new CommandLine(CMD_EXE, "/C", "cd", "doesnotexist"), TextWriter.Null, stderr);
+            await process.CompletedAsync();
 
             Assert.That(stderr.ToString(), Is.EqualTo($"The system cannot find the path specified.{Environment.NewLine}"));
         }

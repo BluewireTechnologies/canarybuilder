@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using CanaryBuilder.Common.Util;
 
 namespace CanaryBuilder.Common
 {
@@ -20,7 +21,7 @@ namespace CanaryBuilder.Common
             this.WorkingDirectory = workingDirectory;
         }
 
-        public async Task<int> Run(CommandLine cmd, CancellationToken cancelToken, TextWriter stdout = null, TextWriter stderr = null)
+        public IConsoleProcess Start(CommandLine cmd, TextWriter stdout = null, TextWriter stderr = null)
         {
             var info = new ProcessStartInfo(cmd.ProgramPath, cmd.GetQuotedArguments())
             {
@@ -32,7 +33,7 @@ namespace CanaryBuilder.Common
             };
             var process = Process.Start(info);
             CollectOutput(process, stdout, stderr);
-            return await WaitForExitAsync(process, cancelToken);
+            return new ConsoleProcess(cmd, process);
         }
 
         private static void CollectOutput(Process process, TextWriter stdout = null, TextWriter stderr = null)
@@ -50,19 +51,27 @@ namespace CanaryBuilder.Common
                 if (e.Data != null) stderr.WriteLine(e.Data);
             };
         }
-
-        private static Task<int> WaitForExitAsync(Process process, CancellationToken cancelToken)
+        
+        class ConsoleProcess : IConsoleProcess
         {
-            var tcs = new TaskCompletionSource<int>();
-            process.EnableRaisingEvents = true;
-            process.Exited += (s, e) => tcs.TrySetResult(process.ExitCode);
-            // Handle possible race condition if process has already terminated.
-            if (process.HasExited)
+            private readonly Process process;
+
+            public ConsoleProcess(CommandLine commandLine, Process process)
             {
-                tcs.TrySetResult(process.ExitCode);
+                CommandLine = commandLine;
+                this.process = process;
             }
-            cancelToken.Register(() => tcs.TrySetCanceled());
-            return tcs.Task;
+
+            public CommandLine CommandLine { get; }
+            public async Task<int> CompletedAsync()
+            {
+                return await process.WaitForExitAsync(CancellationToken.None);
+            }
+
+            public async Task<int> CompletedAsync(CancellationToken token)
+            {
+                return await process.WaitForExitAsync(token);
+            }
         }
     }
 }

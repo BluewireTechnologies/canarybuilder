@@ -52,7 +52,8 @@ namespace CanaryBuilder.Common.Git
         {
             var stdout = new StringWriter();
             var stderr = new StringWriter();
-            var code = await new CommandLineInvoker(workingDirectory).Run(commandLine, CancellationToken.None, stdout, stderr);
+            var process = new CommandLineInvoker(workingDirectory).Start(commandLine, stdout, stderr);
+            var code = await process.CompletedAsync();
             if (code != 0) throw new GitException(commandLine, code, stderr.ToString());
 
             return AsNativeLines(stdout);
