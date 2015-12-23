@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -7,6 +8,18 @@ namespace CanaryBuilder.Common
 {
     public class CommandLineInvoker
     {
+        private readonly string workingDirectory;
+
+        public CommandLineInvoker() : this(Directory.GetCurrentDirectory())
+        {
+        }
+
+        public CommandLineInvoker(string workingDirectory)
+        {
+            if (workingDirectory == null) throw new ArgumentNullException(nameof(workingDirectory));
+            this.workingDirectory = workingDirectory;
+        }
+
         public async Task<int> Run(CommandLine cmd, CancellationToken cancelToken, TextWriter stdout = null, TextWriter stderr = null)
         {
             var info = new ProcessStartInfo(cmd.ProgramPath, cmd.GetQuotedArguments())
@@ -14,7 +27,8 @@ namespace CanaryBuilder.Common
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                WorkingDirectory = workingDirectory
             };
             var process = Process.Start(info);
             CollectOutput(process, stdout, stderr);

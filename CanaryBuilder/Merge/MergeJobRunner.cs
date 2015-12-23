@@ -14,6 +14,7 @@ namespace CanaryBuilder.Merge
 
         public void Run(GitWorkingCopy workingCopy, MergeJobDefinition job, IJobLogger logger)
         {
+            var currentBranch = git.GetCurrentBranch(workingCopy);
             // Record starting branch.
             // Assert working copy is clean.
             // Run verifier against it.

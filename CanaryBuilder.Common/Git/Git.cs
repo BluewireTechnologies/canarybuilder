@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CanaryBuilder.Common.Git.Model;
 
 namespace CanaryBuilder.Common.Git
 {
@@ -16,10 +17,13 @@ namespace CanaryBuilder.Common.Git
 
         public Git(string exePath)
         {
+            if (exePath == null) throw new ArgumentNullException(nameof(exePath));
+            if (!Path.IsPathRooted(exePath)) throw new ArgumentException($"Not an absolute path: {exePath}", nameof(exePath));
             this.exePath = exePath;
         }
 
         public string GetExecutableFilePath() => exePath;
+        private string GetExecutableDirectory() => Path.Combine(Path.GetPathRoot(exePath), Path.GetDirectoryName(exePath));
 
         public async Task Validate()
         {
@@ -30,13 +34,8 @@ namespace CanaryBuilder.Common.Git
         public async Task<string> GetVersionString()
         {
             var commandLine = new CommandLine(exePath, "--version");
-
-            var stdout = new StringWriter();
-            var stderr = new StringWriter();
-            var code = await new CommandLineInvoker().Run(commandLine, CancellationToken.None, stdout, stderr);
-            if (code != 0) throw new GitException(commandLine, code, stderr.ToString());
-
-            var versionString = AsNativeLines(stdout).FirstOrDefault(l => !String.IsNullOrWhiteSpace(l));
+            
+            var versionString = (await ReadStdoutFromInvocation(GetExecutableDirectory(), commandLine)).FirstOrDefault(l => !String.IsNullOrWhiteSpace(l));
             if (versionString == null) throw new UnexpectedGitOutputFormatException(commandLine);
             const string expectedPrefix = "git version ";
             if (!versionString.StartsWith(expectedPrefix)) throw new UnexpectedGitOutputFormatException(commandLine);
@@ -47,6 +46,49 @@ namespace CanaryBuilder.Common.Git
         private static IEnumerable<string> AsNativeLines(StringWriter writer)
         {
             return writer.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        private static async Task<IEnumerable<string>> ReadStdoutFromInvocation(string workingDirectory, CommandLine commandLine)
+        {
+            var stdout = new StringWriter();
+            var stderr = new StringWriter();
+            var code = await new CommandLineInvoker(workingDirectory).Run(commandLine, CancellationToken.None, stdout, stderr);
+            if (code != 0) throw new GitException(commandLine, code, stderr.ToString());
+
+            return AsNativeLines(stdout);
+        }
+
+        public async Task<Ref> GetCurrentBranch(GitWorkingCopy workingCopy)
+        {
+            var getHeadRefCmd = new CommandLine(exePath, "rev-parse", "--abbrev-ref", "HEAD");
+
+            var currentBranchName = (await ReadStdoutFromInvocation(workingCopy.Root, getHeadRefCmd)).FirstOrDefault(l => !String.IsNullOrWhiteSpace(l));
+            if (currentBranchName == null) throw new UnexpectedGitOutputFormatException(getHeadRefCmd);
+
+            // Should maybe check if it's a builtin of any sort, rather than just HEAD?
+            if (currentBranchName != "HEAD")
+            {
+                return new Ref(currentBranchName);
+            }
+            return await ResolveRef(workingCopy, new Ref(currentBranchName));
+        }
+
+        public async Task<Ref> ResolveRef(GitWorkingCopy workingCopy, Ref @ref)
+        {
+            if (@ref == null) throw new ArgumentNullException(nameof(@ref));
+
+            var resolveRefCmd = new CommandLine(exePath, "rev-list", "-1", @ref.ToString());
+            var refHash = (await ReadStdoutFromInvocation(workingCopy.Root, resolveRefCmd)).FirstOrDefault(l => !String.IsNullOrWhiteSpace(l));
+            if (refHash == null) throw new UnexpectedGitOutputFormatException(resolveRefCmd);
+            return new Ref(refHash);
+        }
+
+        public async Task<bool> IsClean(GitWorkingCopy workingCopy)
+        {
+            var getModifiedPathsCmd = new CommandLine(exePath, "status", "--porcelain");
+
+            var modified = await ReadStdoutFromInvocation(workingCopy.Root, getModifiedPathsCmd);
+            return !modified.Any();
         }
     }
 }

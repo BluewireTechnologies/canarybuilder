@@ -5,11 +5,11 @@
     /// </summary>
     public class GitWorkingCopy
     {
-        private readonly string workingCopyPath;
-
         public GitWorkingCopy(string workingCopyPath)
         {
-            this.workingCopyPath = workingCopyPath;
+            this.Root = workingCopyPath;
         }
+
+        public string Root { get; }
     }
 }
