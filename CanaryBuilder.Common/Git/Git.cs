@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,12 +34,11 @@ namespace CanaryBuilder.Common.Git
 
         public async Task<string> GetVersionString()
         {
-            var commandLine = new CommandLine(exePath, "--version");
+            var process = new CommandLine(exePath, "--version").RunFrom(GetExecutableDirectory());
             
-            var versionString = (await ReadStdoutFromInvocation(GetExecutableDirectory(), commandLine)).FirstOrDefault(l => !String.IsNullOrWhiteSpace(l));
-            if (versionString == null) throw new UnexpectedGitOutputFormatException(commandLine);
+            var versionString = await GitHelpers.ExpectOneLine(process);;
             const string expectedPrefix = "git version ";
-            if (!versionString.StartsWith(expectedPrefix)) throw new UnexpectedGitOutputFormatException(commandLine);
+            if (!versionString.StartsWith(expectedPrefix)) throw new UnexpectedGitOutputFormatException(process.CommandLine);
 
             return versionString.Substring(expectedPrefix.Length).Trim();
         }
@@ -50,23 +48,20 @@ namespace CanaryBuilder.Common.Git
             var process = new CommandLineInvoker(workingDirectory).Start(commandLine);
 
             var code = await process.Completed;
-            if (code != 0) throw new GitException(commandLine, code, String.Join(Environment.NewLine, process.StdErr.ToEnumerable()));
+            if (code != 0) throw new GitException(commandLine, code, String.Join(Environment.NewLine, await process.StdErr.ToStringAsync()));
 
             return process.StdOut.ToEnumerable();
         }
 
         public async Task<Ref> GetCurrentBranch(GitWorkingCopy workingCopy)
         {
-            var getHeadRefCmd = new CommandLine(exePath, "rev-parse", "--abbrev-ref", "HEAD");
+            var process = new CommandLine(exePath, "rev-parse", "--abbrev-ref", "HEAD").RunFrom(workingCopy.Root);
 
-            var currentBranchName = (await ReadStdoutFromInvocation(workingCopy.Root, getHeadRefCmd)).FirstOrDefault(l => !String.IsNullOrWhiteSpace(l));
-            if (currentBranchName == null) throw new UnexpectedGitOutputFormatException(getHeadRefCmd);
+            var currentBranchName = await GitHelpers.ExpectOneLine(process);
 
             // Should maybe check if it's a builtin of any sort, rather than just HEAD?
-            if (currentBranchName != "HEAD")
-            {
-                return new Ref(currentBranchName);
-            }
+            if (currentBranchName != "HEAD") return new Ref(currentBranchName);
+
             return await ResolveRef(workingCopy, new Ref(currentBranchName));
         }
 
@@ -74,20 +69,15 @@ namespace CanaryBuilder.Common.Git
         {
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
-            var resolveRefCmd = new CommandLine(exePath, "rev-list", "-1", @ref.ToString());
-            var refHash = (await ReadStdoutFromInvocation(workingCopy.Root, resolveRefCmd)).FirstOrDefault(l => !String.IsNullOrWhiteSpace(l));
-            if (refHash == null) throw new UnexpectedGitOutputFormatException(resolveRefCmd);
+            var process = new CommandLine(exePath, "rev-list", "-1", @ref.ToString()).RunFrom(workingCopy.Root);
+            var refHash = await GitHelpers.ExpectOneLine(process);
             return new Ref(refHash);
         }
 
         public async Task<bool> IsClean(GitWorkingCopy workingCopy)
         {
-            var getModifiedPathsCmd = new CommandLine(exePath, "status", "--porcelain");
-
-            var modified = await ReadStdoutFromInvocation(workingCopy.Root, getModifiedPathsCmd);
-            return !modified.Any();
+            var process = new CommandLine(exePath, "status", "--porcelain").RunFrom(workingCopy.Root);
+            return ! await process.StdOut.StopBuffering().Any().SingleOrDefaultAsync();
         }
     }
-
-
 }

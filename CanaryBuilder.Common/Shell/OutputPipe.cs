@@ -29,9 +29,9 @@ namespace CanaryBuilder.Common.Shell
             subscription = lineSource.Subscribe(pipe);
         }
 
-        public void StopBuffering()
+        public IObservable<string> StopBuffering()
         {
-            pipe.StopBuffering();
+            return pipe.StopBuffering();
         }
 
         /// <summary>

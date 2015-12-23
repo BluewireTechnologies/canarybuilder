@@ -5,7 +5,7 @@ namespace CanaryBuilder.Common.Shell
 {
     public interface IOutputPipe : IObservable<string>
     {
-        void StopBuffering();
+        IObservable<string> StopBuffering();
         IEnumerable<string> ToUnbufferedEnumerable();
     }
 }

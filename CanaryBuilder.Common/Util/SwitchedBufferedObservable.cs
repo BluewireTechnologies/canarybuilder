@@ -17,13 +17,15 @@ namespace CanaryBuilder.Common.Util
         private List<T> buffer = new List<T>();
         private volatile bool unblocked;
         
-        public void StopBuffering()
+        public IObservable<T> StopBuffering()
         {
             lock(buffer)
             {
-                if (unblocked) return;
+                if (unblocked) return multicast;
                 unblocked = true;
-                buffer = new List<T>();
+                var currentBuffer = buffer;
+                buffer = null;
+                return currentBuffer.ToObservable().Concat(multicast);
             }
         }
         
@@ -35,7 +37,7 @@ namespace CanaryBuilder.Common.Util
                 unblocked = true;
 
                 var currentBuffer = buffer;
-                buffer = new List<T>();
+                buffer = null;
                 return currentBuffer.Concat(multicast.ToEnumerable());
             }
         }

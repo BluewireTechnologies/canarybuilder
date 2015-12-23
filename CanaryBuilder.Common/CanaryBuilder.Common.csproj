@@ -57,10 +57,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Git\GitHelpers.cs" />
     <Compile Include="Shell\CommandLine.cs" />
     <Compile Include="Git\GitException.cs" />
     <Compile Include="Git\GitFinder.cs" />
     <Compile Include="Git\Git.cs" />
+    <Compile Include="Shell\CommandLineExtensions.cs" />
     <Compile Include="Shell\CommandLineInvoker.cs" />
     <Compile Include="Git\GitRepository.cs" />
     <Compile Include="Git\GitWorkingCopy.cs" />

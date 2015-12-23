@@ -8,7 +8,7 @@ namespace CanaryBuilder.Common.Shell
     {
         public static async Task<string[]> ReadAllLinesAsync(this IOutputPipe pipe)
         {
-            return await pipe.ToUnbufferedEnumerable().ToArray().SingleAsync();
+            return await pipe.ToArray().SingleAsync();
         }
 
         public static async Task<string> ToStringAsync(this IOutputPipe pipe)
