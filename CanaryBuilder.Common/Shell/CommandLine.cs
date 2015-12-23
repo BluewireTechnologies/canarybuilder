@@ -27,5 +27,10 @@ namespace CanaryBuilder.Common.Shell
             if (rxSimpleArgument.IsMatch(arg)) return arg;   
             return $"\"{arg.Replace("\"", "\"\"")}\"";
         }
+
+        public override string ToString()
+        {
+            return $"{ProgramPath} {GetQuotedArguments()}";
+        }
     }
 }

@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Bluewire.Common.Console;
 using Bluewire.Common.Console.Logging;
 using Bluewire.Common.Console.ThirdParty;
+using CanaryBuilder.Logging;
+using CanaryBuilder.Merge;
 using log4net.Core;
 
 namespace CanaryBuilder
@@ -20,7 +23,10 @@ namespace CanaryBuilder
                 { "diagnostics", "Show diagnostics and environment information.", o => arguments.ShowDiagnostics = true }
             };
 
-            var session = new ConsoleSession<Arguments>(arguments, options);
+            var session = new ConsoleSession<Arguments>(arguments, options)
+            {
+                ListParameterUsage = "[merge <script path> <working copy>]"
+            };
 
             return session.Run(args, async a => await new Program(a).Run());
         }
@@ -40,13 +46,33 @@ namespace CanaryBuilder
             {
                 return await new Diagnostics().Run(Console.Out);
             }
-            return 0;
+            if (arguments.Mode == "merge")
+            {
+                if (String.IsNullOrWhiteSpace(arguments.ScriptPath)) throw new InvalidArgumentsException("No script path specified for 'merge' mode.");
+                if (String.IsNullOrWhiteSpace(arguments.WorkingCopy)) throw new InvalidArgumentsException("No working copy specified for 'merge' mode.");
+
+                try
+                {
+                    using (var console = new ConsoleLogWriter())
+                    {
+                        await new MergeJob(arguments.WorkingCopy, arguments.ScriptPath).Run(new PlainTextJobLogger(console));
+                    }
+                    return 0;
+                }
+                catch (Exception ex)
+                {
+                    Log.Console.Error(ex);
+                    return 4;
+                }
+            }
+            throw new InvalidArgumentsException("Nothing to do.");
         }
         
-        class Arguments : IVerbosityArgument
+        class Arguments : IVerbosityArgument, IArgumentList
         {
-            readonly IEnumerable<Level> logLevels = new List<Level> { Level.Warn, Level.Info, Level.Debug };
-            int logLevel;
+            private readonly IEnumerable<Level> logLevels = new List<Level> { Level.Warn, Level.Info, Level.Debug };
+            private int logLevel = 1;
+            private readonly List<string> argumentList = new List<string>();
 
             public Level Verbosity
             {
@@ -59,6 +85,12 @@ namespace CanaryBuilder
             }
 
             public bool ShowDiagnostics { get; set; }
+            
+            public string Mode => argumentList.ElementAtOrDefault(0);
+            public string ScriptPath => argumentList.ElementAtOrDefault(1);
+            public string WorkingCopy => argumentList.ElementAtOrDefault(2);
+
+            IList<string> IArgumentList.ArgumentList => argumentList;
         }
     }
 }

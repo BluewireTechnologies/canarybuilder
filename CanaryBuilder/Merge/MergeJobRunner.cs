@@ -1,5 +1,6 @@
-﻿using CanaryBuilder.Common.Git;
-using CanaryBuilder.Runners;
+﻿using System.Threading.Tasks;
+using CanaryBuilder.Common.Git;
+using CanaryBuilder.Logging;
 
 namespace CanaryBuilder.Merge
 {
@@ -12,9 +13,11 @@ namespace CanaryBuilder.Merge
             this.git = git;
         }
 
-        public void Run(GitWorkingCopy workingCopy, MergeJobDefinition job, IJobLogger logger)
+        public async Task Run(GitWorkingCopy workingCopy, MergeJobDefinition job, IJobLogger logger)
         {
-            var currentBranch = git.GetCurrentBranch(workingCopy);
+            var session = new GitSession(git, logger);
+            var currentBranch = await session.GetCurrentBranch(workingCopy);
+
             // Record starting branch.
             // Assert working copy is clean.
             // Run verifier against it.

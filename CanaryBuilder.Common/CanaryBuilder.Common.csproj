@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Git\GitHelpers.cs" />
+    <Compile Include="Git\GitSession.cs" />
     <Compile Include="Shell\CommandLine.cs" />
     <Compile Include="Git\GitException.cs" />
     <Compile Include="Git\GitFinder.cs" />
@@ -68,8 +69,10 @@
     <Compile Include="Git\GitWorkingCopy.cs" />
     <Compile Include="Git\Model\Ref.cs" />
     <Compile Include="Git\UnexpectedGitOutputFormatException.cs" />
+    <Compile Include="Shell\IConsoleInvocationLogger.cs" />
     <Compile Include="Shell\IConsoleProcess.cs" />
     <Compile Include="Shell\IOutputPipe.cs" />
+    <Compile Include="Shell\NoConsoleInvocationLogger.cs" />
     <Compile Include="Shell\OutputPipe.cs" />
     <Compile Include="Shell\OutputPipeExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
