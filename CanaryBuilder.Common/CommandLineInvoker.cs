@@ -8,7 +8,7 @@ namespace CanaryBuilder.Common
 {
     public class CommandLineInvoker
     {
-        private readonly string workingDirectory;
+        public string WorkingDirectory { get; }
 
         public CommandLineInvoker() : this(Directory.GetCurrentDirectory())
         {
@@ -17,7 +17,7 @@ namespace CanaryBuilder.Common
         public CommandLineInvoker(string workingDirectory)
         {
             if (workingDirectory == null) throw new ArgumentNullException(nameof(workingDirectory));
-            this.workingDirectory = workingDirectory;
+            this.WorkingDirectory = workingDirectory;
         }
 
         public async Task<int> Run(CommandLine cmd, CancellationToken cancelToken, TextWriter stdout = null, TextWriter stderr = null)
@@ -28,7 +28,7 @@ namespace CanaryBuilder.Common
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
                 CreateNoWindow = true,
-                WorkingDirectory = workingDirectory
+                WorkingDirectory = WorkingDirectory
             };
             var process = Process.Start(info);
             CollectOutput(process, stdout, stderr);
@@ -44,10 +44,10 @@ namespace CanaryBuilder.Common
             process.BeginErrorReadLine();
             // Buffered capture for now. Eventually need to change this to use blocking streams.
             process.OutputDataReceived += (s, e) => {
-                if (e.Data != null) stdout.Write(e.Data);
+                if (e.Data != null) stdout.WriteLine(e.Data);
             };
             process.ErrorDataReceived += (s, e) => {
-                if (e.Data != null) stderr.Write(e.Data);
+                if (e.Data != null) stderr.WriteLine(e.Data);
             };
         }
 

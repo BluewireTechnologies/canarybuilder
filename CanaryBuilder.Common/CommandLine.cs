@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace CanaryBuilder.Common
 {
@@ -16,12 +18,15 @@ namespace CanaryBuilder.Common
 
         public string GetQuotedArguments()
         {
-            return String.Join(" ", Arguments.Select(o => $"\"{Quote(o)}\""));
+            return String.Join(" ", Arguments.Select(Quote));
         }
 
-        private string Quote(string arg)
+        private static readonly Regex rxSimpleArgument = new Regex(@"^[-\w\d]+$", RegexOptions.Compiled);
+
+        private static string Quote(string arg)
         {
-            return arg.Replace("\"", "\"\"");
+            if (rxSimpleArgument.IsMatch(arg)) return arg;   
+            return $"\"{arg.Replace("\"", "\"\"")}\"";
         }
     }
 }

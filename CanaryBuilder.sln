@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CanaryBuilder.Common", "Can
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CanaryBuilder.UnitTests", "CanaryBuilder.UnitTests\CanaryBuilder.UnitTests.csproj", "{4A38AD6B-7385-479C-9C22-7CFCE8434006}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CanaryBuilder.Common.Tests", "CanaryBuilder.Common.Tests\CanaryBuilder.Common.Tests.csproj", "{70801F91-CEDA-4502-BE25-D14B606D9C97}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{4A38AD6B-7385-479C-9C22-7CFCE8434006}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A38AD6B-7385-479C-9C22-7CFCE8434006}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A38AD6B-7385-479C-9C22-7CFCE8434006}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70801F91-CEDA-4502-BE25-D14B606D9C97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70801F91-CEDA-4502-BE25-D14B606D9C97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70801F91-CEDA-4502-BE25-D14B606D9C97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70801F91-CEDA-4502-BE25-D14B606D9C97}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
