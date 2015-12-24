@@ -34,8 +34,10 @@
     </ItemGroup>
     
     <ItemGroup>
-        <NUnitProject Include="CanaryBuilder.Common.UnitTests\CanaryBuilder.Common.UnitTests.csproj" />
+        <NUnitProject Include="Bluewire.Common.Console.Client.UnitTests\Bluewire.Common.Console.Client.UnitTests.csproj" />
+        <!--<NUnitProject Include="Bluewire.Common.Git.IntegrationTests\Bluewire.Common.Git.IntegrationTests.csproj" />-->
         <NUnitProject Include="CanaryBuilder.UnitTests\CanaryBuilder.UnitTests.csproj" />
+        
     </ItemGroup>
     
 	<Target DependsOnTargets="ValidateParameters;PrepareOutputDirectory" Name="Build">

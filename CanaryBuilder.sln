@@ -5,11 +5,15 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CanaryBuilder", "CanaryBuilder\CanaryBuilder.csproj", "{D6E6BA6E-3981-4ACD-A204-E619BCA672DE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CanaryBuilder.Common", "CanaryBuilder.Common\CanaryBuilder.Common.csproj", "{C66A3F12-79E2-46BD-8AAB-D75414E14B6C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CanaryBuilder.UnitTests", "CanaryBuilder.UnitTests\CanaryBuilder.UnitTests.csproj", "{4A38AD6B-7385-479C-9C22-7CFCE8434006}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CanaryBuilder.Common.UnitTests", "CanaryBuilder.Common.UnitTests\CanaryBuilder.Common.UnitTests.csproj", "{70801F91-CEDA-4502-BE25-D14B606D9C97}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Common.Git", "Bluewire.Common.Git\Bluewire.Common.Git.csproj", "{815563F8-0AF9-4E56-9160-A26CDD1DB163}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Common.Git.IntegrationTests", "Bluewire.Common.Git.IntegrationTests\Bluewire.Common.Git.IntegrationTests.csproj", "{B9DBC4C3-7733-49BA-B797-E9CB9D616403}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Common.Console.Client", "Bluewire.Common.Console.Client\Bluewire.Common.Console.Client.csproj", "{C66A3F12-79E2-46BD-8AAB-D75414E14B6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Common.Console.Client.UnitTests", "Bluewire.Common.Console.Client.UnitTests\Bluewire.Common.Console.Client.UnitTests.csproj", "{70801F91-CEDA-4502-BE25-D14B606D9C97}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,14 +25,22 @@ Global
 		{D6E6BA6E-3981-4ACD-A204-E619BCA672DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6E6BA6E-3981-4ACD-A204-E619BCA672DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6E6BA6E-3981-4ACD-A204-E619BCA672DE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C66A3F12-79E2-46BD-8AAB-D75414E14B6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C66A3F12-79E2-46BD-8AAB-D75414E14B6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C66A3F12-79E2-46BD-8AAB-D75414E14B6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C66A3F12-79E2-46BD-8AAB-D75414E14B6C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4A38AD6B-7385-479C-9C22-7CFCE8434006}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4A38AD6B-7385-479C-9C22-7CFCE8434006}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A38AD6B-7385-479C-9C22-7CFCE8434006}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A38AD6B-7385-479C-9C22-7CFCE8434006}.Release|Any CPU.Build.0 = Release|Any CPU
+		{815563F8-0AF9-4E56-9160-A26CDD1DB163}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{815563F8-0AF9-4E56-9160-A26CDD1DB163}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{815563F8-0AF9-4E56-9160-A26CDD1DB163}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{815563F8-0AF9-4E56-9160-A26CDD1DB163}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9DBC4C3-7733-49BA-B797-E9CB9D616403}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9DBC4C3-7733-49BA-B797-E9CB9D616403}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9DBC4C3-7733-49BA-B797-E9CB9D616403}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9DBC4C3-7733-49BA-B797-E9CB9D616403}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C66A3F12-79E2-46BD-8AAB-D75414E14B6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C66A3F12-79E2-46BD-8AAB-D75414E14B6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C66A3F12-79E2-46BD-8AAB-D75414E14B6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C66A3F12-79E2-46BD-8AAB-D75414E14B6C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{70801F91-CEDA-4502-BE25-D14B606D9C97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{70801F91-CEDA-4502-BE25-D14B606D9C97}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70801F91-CEDA-4502-BE25-D14B606D9C97}.Release|Any CPU.ActiveCfg = Release|Any CPU

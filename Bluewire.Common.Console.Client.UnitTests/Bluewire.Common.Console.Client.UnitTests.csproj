@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{4A38AD6B-7385-479C-9C22-7CFCE8434006}</ProjectGuid>
+    <ProjectGuid>{70801F91-CEDA-4502-BE25-D14B606D9C97}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CanaryBuilder.UnitTests</RootNamespace>
-    <AssemblyName>CanaryBuilder.UnitTests</AssemblyName>
+    <RootNamespace>Bluewire.Common.Console.Client.UnitTests</RootNamespace>
+    <AssemblyName>Bluewire.Common.Console.Client.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -45,22 +45,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Merge\MergeJobValidationTests.cs" />
-    <Compile Include="Merge\MergeJobParserTests.cs" />
-    <Compile Include="Parsers\ScriptReaderTests.cs" />
+    <Compile Include="CommandLineInvokerTests.cs" />
+    <Compile Include="RawCommandLineTests.cs" />
+    <Compile Include="CommandLineTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Bluewire.Common.Git\Bluewire.Common.Git.csproj">
-      <Project>{815563f8-0af9-4e56-9160-a26cdd1db163}</Project>
-      <Name>Bluewire.Common.Git</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CanaryBuilder\CanaryBuilder.csproj">
-      <Project>{d6e6ba6e-3981-4acd-a204-e619bca672de}</Project>
-      <Name>CanaryBuilder</Name>
+    <ProjectReference Include="..\Bluewire.Common.Console.Client\Bluewire.Common.Console.Client.csproj">
+      <Project>{c66a3f12-79e2-46bd-8aab-d75414e14b6c}</Project>
+      <Name>Bluewire.Common.Console.Client</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

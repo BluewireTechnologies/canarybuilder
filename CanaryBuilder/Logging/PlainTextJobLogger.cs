@@ -3,7 +3,7 @@ using System.IO;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using CanaryBuilder.Common.Shell;
+using Bluewire.Common.Console.Client.Shell;
 
 namespace CanaryBuilder.Logging
 {

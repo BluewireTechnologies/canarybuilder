@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text.RegularExpressions;
-using CanaryBuilder.Common.Git.Model;
+using Bluewire.Common.Git.Model;
 using CanaryBuilder.Parsers;
 
 namespace CanaryBuilder.Merge

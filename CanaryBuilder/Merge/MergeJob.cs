@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CanaryBuilder.Common.Git;
+using Bluewire.Common.Git;
 using CanaryBuilder.Logging;
 
 namespace CanaryBuilder.Merge

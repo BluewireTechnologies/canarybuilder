@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using CanaryBuilder.Common.Git;
+using Bluewire.Common.Git;
 using CanaryBuilder.Logging;
 
 namespace CanaryBuilder.Merge

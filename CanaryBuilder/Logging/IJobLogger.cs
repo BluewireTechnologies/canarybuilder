@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using CanaryBuilder.Common.Shell;
+using Bluewire.Common.Console.Client.Shell;
 
 namespace CanaryBuilder.Logging
 {
