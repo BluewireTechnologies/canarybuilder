@@ -69,6 +69,8 @@
     <Compile Include="Shell\OutputPipe.cs" />
     <Compile Include="Shell\OutputPipeExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Util\BufferingObservableExtensions.cs" />
+    <Compile Include="Util\BufferUntilSubscribedObservable.cs" />
     <Compile Include="Util\SwitchedBufferedObservable.cs" />
   </ItemGroup>
   <ItemGroup>

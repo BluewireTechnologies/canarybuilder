@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.Git.Model;
@@ -50,7 +51,10 @@ namespace Bluewire.Common.Git
             var process = new CommandLine(git.GetExecutableFilePath(), "status", "--porcelain").RunFrom(workingCopy.Root);
             using (logger?.LogInvocation(process))
             {
-                return !await process.StdOut.StopBuffering().Any().SingleOrDefaultAsync();
+                var isEmpty = process.StdOut.IsEmpty().ToTask();
+                process.StdOut.StopBuffering();
+                await GitHelpers.ExpectSuccess(process);
+                return await isEmpty;
             }
         }
 
@@ -70,7 +74,7 @@ namespace Bluewire.Common.Git
             var process = new CommandLine(git.GetExecutableFilePath(), "init", repoName).RunFrom(containingPath);
             using (logger?.LogInvocation(process))
             {
-                process.StdOut.Discard();
+                process.StdOut.StopBuffering();
 
                 await GitHelpers.ExpectSuccess(process);
             }
@@ -78,6 +82,20 @@ namespace Bluewire.Common.Git
             var workingCopy = new GitWorkingCopy(Path.Combine(containingPath, repoName));
             workingCopy.CheckExistence();
             return workingCopy;
+        }
+
+        public async Task AddFile(GitWorkingCopy workingCopy, string relativePath)
+        {
+            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+            if (!File.Exists(workingCopy.Path(relativePath))) throw new FileNotFoundException($"File does not exist: {relativePath}", workingCopy.Path(relativePath));
+
+            var process = new CommandLine(git.GetExecutableFilePath(), "add", relativePath).RunFrom(workingCopy.Root);
+            using (logger?.LogInvocation(process))
+            {
+                process.StdOut.StopBuffering();
+
+                await GitHelpers.ExpectSuccess(process);
+            }
         }
     }
 }

@@ -5,7 +5,6 @@ namespace Bluewire.Common.Console.Client.Shell
 {
     public interface IOutputPipe : IObservable<string>
     {
-        IObservable<string> StopBuffering();
-        IEnumerable<string> ToUnbufferedEnumerable();
+        void StopBuffering();
     }
 }

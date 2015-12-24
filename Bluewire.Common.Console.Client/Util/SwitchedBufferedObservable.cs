@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
@@ -15,71 +15,79 @@ namespace Bluewire.Common.Console.Client.Util
     {
         private readonly Subject<T> multicast = new Subject<T>();
         private List<T> buffer = new List<T>();
-        private volatile bool unblocked;
         
-        public IObservable<T> StopBuffering()
+        public void StopBuffering()
         {
-            lock(buffer)
+            lock (this)
             {
-                if (unblocked) return multicast;
-                unblocked = true;
-                var currentBuffer = buffer;
                 buffer = null;
-                return currentBuffer.ToObservable().Concat(multicast);
-            }
-        }
-        
-        public IEnumerable<T> DetachBufferAndEnumerate()
-        {
-            lock (buffer)
-            {
-                if (unblocked) throw new InvalidOperationException("Buffering has already been halted.");
-                unblocked = true;
-
-                var currentBuffer = buffer;
-                buffer = null;
-                return currentBuffer.Concat(multicast.ToEnumerable());
             }
         }
 
+        private IObservable<T> GetSingleUseBufferedSequence()
+        {
+            var currentBuffer = buffer;
+            var size = buffer.Count;
+            var bufferedMulticast = multicast.BufferUntilSubscribed();
+            var bufferSubscription = bufferedMulticast.Connect();
+
+            return Observable.Create<T>(obs =>
+            {
+                var i = 0;
+                while (i < size)
+                {
+                    obs.OnNext(currentBuffer[i]);
+                    i++;
+                }
+
+                return new CompositeDisposable(
+                    bufferedMulticast.Subscribe(obs),
+                    bufferSubscription);
+            });
+        }
+
+        public void DiscardBuffer()
+        {
+            lock (this)
+            {
+                if (buffer == null) return;
+                buffer = new List<T>();
+            }
+        }
+        
         public IDisposable Subscribe(IObserver<T> observer)
         {
-            lock(buffer)
+            lock(this)
             {
-                if (!unblocked)
-                {
-                    foreach (var item in buffer)
-                    {
-                        observer.OnNext(item);
-                    }
-                }
-                return multicast.Subscribe(observer);
+                if (buffer == null) return multicast.Subscribe(observer);
+
+                return GetSingleUseBufferedSequence().Subscribe(observer);
             }
         }
 
         public void OnNext(T value)
         {
-            if (!unblocked)
+            lock(this)
             {
-                lock(buffer)
-                {
-                    if (!unblocked)
-                    {
-                        buffer.Add(value);
-                    }
-                }
+                buffer?.Add(value);
             }
             multicast.OnNext(value);
         }
 
         public void OnError(Exception error)
         {
-            multicast.OnError(error);
+            lock (this)
+            {
+                multicast.OnError(error);
+            }
         }
 
         public void OnCompleted()
         {
-            multicast.OnCompleted();
+            lock(this)
+            {
+                multicast.OnCompleted();
+            }
         }
     }
 }

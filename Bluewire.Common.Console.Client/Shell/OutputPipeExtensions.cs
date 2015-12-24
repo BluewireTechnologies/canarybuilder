@@ -15,14 +15,5 @@ namespace Bluewire.Common.Console.Client.Shell
         {
             return String.Join(Environment.NewLine, await ReadAllLinesAsync(pipe)) + Environment.NewLine;
         }
-
-        /// <summary>
-        /// Synonym of StopBuffering() which doesn't cause R#/VS to prompt the developer to await the result.
-        /// </summary>
-        /// <param name="pipe"></param>
-        public static void Discard(this IOutputPipe pipe)
-        {
-            pipe.StopBuffering();
-        }
     }
 }

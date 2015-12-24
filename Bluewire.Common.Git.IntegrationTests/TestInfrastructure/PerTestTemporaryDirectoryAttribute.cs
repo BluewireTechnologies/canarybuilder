@@ -22,7 +22,7 @@ namespace Bluewire.Common.Git.IntegrationTests.TestInfrastructure
             if (!Directory.Exists(temporaryPath)) return;
             if (TestContext.CurrentContext.Result.Outcome == ResultState.Success)
             {
-                Directory.Delete(temporaryPath, true);
+                FileSystemHelpers.CleanDirectory(temporaryPath);
             }
         }
 

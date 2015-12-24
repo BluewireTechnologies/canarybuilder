@@ -13,14 +13,13 @@ namespace Bluewire.Common.Console.Client.Shell
     /// will not receive any replay and the buffer is thrown away.
     /// 
     /// When the output stream is potentially large, it may be consumed efficiently and
-    /// asynchronously with appropriate subscriptions followed by StopBuffering(), or on
-    /// a background thread via ToUnbufferedEnumerable().
+    /// asynchronously with appropriate subscriptions followed by StopBuffering().
     /// For small outputs it may be appropriate to consume the buffer via ToEnumerable()
     /// after the stream has ended.
     /// </remarks>
     public class OutputPipe : IOutputPipe, IDisposable
     {
-        private SwitchedBufferedObservable<string> pipe;
+        private readonly SwitchedBufferedObservable<string> pipe;
         private IDisposable subscription;
 
         public OutputPipe(IObservable<string> lineSource)
@@ -29,20 +28,11 @@ namespace Bluewire.Common.Console.Client.Shell
             subscription = lineSource.Subscribe(pipe);
         }
 
-        public IObservable<string> StopBuffering()
+        public void StopBuffering()
         {
-            return pipe.StopBuffering();
+            pipe.StopBuffering();
         }
-
-        /// <summary>
-        /// Enumerates all lines, disabling the buffer once replayed.
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<string> ToUnbufferedEnumerable()
-        {
-            return pipe.DetachBufferAndEnumerate();
-        }
-
+        
         public IDisposable Subscribe(IObserver<string> observer)
         {
             return pipe.Subscribe(observer);

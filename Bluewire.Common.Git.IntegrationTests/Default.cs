@@ -8,7 +8,7 @@ namespace Bluewire.Common.Git.IntegrationTests
     {
         public static async Task<GitSession> GitSession()
         {
-            return new GitSession(await new GitFinder().FromEnvironment());
+            return new GitSession(await new GitFinder().FromEnvironment(), new TestConsoleInvocationLogger(TestContext.Out));
         }
 
         public static string TemporaryDirectory => TemporaryDirectoryForTest.Allocate(TestContext.CurrentContext);

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace Bluewire.Common.Git
 {
@@ -18,5 +19,11 @@ namespace Bluewire.Common.Git
         }
 
         public string Root { get; }
+
+        public string Path(string relativePath)
+        {
+            if (relativePath == null) throw new ArgumentNullException(nameof(relativePath));
+            return System.IO.Path.Combine(Root, relativePath);
+        }
     }
 }
