@@ -6,11 +6,11 @@ namespace CanaryBuilder.Common.Git
 {
     public class GitException : ApplicationException
     {
-        public CommandLine CommandLine { get; private set; }
+        public ICommandLine CommandLine { get; private set; }
         public int ExitCode { get; private set; }
         public string Messages { get; private set; }
 
-        public GitException(CommandLine commandLine, int exitCode, string messages) : base(messages)
+        public GitException(ICommandLine commandLine, int exitCode, string messages) : base(messages)
         {
             CommandLine = commandLine;
             ExitCode = exitCode;

@@ -69,6 +69,7 @@
     <Compile Include="Git\GitWorkingCopy.cs" />
     <Compile Include="Git\Model\Ref.cs" />
     <Compile Include="Git\UnexpectedGitOutputFormatException.cs" />
+    <Compile Include="Shell\ICommandLine.cs" />
     <Compile Include="Shell\IConsoleInvocationLogger.cs" />
     <Compile Include="Shell\IConsoleProcess.cs" />
     <Compile Include="Shell\IOutputPipe.cs" />

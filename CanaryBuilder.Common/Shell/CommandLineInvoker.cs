@@ -20,7 +20,7 @@ namespace CanaryBuilder.Common.Shell
             this.WorkingDirectory = workingDirectory;
         }
 
-        public IConsoleProcess Start(CommandLine cmd)
+        public IConsoleProcess Start(ICommandLine cmd)
         {
             var info = new ProcessStartInfo(cmd.ProgramPath, cmd.GetQuotedArguments())
             {
@@ -42,7 +42,7 @@ namespace CanaryBuilder.Common.Shell
             private readonly OutputPipe stdOutPipe;
             private readonly OutputPipe stdErrPipe;
 
-            public ConsoleProcess(CommandLine commandLine, Process process)
+            public ConsoleProcess(ICommandLine commandLine, Process process)
             {
                 CommandLine = commandLine;
                 this.process = process;
@@ -92,7 +92,7 @@ namespace CanaryBuilder.Common.Shell
                 process.Kill();
             }
 
-            public CommandLine CommandLine { get; }
+            public ICommandLine CommandLine { get; }
             public Task<int> Completed => tcs.Task;
         }
     }

@@ -63,5 +63,17 @@ namespace CanaryBuilder.Common.UnitTests
 
             Assert.That(exitCode, Is.EqualTo(-1));
         }
+
+        [Test]
+        public async Task AcceptsRawCommandLine()
+        {
+            var invoker = new CommandLineInvoker();
+            Assume.That(!Directory.Exists(Path.Combine(invoker.WorkingDirectory, "doesnotexist")));
+
+            var process = invoker.Start(CommandLine.CreateRaw(CMD_EXE, "/C cd"));
+            var exitCode = await process.Completed;
+
+            Assert.That(exitCode, Is.EqualTo(0));
+        }
     }
 }

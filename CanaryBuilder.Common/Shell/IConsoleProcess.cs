@@ -4,7 +4,7 @@ namespace CanaryBuilder.Common.Shell
 {
     public interface IConsoleProcess
     {
-        CommandLine CommandLine { get; }
+        ICommandLine CommandLine { get; }
         IOutputPipe StdOut { get; }
         IOutputPipe StdErr { get; }
         void Kill();

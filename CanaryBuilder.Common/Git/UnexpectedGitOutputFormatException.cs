@@ -8,7 +8,7 @@ namespace CanaryBuilder.Common.Git
     /// </summary>
     public class UnexpectedGitOutputFormatException : GitException
     {
-        public UnexpectedGitOutputFormatException(CommandLine commandLine) : base(commandLine, 0, "The output of the command could not be parsed.")
+        public UnexpectedGitOutputFormatException(ICommandLine commandLine) : base(commandLine, 0, "The output of the command could not be parsed.")
         {
         }
 
