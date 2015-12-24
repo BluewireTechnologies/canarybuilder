@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Bluewire.Common.Console.Client.Shell;
@@ -50,6 +52,32 @@ namespace Bluewire.Common.Git
             {
                 return !await process.StdOut.StopBuffering().Any().SingleOrDefaultAsync();
             }
+        }
+
+        /// <summary>
+        /// Create a repository in the specified directory.
+        /// </summary>
+        /// <param name="containingPath">Parent directory of the new repository</param>
+        /// <param name="repoName">Name of the repository</param>
+        /// <returns></returns>
+        public async Task<GitWorkingCopy> Init(string containingPath, string repoName)
+        {
+            if (containingPath == null) throw new ArgumentNullException(nameof(containingPath));
+            if (repoName == null) throw new ArgumentNullException(nameof(repoName));
+            if (repoName.Intersect(Path.GetInvalidFileNameChars()).Any()) throw new ArgumentException($"Repository name contains invalid characters: '{repoName}'", nameof(repoName));
+            Directory.CreateDirectory(containingPath);
+
+            var process = new CommandLine(git.GetExecutableFilePath(), "init", repoName).RunFrom(containingPath);
+            using (logger?.LogInvocation(process))
+            {
+                process.StdOut.Discard();
+
+                await GitHelpers.ExpectSuccess(process);
+            }
+
+            var workingCopy = new GitWorkingCopy(Path.Combine(containingPath, repoName));
+            workingCopy.CheckExistence();
+            return workingCopy;
         }
     }
 }

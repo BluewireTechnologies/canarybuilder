@@ -44,9 +44,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Default.cs" />
+    <Compile Include="GitDetectionTests.cs" />
+    <Compile Include="GitInitTests.cs" />
+    <Compile Include="TestInfrastructure\CleanTemporaryDirectoryWhenCompleteAttribute.cs" />
+    <Compile Include="TestInfrastructure\PerTestTemporaryDirectoryAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestInfrastructure\TemporaryDirectoryForTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Bluewire.Common.Console.Client\Bluewire.Common.Console.Client.csproj">
+      <Project>{c66a3f12-79e2-46bd-8aab-d75414e14b6c}</Project>
+      <Name>Bluewire.Common.Console.Client</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Bluewire.Common.Git\Bluewire.Common.Git.csproj">
       <Project>{815563f8-0af9-4e56-9160-a26cdd1db163}</Project>
       <Name>Bluewire.Common.Git</Name>
@@ -55,6 +65,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
