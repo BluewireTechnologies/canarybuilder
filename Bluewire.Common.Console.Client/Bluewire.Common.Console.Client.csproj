@@ -57,6 +57,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cmd.cs" />
     <Compile Include="Shell\CommandLine.cs" />
     <Compile Include="Shell\CommandLineExtensions.cs" />
     <Compile Include="Shell\CommandLineInvoker.cs" />

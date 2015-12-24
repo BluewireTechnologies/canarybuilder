@@ -11,18 +11,16 @@ namespace Bluewire.Common.Console.Client.UnitTests
     {
         public CommandLineInvokerTests()
         {
-            Assume.That(File.Exists(CMD_EXE));
+            Assume.That(Cmd.Exists);
         }
-
-        private static readonly string CMD_EXE = Path.Combine(Environment.SystemDirectory, "cmd.exe");
-
+        
         [Test]
         public async Task AwaitsExitAndYieldsExitCode()
         {
             var invoker = new CommandLineInvoker();
             Assume.That(!Directory.Exists(Path.Combine(invoker.WorkingDirectory, "doesnotexist")));
 
-            var process = invoker.Start(new CommandLine(CMD_EXE, "/C", "cd", "doesnotexist"));
+            var process = invoker.Start(new CommandLine(Cmd.GetExecutableFilePath(), "/C", "cd", "doesnotexist"));
             var exitCode = await process.Completed;
 
             Assert.That(exitCode, Is.EqualTo(1));
@@ -33,7 +31,7 @@ namespace Bluewire.Common.Console.Client.UnitTests
         {
             var invoker = new CommandLineInvoker();
             
-            var process = invoker.Start(new CommandLine(CMD_EXE, "/C", "cd"));
+            var process = invoker.Start(new CommandLine(Cmd.GetExecutableFilePath(), "/C", "cd"));
             await process.Completed;
             
 
@@ -46,7 +44,7 @@ namespace Bluewire.Common.Console.Client.UnitTests
             var invoker = new CommandLineInvoker();
             Assume.That(!Directory.Exists(Path.Combine(invoker.WorkingDirectory, "doesnotexist")));
             
-            var process = invoker.Start(new CommandLine(CMD_EXE, "/C", "cd", "doesnotexist"));
+            var process = invoker.Start(new CommandLine(Cmd.GetExecutableFilePath(), "/C", "cd", "doesnotexist"));
             await process.Completed;
 
             Assert.That(await process.StdErr.ToStringAsync(), Is.EqualTo($"The system cannot find the path specified.{Environment.NewLine}"));
@@ -57,7 +55,7 @@ namespace Bluewire.Common.Console.Client.UnitTests
         {
             var invoker = new CommandLineInvoker();
             
-            var process = invoker.Start(new CommandLine(CMD_EXE, "/C", "pause"));
+            var process = invoker.Start(new CommandLine(Cmd.GetExecutableFilePath(), "/C", "pause"));
             process.Kill();
             var exitCode = await process.Completed;
 
@@ -70,7 +68,7 @@ namespace Bluewire.Common.Console.Client.UnitTests
             var invoker = new CommandLineInvoker();
             Assume.That(!Directory.Exists(Path.Combine(invoker.WorkingDirectory, "doesnotexist")));
 
-            var process = invoker.Start(CommandLine.CreateRaw(CMD_EXE, "/C cd"));
+            var process = invoker.Start(CommandLine.CreateRaw(Cmd.GetExecutableFilePath(), "/C cd"));
             var exitCode = await process.Completed;
 
             Assert.That(exitCode, Is.EqualTo(0));
