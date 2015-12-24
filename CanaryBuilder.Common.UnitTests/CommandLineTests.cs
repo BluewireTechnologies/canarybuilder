@@ -38,5 +38,21 @@ namespace CanaryBuilder.Common.UnitTests
 
             Assert.That(cmd.GetQuotedArguments(), Is.EqualTo("a --b -c"));
         }
+
+        [Test]
+        public void StringRepresentationOfObjectQuotesProgramPathsWithWhitespace()
+        {
+            var cmd = new CommandLine(@"d:\program files\git.exe", "status");
+
+            Assert.That(cmd.ToString(), Is.EqualTo(@"""d:\program files\git.exe"" status"));
+        }
+
+        [Test]
+        public void StringRepresentationOfObjectDoesNotQuoteSimpleProgramPaths()
+        {
+            var cmd = new CommandLine(@"d:\git.exe", "status");
+
+            Assert.That(cmd.ToString(), Is.EqualTo(@"d:\git.exe status"));
+        }
     }
 }
