@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CanaryBuilder.Common.Shell;
+﻿using CanaryBuilder.Common.Shell;
 using NUnit.Framework;
 
-namespace CanaryBuilder.Common.Tests
+namespace CanaryBuilder.Common.UnitTests
 {
     [TestFixture]
     public class CommandLineTests

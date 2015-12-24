@@ -7,8 +7,8 @@
     <ProjectGuid>{70801F91-CEDA-4502-BE25-D14B606D9C97}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CanaryBuilder.Common.Tests</RootNamespace>
-    <AssemblyName>CanaryBuilder.Common.Tests</AssemblyName>
+    <RootNamespace>CanaryBuilder.Common.UnitTests</RootNamespace>
+    <AssemblyName>CanaryBuilder.Common.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -58,9 +58,7 @@
       <Name>CanaryBuilder.Common</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Git\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

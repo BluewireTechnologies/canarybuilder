@@ -1,11 +1,10 @@
 ﻿using System;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using CanaryBuilder.Common.Shell;
 using NUnit.Framework;
 
-namespace CanaryBuilder.Common.Tests
+namespace CanaryBuilder.Common.UnitTests
 {
     [TestFixture]
     public class CommandLineInvokerTests

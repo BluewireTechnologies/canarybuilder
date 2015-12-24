@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CanaryBuilder.Common", "Can
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CanaryBuilder.UnitTests", "CanaryBuilder.UnitTests\CanaryBuilder.UnitTests.csproj", "{4A38AD6B-7385-479C-9C22-7CFCE8434006}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CanaryBuilder.Common.Tests", "CanaryBuilder.Common.Tests\CanaryBuilder.Common.Tests.csproj", "{70801F91-CEDA-4502-BE25-D14B606D9C97}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CanaryBuilder.Common.UnitTests", "CanaryBuilder.Common.UnitTests\CanaryBuilder.Common.UnitTests.csproj", "{70801F91-CEDA-4502-BE25-D14B606D9C97}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

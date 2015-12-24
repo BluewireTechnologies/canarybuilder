@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="12.0">
+	
+	<!--
+		
+	TeamCity Build for CanaryBuilder and related packages.
+	
+	Inputs:
+	  * Version:		  build number to use for package version info
+	  * OutputDirectory:  location for final build output
+	  
+	Outputs:
+	  * Everything in OutputDirectory
+	 
+	-->
+    
+    <Import Project="Common.props" />
+    <Import Project="Common.targets" />
+    
+	<PropertyGroup>
+		<Configuration>Release</Configuration>
+		<WorkingDirectory>$(MSBuildProjectDirectory)</WorkingDirectory>
+		<TemporaryDirectory>$(WorkingDirectory)\packaging-temp</TemporaryDirectory>
+	</PropertyGroup>
+	
+	<ItemDefinitionGroup>
+		<OctopackProjects></OctopackProjects>
+        <OutputBinaries></OutputBinaries>
+	</ItemDefinitionGroup>
+    
+    <ItemGroup>
+        <ApplicationProjectsProperties Include="OctopusPackageVersion=$(BuildNumber)" />
+        <ApplicationProjectsProperties Include="OctoPackPackageVersion=$(BuildNumber)" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <NUnitProject Include="CanaryBuilder.Common.UnitTests\CanaryBuilder.Common.UnitTests.csproj" />
+        <NUnitProject Include="CanaryBuilder.UnitTests\CanaryBuilder.UnitTests.csproj" />
+    </ItemGroup>
+    
+	<Target DependsOnTargets="ValidateParameters;PrepareOutputDirectory" Name="Build">
+		<MSBuild Projects="@(OctopackProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration);RunOctoPack=true;@(ApplicationProjectsProperties)" />
+        <MSBuild Projects="CanaryBuilder\CanaryBuilder.csproj" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration)">
+          <Output TaskParameter="TargetOutputs" ItemName="OutputBinaries" />
+        </MSBuild>
+	</Target>
+	
+	<Target Name="BuildAndPackage" DependsOnTargets="Build;RunNUnitTests">
+		<ItemGroup>
+            <OctopackPackages Include="%(OctopackProjects.RelativeDir)obj\octopacked\%(Filename).*.nupkg" />
+		</ItemGroup>
+		
+		<Copy SourceFiles="@(OctopackPackages)" DestinationFolder="$(OutputDirectory)" />
+        <Copy SourceFiles="@(OutputBinaries)" DestinationFiles="@(OutputBinaries->'$(OutputDirectory)\%(FileName)%(Extension)')" />
+	</Target>
+	
+	<Target Name="PrepareOutputDirectory" DependsOnTargets="ValidateParameters">
+		<MakeDir Directories="$(OutputDirectory)" />
+	</Target>
+	
+	<Target Name="ValidateParameters">		
+		<Warning Text="Version was not specified" Condition="'$(Version)' == ''" />
+		<Error Text="OutputDirectory was not specified" Condition="'$(OutputDirectory)' == ''" />
+		
+		<!-- Make paths absolute -->
+		<CombinePath BasePath="$(MSBuildProjectDirectory)" Paths="$(OutputDirectory)">
+			<Output TaskParameter="CombinedPaths" PropertyName="OutputDirectory" />
+		</CombinePath>
+	</Target>
+	
+	<Target Name="PrepareOutputDirectory" DependsOnTargets="ValidateParameters">
+		<MakeDir Directories="$(OutputDirectory)" />
+	</Target>
+</Project>
