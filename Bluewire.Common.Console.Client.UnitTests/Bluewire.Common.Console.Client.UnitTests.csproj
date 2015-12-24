@@ -45,9 +45,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandLineInvokerTests.cs" />
-    <Compile Include="RawCommandLineTests.cs" />
-    <Compile Include="CommandLineTests.cs" />
+    <Compile Include="Shell\CommandLineInvokerTests.cs" />
+    <Compile Include="Shell\RawCommandLineTests.cs" />
+    <Compile Include="Shell\CommandLineTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

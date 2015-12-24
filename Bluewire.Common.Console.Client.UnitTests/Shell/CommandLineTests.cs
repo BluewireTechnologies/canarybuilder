@@ -1,7 +1,7 @@
 ﻿using Bluewire.Common.Console.Client.Shell;
 using NUnit.Framework;
 
-namespace Bluewire.Common.Console.Client.UnitTests
+namespace Bluewire.Common.Console.Client.UnitTests.Shell
 {
     [TestFixture]
     public class CommandLineTests
