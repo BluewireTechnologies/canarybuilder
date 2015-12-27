@@ -7,16 +7,19 @@ using System.Reactive.Subjects;
 namespace Bluewire.Common.Console.Client.Util
 {
     /// <summary>
-    /// Implements a Replay() observable which can be 'detached', clearing the buffer
-    /// and causing future subscriptions to only receive new events.
+    /// Implements a ReplaySubject-like system with a controllable buffer.
     /// </summary>
+    /// <remarks>
+    /// The buffer can be cleared, preventing notifications already received from being replayed.
+    /// Alternatively it can be detached entirely, causing the observable to become 'hot'.
+    /// </remarks>
     /// <typeparam name="T"></typeparam>
-    public class SwitchedBufferedObservable<T> : IObservable<T>, IObserver<T>
+    public class ControllableReplaySubject<T> : IObservable<T>, IObserver<T>
     {
         private readonly Subject<T> multicast = new Subject<T>();
         private List<T> buffer = new List<T>();
         
-        public void StopBuffering()
+        public void Unbuffer()
         {
             lock (this)
             {
@@ -24,29 +27,7 @@ namespace Bluewire.Common.Console.Client.Util
             }
         }
 
-        private IObservable<T> GetSingleUseBufferedSequence()
-        {
-            var currentBuffer = buffer;
-            var size = buffer.Count;
-            var bufferedMulticast = multicast.BufferUntilSubscribed();
-            var bufferSubscription = bufferedMulticast.Connect();
-
-            return Observable.Create<T>(obs =>
-            {
-                var i = 0;
-                while (i < size)
-                {
-                    obs.OnNext(currentBuffer[i]);
-                    i++;
-                }
-
-                return new CompositeDisposable(
-                    bufferedMulticast.Subscribe(obs),
-                    bufferSubscription);
-            });
-        }
-
-        public void DiscardBuffer()
+        public void ClearBuffer()
         {
             lock (this)
             {
@@ -88,6 +69,28 @@ namespace Bluewire.Common.Console.Client.Util
             {
                 multicast.OnCompleted();
             }
+        }
+
+        private IObservable<T> GetSingleUseBufferedSequence()
+        {
+            var currentBuffer = buffer;
+            var size = buffer.Count;
+            var bufferedMulticast = multicast.BufferUntilSubscribed();
+            var bufferSubscription = bufferedMulticast.Connect();
+
+            return Observable.Create<T>(obs =>
+            {
+                var i = 0;
+                while (i < size)
+                {
+                    obs.OnNext(currentBuffer[i]);
+                    i++;
+                }
+
+                return new CompositeDisposable(
+                    bufferedMulticast.Subscribe(obs),
+                    bufferSubscription);
+            });
         }
     }
 }

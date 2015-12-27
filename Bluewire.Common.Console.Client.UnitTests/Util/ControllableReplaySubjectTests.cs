@@ -7,12 +7,12 @@ using NUnit.Framework;
 namespace Bluewire.Common.Console.Client.UnitTests.Util
 {
     [TestFixture]
-    public class SwitchedBufferedObservableTests
+    public class ControllableReplaySubjectTests
     {
         [Test]
         public async Task ActsLikeReplaySubjectInitially()
         {
-            var sut = new SwitchedBufferedObservable<int>();
+            var sut = new ControllableReplaySubject<int>();
 
             sut.OnNext(1);
             sut.OnNext(2);
@@ -24,13 +24,13 @@ namespace Bluewire.Common.Console.Client.UnitTests.Util
         }
 
         [Test]
-        public async Task SubscriptionAcquiredBeforeStopBuffering_ReplaysBufferedItems()
+        public async Task SubscriptionAcquiredBeforeUnbuffering_ReplaysBufferedItems()
         {
-            var sut = new SwitchedBufferedObservable<int>();
+            var sut = new ControllableReplaySubject<int>();
 
             sut.OnNext(1);
             var receiver = sut.ToArray().ToTask();
-            sut.StopBuffering();
+            sut.Unbuffer();
             sut.OnNext(2);
             sut.OnNext(3);
             sut.OnCompleted();
@@ -39,12 +39,12 @@ namespace Bluewire.Common.Console.Client.UnitTests.Util
         }
 
         [Test]
-        public async Task SubscriptionAcquiredAfterStopBuffering_PropagatesNewItems()
+        public async Task SubscriptionAcquiredAfterUnbuffering_PropagatesNewItems()
         {
-            var sut = new SwitchedBufferedObservable<int>();
+            var sut = new ControllableReplaySubject<int>();
 
             sut.OnNext(1);
-            sut.StopBuffering();
+            sut.Unbuffer();
             sut.OnNext(2);
             var receiver = sut.ToArray().ToTask();
             sut.OnNext(3);
@@ -54,12 +54,12 @@ namespace Bluewire.Common.Console.Client.UnitTests.Util
         }
 
         [Test]
-        public async Task SubscriptionAcquiredAfterStopBuffering_DoesNotReplayItemsReceivedBeforeStopBufferingWasCalled()
+        public async Task SubscriptionAcquiredAfterUnbuffering_DoesNotReplayItemsReceivedBeforeUnbufferingWasCalled()
         {
-            var sut = new SwitchedBufferedObservable<int>();
+            var sut = new ControllableReplaySubject<int>();
 
             sut.OnNext(1);
-            sut.StopBuffering();
+            sut.Unbuffer();
             sut.OnNext(2);
             var receiver = sut.ToArray().ToTask();
             sut.OnNext(3);
@@ -69,12 +69,12 @@ namespace Bluewire.Common.Console.Client.UnitTests.Util
         }
 
         [Test]
-        public async Task SubscriptionAcquiredAfterStopBuffering_DoesNotReplayItemsReceivedAfterStopBufferingWasCalled()
+        public async Task SubscriptionAcquiredAfterUnbuffering_DoesNotReplayItemsReceivedAfterUnbufferingWasCalled()
         {
-            var sut = new SwitchedBufferedObservable<int>();
+            var sut = new ControllableReplaySubject<int>();
 
             sut.OnNext(1);
-            sut.StopBuffering();
+            sut.Unbuffer();
             sut.OnNext(2);
             var receiver = sut.ToArray().ToTask();
             sut.OnNext(3);

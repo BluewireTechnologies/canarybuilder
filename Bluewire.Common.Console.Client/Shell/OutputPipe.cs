@@ -19,18 +19,18 @@ namespace Bluewire.Common.Console.Client.Shell
     /// </remarks>
     public class OutputPipe : IOutputPipe, IDisposable
     {
-        private readonly SwitchedBufferedObservable<string> pipe;
+        private readonly ControllableReplaySubject<string> pipe;
         private IDisposable subscription;
 
         public OutputPipe(IObservable<string> lineSource)
         {
-            pipe = new SwitchedBufferedObservable<string>();
+            pipe = new ControllableReplaySubject<string>();
             subscription = lineSource.Subscribe(pipe);
         }
 
         public void StopBuffering()
         {
-            pipe.StopBuffering();
+            pipe.Unbuffer();
         }
         
         public IDisposable Subscribe(IObserver<string> observer)
