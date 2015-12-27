@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="12.0">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="BuildAndTest" ToolsVersion="12.0">
 	
 	<!--
 		
@@ -48,7 +48,10 @@
         </MSBuild>
 	</Target>
 	
-	<Target Name="BuildAndPackage" DependsOnTargets="Build;RunNUnitTests">
+	<Target Name="BuildAndTest" DependsOnTargets="Build;RunNUnitTests">
+	</Target>
+	
+	<Target Name="BuildAndPackage" DependsOnTargets="BuildAndTest">
 		<ItemGroup>
             <OctopackPackages Include="%(OctopackProjects.RelativeDir)obj\octopacked\%(Filename).*.nupkg" />
 		</ItemGroup>
