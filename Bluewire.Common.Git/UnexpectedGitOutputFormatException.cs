@@ -8,13 +8,20 @@ namespace Bluewire.Common.Git
     /// </summary>
     public class UnexpectedGitOutputFormatException : GitException
     {
-        public UnexpectedGitOutputFormatException(ICommandLine commandLine) : base(commandLine, 0, "The output of the command could not be parsed.")
+        public UnexpectedGitOutputFormatDetails[] Details { get; private set; }
+
+        public UnexpectedGitOutputFormatException(ICommandLine commandLine, params UnexpectedGitOutputFormatDetails[] details) : base(commandLine, 0, "The output of the command could not be parsed.")
         {
+            Details = details;
         }
 
         public override void Explain(TextWriter writer)
         {
             writer.WriteLine(Message);
+            foreach(var detail in Details)
+            {
+                detail.Explain(writer);
+            }
             writer.WriteLine($"Arguments: {CommandLine.GetQuotedArguments()}");
         }
     }

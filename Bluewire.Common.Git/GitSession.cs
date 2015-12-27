@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
@@ -6,6 +7,7 @@ using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.Git.Model;
+using Bluewire.Common.Git.Parsing;
 
 namespace Bluewire.Common.Git
 {
@@ -96,6 +98,32 @@ namespace Bluewire.Common.Git
 
                 await GitHelpers.ExpectSuccess(process);
             }
+        }
+
+        public async Task<GitStatusEntry[]> Status(GitWorkingCopy workingCopy)
+        {
+            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+
+            var parser = new GitStatusParser();
+            var process = new CommandLine(git.GetExecutableFilePath(), "status", "--porcelain").RunFrom(workingCopy.Root);
+            using (logger?.LogInvocation(process))
+            {
+                var statusEntries = process.StdOut.Select(l => parser.ParseOrNull(l)).ToArray().ToTask();
+                await GitHelpers.ExpectSuccess(process);
+                WaitForCompletion(statusEntries);
+                if(parser.Errors.Any())
+                {
+                    throw new UnexpectedGitOutputFormatException(process.CommandLine, parser.Errors.ToArray());
+                }
+                return await statusEntries;
+            }
+        }
+
+        private static void WaitForCompletion(Task t)
+        {
+            if(t.IsCompleted) return;
+            var asyncResult = (IAsyncResult)t;
+            asyncResult.AsyncWaitHandle.WaitOne();
         }
     }
 }

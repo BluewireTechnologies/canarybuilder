@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Common.Console.Cli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Common.Console.Client.UnitTests", "Bluewire.Common.Console.Client.UnitTests\Bluewire.Common.Console.Client.UnitTests.csproj", "{70801F91-CEDA-4502-BE25-D14B606D9C97}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Common.Git.UnitTests", "Bluewire.Common.Git.UnitTests\Bluewire.Common.Git.UnitTests.csproj", "{B88D5F35-D73E-417E-98FF-D7BD865A1441}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{70801F91-CEDA-4502-BE25-D14B606D9C97}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70801F91-CEDA-4502-BE25-D14B606D9C97}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70801F91-CEDA-4502-BE25-D14B606D9C97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B88D5F35-D73E-417E-98FF-D7BD865A1441}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B88D5F35-D73E-417E-98FF-D7BD865A1441}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B88D5F35-D73E-417E-98FF-D7BD865A1441}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B88D5F35-D73E-417E-98FF-D7BD865A1441}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
