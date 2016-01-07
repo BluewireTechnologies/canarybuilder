@@ -64,12 +64,14 @@
     <Compile Include="GitRepository.cs" />
     <Compile Include="GitSession.cs" />
     <Compile Include="GitWorkingCopy.cs" />
+    <Compile Include="Model\CommitOptions.cs" />
     <Compile Include="Model\GitStatusEntry.cs" />
     <Compile Include="Model\IndexState.cs" />
     <Compile Include="Model\Ref.cs" />
     <Compile Include="Model\WorkTreeState.cs" />
     <Compile Include="Parsing\GitStatusParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Model\ResetType.cs" />
     <Compile Include="UnexpectedGitOutputFormatDetails.cs" />
     <Compile Include="UnexpectedGitOutputFormatException.cs" />
   </ItemGroup>

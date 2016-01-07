@@ -28,11 +28,11 @@ namespace Bluewire.Common.Git
             using (logger?.LogInvocation(process))
             {
                 var currentBranchName = await GitHelpers.ExpectOneLine(process);
+                var currentBranch = new Ref(currentBranchName);
 
-                // Should maybe check if it's a builtin of any sort, rather than just HEAD?
-                if (currentBranchName != "HEAD") return new Ref(currentBranchName);
+                if (!Ref.IsBuiltIn(currentBranch)) return currentBranch;
 
-                return await ResolveRef(workingCopy, new Ref(currentBranchName));
+                return await ResolveRef(workingCopy, currentBranch);
             }
         }
 
@@ -46,6 +46,13 @@ namespace Bluewire.Common.Git
                 var refHash = await GitHelpers.ExpectOneLine(process);
                 return new Ref(refHash);
             }
+        }
+
+        public async Task<bool> AreRefsEquivalent(GitWorkingCopy workingCopy, Ref a, Ref b)
+        {
+            var resolvedA = await ResolveRef(workingCopy, a);
+            var resolvedB = await ResolveRef(workingCopy, b);
+            return Equals(resolvedA, resolvedB);
         }
 
         public async Task<bool> IsClean(GitWorkingCopy workingCopy)
@@ -124,6 +131,130 @@ namespace Bluewire.Common.Git
             if(t.IsCompleted) return;
             var asyncResult = (IAsyncResult)t;
             asyncResult.AsyncWaitHandle.WaitOne();
+        }
+
+        public async Task<Ref[]> ListBranches(GitWorkingCopy workingCopy)
+        {
+            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+            
+            var process = new CommandLine(git.GetExecutableFilePath(), "branch", "--list").RunFrom(workingCopy.Root);
+            using (logger?.LogInvocation(process))
+            {
+                var branchNames = process.StdOut
+                    .Where(l => !String.IsNullOrWhiteSpace(l))
+                    .Select(l => l.Substring(2))
+                    .Where(l => !l.StartsWith("(detach"))
+                    .Select(l => new Ref(l))
+                    .ToArray().ToTask();
+
+                await GitHelpers.ExpectSuccess(process);
+                return await branchNames;
+            }
+        }
+
+        public async Task<Ref> CreateBranch(GitWorkingCopy workingCopy, string branchName, Ref start = null)
+        {
+            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+            start = start ?? Ref.Head;
+
+            var branch = new Ref(branchName);
+            var process = new CommandLine(git.GetExecutableFilePath(), "branch", branch.ToString(), start.ToString()).RunFrom(workingCopy.Root);
+            using (logger?.LogInvocation(process))
+            {
+                process.StdOut.StopBuffering();
+
+                await GitHelpers.ExpectSuccess(process);
+                return branch;
+            }
+        }
+
+        public async Task<Ref> CreateBranchAndCheckout(GitWorkingCopy workingCopy, string branchName, Ref start = null)
+        {
+            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+            start = start ?? Ref.Head;
+
+            var branch = new Ref(branchName);
+            var process = new CommandLine(git.GetExecutableFilePath(), "checkout", "-b", branch.ToString(), start.ToString()).RunFrom(workingCopy.Root);
+            using (logger?.LogInvocation(process))
+            {
+                process.StdOut.StopBuffering();
+
+                await GitHelpers.ExpectSuccess(process);
+                return branch;
+            }
+        }
+
+        public async Task Commit(GitWorkingCopy workingCopy, string message, CommitOptions options = 0)
+        {
+            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+
+            var cmd = new CommandLine(git.GetExecutableFilePath(), "commit", "-m", message);
+            if (options.HasFlag(CommitOptions.AllowEmptyCommit)) cmd.Add("--allow-empty");
+
+            var process = cmd.RunFrom(workingCopy.Root);
+            using (logger?.LogInvocation(process))
+            {
+                process.StdOut.StopBuffering();
+
+                await GitHelpers.ExpectSuccess(process);
+            }
+        }
+
+        public async Task Checkout(GitWorkingCopy workingCopy, Ref @ref)
+        {
+            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+            
+            var process = new CommandLine(git.GetExecutableFilePath(), "checkout", @ref.ToString()).RunFrom(workingCopy.Root);
+            using (logger?.LogInvocation(process))
+            {
+                process.StdOut.StopBuffering();
+
+                await GitHelpers.ExpectSuccess(process);
+            }
+        }
+
+        // TODO: Better API for 'git reset'
+        public async Task Reset(GitWorkingCopy workingCopy, ResetType how, Ref @ref)
+        {
+            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+
+            var option = "--" + how.ToString().ToLower();
+
+            var process = new CommandLine(git.GetExecutableFilePath(), "reset", option, @ref.ToString()).RunFrom(workingCopy.Root);
+            using (logger?.LogInvocation(process))
+            {
+                process.StdOut.StopBuffering();
+
+                await GitHelpers.ExpectSuccess(process);
+            }
+        }
+
+        public async Task Merge(GitWorkingCopy workingCopy, params Ref[] @refs)
+        {
+            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+            
+            var process = new CommandLine(git.GetExecutableFilePath(), "merge").AddList(@refs.Select(r => r.ToString()))
+                .RunFrom(workingCopy.Root);
+
+            using (logger?.LogInvocation(process))
+            {
+                process.StdOut.StopBuffering();
+
+                await GitHelpers.ExpectSuccess(process);
+            }
+        }
+
+        public async Task AbortMerge(GitWorkingCopy workingCopy)
+        {
+            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+
+            var process = new CommandLine(git.GetExecutableFilePath(), "merge", "--abort").RunFrom(workingCopy.Root);
+            using (logger?.LogInvocation(process))
+            {
+                process.StdOut.StopBuffering();
+
+                await GitHelpers.ExpectSuccess(process);
+            }
         }
     }
 }

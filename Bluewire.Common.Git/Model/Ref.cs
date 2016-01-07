@@ -50,5 +50,13 @@ namespace Bluewire.Common.Git.Model
         {
             return refName.GetHashCode();
         }
+
+        public static readonly Ref Head = new Ref("HEAD");
+
+        public static bool IsBuiltIn(Ref @ref)
+        {
+            // Should maybe check if it's a builtin of any sort, rather than just HEAD?
+            return Equals(@ref.ToString(), "HEAD");
+        }
     }
 }

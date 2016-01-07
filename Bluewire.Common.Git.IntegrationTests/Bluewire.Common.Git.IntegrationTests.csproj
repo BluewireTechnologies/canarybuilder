@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="Default.cs" />
     <Compile Include="GitAddTests.cs" />
+    <Compile Include="GitBranchTests.cs" />
     <Compile Include="GitDetectionTests.cs" />
     <Compile Include="GitInitTests.cs" />
     <Compile Include="TestInfrastructure\CleanTemporaryDirectoryWhenCompleteAttribute.cs" />
