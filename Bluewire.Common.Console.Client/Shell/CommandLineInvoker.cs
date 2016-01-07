@@ -22,7 +22,8 @@ namespace Bluewire.Common.Console.Client.Shell
 
         public IConsoleProcess Start(ICommandLine cmd)
         {
-            var info = new ProcessStartInfo(cmd.ProgramPath, cmd.GetQuotedArguments())
+            var sealedCmd = cmd.Seal();
+            var info = new ProcessStartInfo(sealedCmd.ProgramPath, sealedCmd.GetQuotedArguments())
             {
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
@@ -31,7 +32,7 @@ namespace Bluewire.Common.Console.Client.Shell
                 WorkingDirectory = WorkingDirectory
             };
             var process = Process.Start(info);
-            return new ConsoleProcess(cmd, process);
+            return new ConsoleProcess(sealedCmd, process);
         }
         
         class ConsoleProcess : IConsoleProcess

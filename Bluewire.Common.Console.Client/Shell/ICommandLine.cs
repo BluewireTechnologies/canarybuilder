@@ -4,5 +4,6 @@ namespace Bluewire.Common.Console.Client.Shell
     {
         string ProgramPath { get; }
         string GetQuotedArguments();
+        ICommandLine Seal();
     }
 }

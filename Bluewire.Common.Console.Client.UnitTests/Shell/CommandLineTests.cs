@@ -54,5 +54,13 @@ namespace Bluewire.Common.Console.Client.UnitTests.Shell
 
             Assert.That(cmd.ToString(), Is.EqualTo(@"d:\git.exe status"));
         }
+
+        [Test]
+        public void CanUseListInitialiser()
+        {
+            var cmd = new CommandLine(@"d:\git.exe") { "a", "b\"", "c" };
+
+            Assert.That(cmd.GetQuotedArguments(), Is.EqualTo("a \"b\"\"\" c"));
+        }
     }
 }

@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -10,20 +12,34 @@ namespace Bluewire.Common.Console.Client.Shell
     /// <remarks>
     /// Arguments are automatically quoted to retain whitespace, etc.
     /// </remarks>
-    public class CommandLine : ICommandLine
+    public class CommandLine : ICommandLine, IEnumerable
     {
         public CommandLine(string programPath, params string[] arguments)
         {
             ProgramPath = programPath;
-            Arguments = arguments;
+            AddList(arguments);
         }
 
+        public CommandLine Add(string arg)
+        {
+            arguments.Add(arg);
+            return this;
+        }
+
+        public CommandLine AddList(IEnumerable<string> list)
+        {
+            this.arguments.AddRange(list);
+            return this;
+        }
+
+        private readonly List<string> arguments = new List<string>();
+
         public string ProgramPath { get; }
-        public string[] Arguments { get; }
+        public string[] Arguments => arguments.ToArray();
 
         public string GetQuotedArguments()
         {
-            return String.Join(" ", Arguments.Select(Quote));
+            return String.Join(" ", arguments.Select(Quote));
         }
 
         private static readonly Regex rxSimpleArgument = new Regex(@"^[-\w\d/\\:\.]+$", RegexOptions.Compiled);
@@ -39,6 +55,20 @@ namespace Bluewire.Common.Console.Client.Shell
             return $"{Quote(ProgramPath)} {GetQuotedArguments()}";
         }
 
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return arguments.GetEnumerator();
+        }
+
+        /// <summary>
+        /// Creates an immutable copy of this command line.
+        /// </summary>
+        /// <returns></returns>
+        public ICommandLine Seal()
+        {
+            return new CommandLineWithRawArgumentString(ProgramPath, GetQuotedArguments());
+        }
+
         /// <summary>
         /// Create a command line from a raw, pre-quoted argument string. No additional processing of arguments will be
         /// done; the string will be handed directly to the command interpreter.
@@ -49,14 +79,17 @@ namespace Bluewire.Common.Console.Client.Shell
         /// </remarks>
         public static ICommandLine CreateRaw(string programPath, string rawArguments)
         {
-            return new CommandLineWithUnquotedArgumentString(programPath, rawArguments);
+            return new CommandLineWithRawArgumentString(programPath, rawArguments);
         }
 
-        class CommandLineWithUnquotedArgumentString : ICommandLine
+        /// <summary>
+        /// Immutable command line object with a pre-quoted argument string.
+        /// </summary>
+        class CommandLineWithRawArgumentString : ICommandLine
         {
             private readonly string rawArguments;
 
-            public CommandLineWithUnquotedArgumentString(string programPath, string rawArguments)
+            public CommandLineWithRawArgumentString(string programPath, string rawArguments)
             {
                 this.rawArguments = rawArguments;
                 ProgramPath = programPath;
@@ -67,6 +100,11 @@ namespace Bluewire.Common.Console.Client.Shell
             public string GetQuotedArguments()
             {
                 return rawArguments;
+            }
+
+            public ICommandLine Seal()
+            {
+                return this;
             }
 
             public override string ToString()
