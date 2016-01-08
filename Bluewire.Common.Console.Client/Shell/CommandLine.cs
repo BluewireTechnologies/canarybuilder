@@ -22,13 +22,13 @@ namespace Bluewire.Common.Console.Client.Shell
 
         public CommandLine Add(string arg)
         {
-            arguments.Add(arg);
+            if(arg != null) arguments.Add(arg);
             return this;
         }
 
         public CommandLine AddList(IEnumerable<string> list)
         {
-            this.arguments.AddRange(list);
+            foreach (var arg in list) Add(arg);
             return this;
         }
 

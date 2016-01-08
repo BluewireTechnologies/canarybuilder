@@ -30,6 +30,13 @@ namespace Bluewire.Common.Console.Client.UnitTests.Shell
             Assert.That(cmd.GetQuotedArguments(), Is.EqualTo("--word"));
         }
 
+        [Test]
+        public void NullArgumentIsSilentlyIgnored()
+        {
+            var cmd = new CommandLine(@"d:\git.exe", "--word", null, "test");
+
+            Assert.That(cmd.GetQuotedArguments(), Is.EqualTo("--word test"));
+        }
 
         [Test]
         public void CreatesOrderedListFromMultipleArguments()
