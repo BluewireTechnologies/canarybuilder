@@ -197,6 +197,20 @@ namespace Bluewire.Common.Git
             }
         }
 
+        public async Task DeleteBranch(GitWorkingCopy workingCopy, Ref branch, bool force = false)
+        {
+            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+
+            var cmd = new CommandLine(Git.GetExecutableFilePath(), "branch", "--delete", force ? "--force" : null, branch.ToString());
+            var process = cmd.RunFrom(workingCopy.Root);
+            using (logger?.LogInvocation(process))
+            {
+                process.StdOut.StopBuffering();
+
+                await GitHelpers.ExpectSuccess(process);
+            }
+        }
+
         public async Task Commit(GitWorkingCopy workingCopy, string message, CommitOptions options = 0)
         {
             if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
