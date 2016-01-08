@@ -32,7 +32,7 @@ namespace CanaryBuilder.Merge
                 // Run verifier against it.
                 VerifyBase(workingCopy, job, logger);
                 // Create temporary branch from base ref and checkout.
-                await session.CreateBranchAndCheckout(workingCopy, temporaryBranch.ToString());
+                await session.CreateBranchAndCheckout(workingCopy, temporaryBranch);
 
                 // Iterate through merges:
                 foreach (var merge in job.Merges)
@@ -44,7 +44,7 @@ namespace CanaryBuilder.Merge
                 }
                 // Tag, if requested.
                 // Create final branch if requested.
-                if (job.FinalBranch != null) await session.CreateBranch(workingCopy, job.FinalBranch.ToString(), temporaryBranch);
+                if (job.FinalBranch != null) await session.CreateBranch(workingCopy, job.FinalBranch, temporaryBranch);
             }
             finally
             {

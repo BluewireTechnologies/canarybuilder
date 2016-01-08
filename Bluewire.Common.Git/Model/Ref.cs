@@ -33,6 +33,11 @@ namespace Bluewire.Common.Git.Model
             return refName;
         }
 
+        public static implicit operator string(Ref @ref)
+        {
+            return @ref.ToString();
+        }
+
         protected bool Equals(Ref other)
         {
             return string.Equals(refName, other.refName);

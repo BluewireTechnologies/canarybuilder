@@ -40,7 +40,7 @@ namespace Bluewire.Common.Git
         {
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
-            var process = new CommandLine(Git.GetExecutableFilePath(), "rev-list", "-1", @ref.ToString()).RunFrom(workingCopy.Root);
+            var process = new CommandLine(Git.GetExecutableFilePath(), "rev-list", "-1", @ref).RunFrom(workingCopy.Root);
             using (logger?.LogInvocation(process))
             {
                 var refHash = await GitHelpers.ExpectOneLine(process);
@@ -52,7 +52,7 @@ namespace Bluewire.Common.Git
         {
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
-            var process = new CommandLine(Git.GetExecutableFilePath(), "show-ref", "-q", @ref.ToString()).RunFrom(workingCopy.Root);
+            var process = new CommandLine(Git.GetExecutableFilePath(), "show-ref", "-q", @ref).RunFrom(workingCopy.Root);
             using (logger?.LogInvocation(process))
             {
                 var exitCode = await process.Completed;
@@ -171,7 +171,7 @@ namespace Bluewire.Common.Git
             start = start ?? Ref.Head;
 
             var branch = new Ref(branchName);
-            var process = new CommandLine(Git.GetExecutableFilePath(), "branch", branch.ToString(), start.ToString()).RunFrom(workingCopy.Root);
+            var process = new CommandLine(Git.GetExecutableFilePath(), "branch", branch, start).RunFrom(workingCopy.Root);
             using (logger?.LogInvocation(process))
             {
                 process.StdOut.StopBuffering();
@@ -187,7 +187,7 @@ namespace Bluewire.Common.Git
             start = start ?? Ref.Head;
 
             var branch = new Ref(branchName);
-            var process = new CommandLine(Git.GetExecutableFilePath(), "checkout", "-b", branch.ToString(), start.ToString()).RunFrom(workingCopy.Root);
+            var process = new CommandLine(Git.GetExecutableFilePath(), "checkout", "-b", branch, start).RunFrom(workingCopy.Root);
             using (logger?.LogInvocation(process))
             {
                 process.StdOut.StopBuffering();
@@ -201,7 +201,7 @@ namespace Bluewire.Common.Git
         {
             if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
 
-            var cmd = new CommandLine(Git.GetExecutableFilePath(), "branch", "--delete", force ? "--force" : null, branch.ToString());
+            var cmd = new CommandLine(Git.GetExecutableFilePath(), "branch", "--delete", force ? "--force" : null, branch);
             var process = cmd.RunFrom(workingCopy.Root);
             using (logger?.LogInvocation(process))
             {
@@ -231,7 +231,7 @@ namespace Bluewire.Common.Git
         {
             if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
             
-            var process = new CommandLine(Git.GetExecutableFilePath(), "checkout", @ref.ToString()).RunFrom(workingCopy.Root);
+            var process = new CommandLine(Git.GetExecutableFilePath(), "checkout", @ref).RunFrom(workingCopy.Root);
             using (logger?.LogInvocation(process))
             {
                 process.StdOut.StopBuffering();
@@ -247,7 +247,7 @@ namespace Bluewire.Common.Git
 
             var option = "--" + how.ToString().ToLower();
 
-            var process = new CommandLine(Git.GetExecutableFilePath(), "reset", option, @ref.ToString()).RunFrom(workingCopy.Root);
+            var process = new CommandLine(Git.GetExecutableFilePath(), "reset", option, @ref).RunFrom(workingCopy.Root);
             using (logger?.LogInvocation(process))
             {
                 process.StdOut.StopBuffering();
