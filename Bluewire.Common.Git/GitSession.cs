@@ -181,6 +181,62 @@ namespace Bluewire.Common.Git
             }
         }
 
+        public async Task<Ref> CreateTag(GitWorkingCopy workingCopy, string tagName, Ref tagLocation, string message, bool force = false)
+        {
+            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+            if (tagLocation == null) throw new ArgumentNullException(nameof(tagLocation));
+            if (message == null) throw new ArgumentNullException(nameof(message));
+
+            var tag = new Ref(tagName);
+            var cmd = new CommandLine(Git.GetExecutableFilePath(), "tag", tag,
+                force ? "--force" : null,
+                "--message", message,
+                tagLocation);
+            var process = cmd.RunFrom(workingCopy.Root);
+            using (logger?.LogInvocation(process))
+            {
+                process.StdOut.StopBuffering();
+
+                await GitHelpers.ExpectSuccess(process);
+                return tag;
+            }
+        }
+
+        public async Task<Ref> CreateAnnotatedTag(GitWorkingCopy workingCopy, string tagName, Ref tagLocation, string message, bool force = false)
+        {
+            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+            if (tagLocation == null) throw new ArgumentNullException(nameof(tagLocation));
+            if (message == null) throw new ArgumentNullException(nameof(message));
+
+            var tag = new Ref(tagName);
+            var cmd = new CommandLine(Git.GetExecutableFilePath(), "tag", "--annotate", tag,
+                force ? "--force" : null,
+                "--message", message,
+                tagLocation);
+            var process = cmd.RunFrom(workingCopy.Root);
+            using (logger?.LogInvocation(process))
+            {
+                process.StdOut.StopBuffering();
+
+                await GitHelpers.ExpectSuccess(process);
+                return tag;
+            }
+        }
+
+        public async Task<Ref> DeleteTag(GitWorkingCopy workingCopy, Ref tag)
+        {
+            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+
+            var process = new CommandLine(Git.GetExecutableFilePath(), "tag", "--delete", tag).RunFrom(workingCopy.Root);
+            using (logger?.LogInvocation(process))
+            {
+                process.StdOut.StopBuffering();
+
+                await GitHelpers.ExpectSuccess(process);
+                return tag;
+            }
+        }
+
         public async Task<Ref> CreateBranchAndCheckout(GitWorkingCopy workingCopy, string branchName, Ref start = null)
         {
             if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
