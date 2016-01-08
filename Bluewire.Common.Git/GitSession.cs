@@ -116,6 +116,7 @@ namespace Bluewire.Common.Git
             using (logger?.LogInvocation(process))
             {
                 var statusEntries = process.StdOut.Select(l => parser.ParseOrNull(l)).ToArray().ToTask();
+                process.StdOut.StopBuffering();
                 await GitHelpers.ExpectSuccess(process);
                 WaitForCompletion(statusEntries);
                 if(parser.Errors.Any())
