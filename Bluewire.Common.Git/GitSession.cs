@@ -15,7 +15,7 @@ namespace Bluewire.Common.Git
     {
         public Git Git { get; }
         private readonly IConsoleInvocationLogger logger;
-        
+
         public GitSession(Git git, IConsoleInvocationLogger logger = null)
         {
             this.Git = git;
@@ -110,13 +110,7 @@ namespace Bluewire.Common.Git
             if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
             if (!File.Exists(workingCopy.Path(relativePath))) throw new FileNotFoundException($"File does not exist: {relativePath}", workingCopy.Path(relativePath));
 
-            var process = new CommandLine(Git.GetExecutableFilePath(), "add", relativePath).RunFrom(workingCopy.Root);
-            using (logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
-
-                await GitHelpers.ExpectSuccess(process);
-            }
+            await RunSimpleCommand(workingCopy, "add", relativePath);
         }
 
         public async Task<GitStatusEntry[]> Status(GitWorkingCopy workingCopy)
@@ -131,7 +125,7 @@ namespace Bluewire.Common.Git
                 process.StdOut.StopBuffering();
                 await GitHelpers.ExpectSuccess(process);
                 WaitForCompletion(statusEntries);
-                if(parser.Errors.Any())
+                if (parser.Errors.Any())
                 {
                     throw new UnexpectedGitOutputFormatException(process.CommandLine, parser.Errors.ToArray());
                 }
@@ -141,7 +135,7 @@ namespace Bluewire.Common.Git
 
         private static void WaitForCompletion(Task t)
         {
-            if(t.IsCompleted) return;
+            if (t.IsCompleted) return;
             var asyncResult = (IAsyncResult)t;
             asyncResult.AsyncWaitHandle.WaitOne();
         }
@@ -149,7 +143,7 @@ namespace Bluewire.Common.Git
         public async Task<Ref[]> ListBranches(GitWorkingCopy workingCopy)
         {
             if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
-            
+
             var process = new CommandLine(Git.GetExecutableFilePath(), "branch", "--list").RunFrom(workingCopy.Root);
             using (logger?.LogInvocation(process))
             {
@@ -167,172 +161,112 @@ namespace Bluewire.Common.Git
 
         public async Task<Ref> CreateBranch(GitWorkingCopy workingCopy, string branchName, Ref start = null)
         {
-            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
-            start = start ?? Ref.Head;
-
             var branch = new Ref(branchName);
-            var process = new CommandLine(Git.GetExecutableFilePath(), "branch", branch, start).RunFrom(workingCopy.Root);
-            using (logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
-
-                await GitHelpers.ExpectSuccess(process);
-                return branch;
-            }
+            await RunSimpleCommand(workingCopy, "branch", branch, start ?? Ref.Head);
+            return branch;
         }
 
         public async Task<Ref> CreateTag(GitWorkingCopy workingCopy, string tagName, Ref tagLocation, string message, bool force = false)
         {
-            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
             if (tagLocation == null) throw new ArgumentNullException(nameof(tagLocation));
             if (message == null) throw new ArgumentNullException(nameof(message));
 
             var tag = new Ref(tagName);
-            var cmd = new CommandLine(Git.GetExecutableFilePath(), "tag", tag,
+            await RunSimpleCommand(workingCopy, "tag", tag,
                 force ? "--force" : null,
                 "--message", message,
                 tagLocation);
-            var process = cmd.RunFrom(workingCopy.Root);
-            using (logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
 
-                await GitHelpers.ExpectSuccess(process);
-                return tag;
-            }
+            return tag;
         }
 
         public async Task<Ref> CreateAnnotatedTag(GitWorkingCopy workingCopy, string tagName, Ref tagLocation, string message, bool force = false)
         {
-            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
             if (tagLocation == null) throw new ArgumentNullException(nameof(tagLocation));
             if (message == null) throw new ArgumentNullException(nameof(message));
 
             var tag = new Ref(tagName);
-            var cmd = new CommandLine(Git.GetExecutableFilePath(), "tag", "--annotate", tag,
+            await RunSimpleCommand(workingCopy, "tag", "--annotate", tag,
                 force ? "--force" : null,
                 "--message", message,
                 tagLocation);
-            var process = cmd.RunFrom(workingCopy.Root);
-            using (logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
 
-                await GitHelpers.ExpectSuccess(process);
-                return tag;
-            }
+            return tag;
         }
 
-        public async Task<Ref> DeleteTag(GitWorkingCopy workingCopy, Ref tag)
+        public async Task DeleteTag(GitWorkingCopy workingCopy, Ref tag)
         {
-            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
-
-            var process = new CommandLine(Git.GetExecutableFilePath(), "tag", "--delete", tag).RunFrom(workingCopy.Root);
-            using (logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
-
-                await GitHelpers.ExpectSuccess(process);
-                return tag;
-            }
+            await RunSimpleCommand(workingCopy, "tag", "--delete", tag);
         }
 
         public async Task<Ref> CreateBranchAndCheckout(GitWorkingCopy workingCopy, string branchName, Ref start = null)
         {
-            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
-            start = start ?? Ref.Head;
-
             var branch = new Ref(branchName);
-            var process = new CommandLine(Git.GetExecutableFilePath(), "checkout", "-b", branch, start).RunFrom(workingCopy.Root);
-            using (logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
-
-                await GitHelpers.ExpectSuccess(process);
-                return branch;
-            }
+            await RunSimpleCommand(workingCopy, "checkout", "-b", branch, start ?? Ref.Head);
+            return branch;
         }
 
         public async Task DeleteBranch(GitWorkingCopy workingCopy, Ref branch, bool force = false)
         {
-            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
-
-            var cmd = new CommandLine(Git.GetExecutableFilePath(), "branch", "--delete", force ? "--force" : null, branch);
-            var process = cmd.RunFrom(workingCopy.Root);
-            using (logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
-
-                await GitHelpers.ExpectSuccess(process);
-            }
+            await RunSimpleCommand(workingCopy, "branch", "--delete", force ? "--force" : null, branch);
         }
 
         public async Task Commit(GitWorkingCopy workingCopy, string message, CommitOptions options = 0)
         {
-            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
-
-            var cmd = new CommandLine(Git.GetExecutableFilePath(), "commit",
+            await RunSimpleCommand(workingCopy, "commit",
                 options.HasFlag(CommitOptions.AllowEmptyCommit) ? "--allow-empty" : null,
                  "--message", message);
-
-            var process = cmd.RunFrom(workingCopy.Root);
-            using (logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
-
-                await GitHelpers.ExpectSuccess(process);
-            }
         }
 
         public async Task Checkout(GitWorkingCopy workingCopy, Ref @ref)
         {
-            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
-            
-            var process = new CommandLine(Git.GetExecutableFilePath(), "checkout", @ref).RunFrom(workingCopy.Root);
-            using (logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
-
-                await GitHelpers.ExpectSuccess(process);
-            }
+            await RunSimpleCommand(workingCopy, "checkout", @ref);
         }
 
         // TODO: Better API for 'git reset'
         public async Task Reset(GitWorkingCopy workingCopy, ResetType how, Ref @ref)
         {
-            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
-
             var option = "--" + how.ToString().ToLower();
 
-            var process = new CommandLine(Git.GetExecutableFilePath(), "reset", option, @ref).RunFrom(workingCopy.Root);
-            using (logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
-
-                await GitHelpers.ExpectSuccess(process);
-            }
+            await RunSimpleCommand(workingCopy, "reset", option, @ref);
         }
 
         public async Task Merge(GitWorkingCopy workingCopy, params Ref[] @refs)
         {
-            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
-            
-            var process = new CommandLine(Git.GetExecutableFilePath(), "merge").AddList(@refs.Select(r => r.ToString()))
-                .RunFrom(workingCopy.Root);
-
-            using (logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
-
-                await GitHelpers.ExpectSuccess(process);
-            }
+            await RunSimpleCommand(workingCopy, "merge", c => c.AddList(@refs.Select(r => r.ToString())));
         }
 
         public async Task AbortMerge(GitWorkingCopy workingCopy)
         {
+            await RunSimpleCommand(workingCopy, "merge", "--abort");
+        }
+
+        /// <summary>
+        /// Helper method. Runs a command which is expected to simply succeed or fail. Output is ignored.
+        /// </summary>
+        /// <param name="workingCopy"></param>
+        /// <param name="gitCommand"></param>
+        /// <param name="arguments"></param>
+        /// <returns></returns>
+        private Task RunSimpleCommand(GitWorkingCopy workingCopy, string gitCommand, params string[] arguments)
+        {
+            return RunSimpleCommand(workingCopy, gitCommand, c => c.Add(arguments));
+        }
+
+        /// <summary>
+        /// Helper method. Runs a command which is expected to simply succeed or fail. Output is ignored.
+        /// </summary>
+        /// <param name="workingCopy"></param>
+        /// <param name="gitCommand"></param>
+        /// <param name="prepareCommand"></param>
+        /// <returns></returns>
+        private async Task RunSimpleCommand(GitWorkingCopy workingCopy, string gitCommand, Action<CommandLine> prepareCommand)
+        {
             if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
 
-            var process = new CommandLine(Git.GetExecutableFilePath(), "merge", "--abort").RunFrom(workingCopy.Root);
+            var cmd = new CommandLine(Git.GetExecutableFilePath(), gitCommand);
+            prepareCommand(cmd);
+            var process = cmd.RunFrom(workingCopy.Root);
             using (logger?.LogInvocation(process))
             {
                 process.StdOut.StopBuffering();
