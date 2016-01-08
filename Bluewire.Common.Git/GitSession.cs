@@ -40,7 +40,7 @@ namespace Bluewire.Common.Git
         {
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
-            var process = new CommandLine(Git.GetExecutableFilePath(), "rev-list", "-1", @ref).RunFrom(workingCopy.Root);
+            var process = new CommandLine(Git.GetExecutableFilePath(), "rev-list", "--max-count=1", @ref).RunFrom(workingCopy.Root);
             using (logger?.LogInvocation(process))
             {
                 var refHash = await GitHelpers.ExpectOneLine(process);
@@ -52,7 +52,7 @@ namespace Bluewire.Common.Git
         {
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
-            var process = new CommandLine(Git.GetExecutableFilePath(), "show-ref", "-q", @ref).RunFrom(workingCopy.Root);
+            var process = new CommandLine(Git.GetExecutableFilePath(), "show-ref", "--quiet", @ref).RunFrom(workingCopy.Root);
             using (logger?.LogInvocation(process))
             {
                 var exitCode = await process.Completed;
@@ -215,8 +215,9 @@ namespace Bluewire.Common.Git
         {
             if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
 
-            var cmd = new CommandLine(Git.GetExecutableFilePath(), "commit", "-m", message);
-            if (options.HasFlag(CommitOptions.AllowEmptyCommit)) cmd.Add("--allow-empty");
+            var cmd = new CommandLine(Git.GetExecutableFilePath(), "commit",
+                options.HasFlag(CommitOptions.AllowEmptyCommit) ? "--allow-empty" : null,
+                 "--message", message);
 
             var process = cmd.RunFrom(workingCopy.Root);
             using (logger?.LogInvocation(process))
