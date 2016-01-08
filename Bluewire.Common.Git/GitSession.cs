@@ -48,6 +48,18 @@ namespace Bluewire.Common.Git
             }
         }
 
+        public async Task<bool> RefExists(GitWorkingCopy workingCopy, Ref @ref)
+        {
+            if (@ref == null) throw new ArgumentNullException(nameof(@ref));
+
+            var process = new CommandLine(Git.GetExecutableFilePath(), "show-ref", "-q", @ref.ToString()).RunFrom(workingCopy.Root);
+            using (logger?.LogInvocation(process))
+            {
+                var exitCode = await process.Completed;
+                return exitCode == 0;
+            }
+        }
+
         public async Task<bool> AreRefsEquivalent(GitWorkingCopy workingCopy, Ref a, Ref b)
         {
             var resolvedA = await ResolveRef(workingCopy, a);

@@ -65,5 +65,29 @@ namespace Bluewire.Common.Git.IntegrationTests
             Assert.That(await session.GetCurrentBranch(workingCopy), Is.EqualTo(branch));
             Assert.That(await session.AreRefsEquivalent(workingCopy, Ref.Head, firstCommit), Is.True);
         }
+
+        [Test]
+        public async Task CanDetectExistingBranchRef()
+        {
+            var session = await Default.GitSession();
+
+            var workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
+            await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
+
+            var branch = await session.CreateBranch(workingCopy, "new-branch");
+
+            Assert.That(await session.RefExists(workingCopy, branch), Is.True);
+        }
+
+        [Test]
+        public async Task CanDetectNotExistingBranchRef()
+        {
+            var session = await Default.GitSession();
+
+            var workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
+            await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
+
+            Assert.That(await session.RefExists(workingCopy, new Ref("does-not-exist")), Is.False);
+        }
     }
 }
