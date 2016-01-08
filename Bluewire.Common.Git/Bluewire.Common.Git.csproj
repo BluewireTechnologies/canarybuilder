@@ -76,10 +76,8 @@
     <Compile Include="UnexpectedGitOutputFormatException.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="README.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Bluewire.Common.Console.Client\Bluewire.Common.Console.Client.csproj">
