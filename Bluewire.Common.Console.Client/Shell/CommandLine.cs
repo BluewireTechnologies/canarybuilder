@@ -20,12 +20,15 @@ namespace Bluewire.Common.Console.Client.Shell
             AddList(arguments);
         }
 
-        public CommandLine Add(string arg)
+        public CommandLine Add(params string[] list)
         {
-            if(arg != null) arguments.Add(arg);
+            foreach (var arg in list)
+            {
+                if (arg != null) arguments.Add(arg);
+            }
             return this;
         }
-
+        
         public CommandLine AddList(IEnumerable<string> list)
         {
             foreach (var arg in list) Add(arg);
