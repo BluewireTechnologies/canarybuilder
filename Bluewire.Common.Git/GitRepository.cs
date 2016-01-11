@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace Bluewire.Common.Git
 {
@@ -13,6 +14,12 @@ namespace Bluewire.Common.Git
         {
             this.gitDirPath = gitDirPath;
             if (!Directory.Exists(gitDirPath)) throw new DirectoryNotFoundException($"Repository not found: {gitDirPath}");
+        }
+        
+        public string Path(string relativePath)
+        {
+            if (relativePath == null) throw new ArgumentNullException(nameof(relativePath));
+            return System.IO.Path.Combine(gitDirPath, relativePath);
         }
     }
 }
