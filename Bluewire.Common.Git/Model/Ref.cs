@@ -48,7 +48,7 @@ namespace Bluewire.Common.Git.Model
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((Ref) obj);
+            return Equals((Ref)obj);
         }
 
         public override int GetHashCode()

@@ -68,6 +68,7 @@
     <Compile Include="Model\GitStatusEntry.cs" />
     <Compile Include="Model\IndexState.cs" />
     <Compile Include="Model\Ref.cs" />
+    <Compile Include="Model\RefExtensions.cs" />
     <Compile Include="Model\WorkTreeState.cs" />
     <Compile Include="Parsing\GitStatusParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

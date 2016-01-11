@@ -223,6 +223,18 @@ namespace Bluewire.Common.Git
             await RunSimpleCommand(workingCopy, "checkout", @ref);
         }
 
+        public async Task CheckoutCompletelyClean(GitWorkingCopy workingCopy, Ref @ref = null)
+        {
+            await RunSimpleCommand(workingCopy, "checkout", "--force", @ref);
+            await RunSimpleCommand(workingCopy, "clean", "--force", "-xd", @ref);
+        }
+
+        public async Task ResetCompletelyClean(GitWorkingCopy workingCopy, Ref @ref = null)
+        {
+            await RunSimpleCommand(workingCopy, "reset", "--hard", @ref);
+            await RunSimpleCommand(workingCopy, "clean", "--force", "-xd", @ref);
+        }
+
         // TODO: Better API for 'git reset'
         public async Task Reset(GitWorkingCopy workingCopy, ResetType how, Ref @ref)
         {
