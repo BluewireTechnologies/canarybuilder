@@ -25,7 +25,7 @@ namespace Bluewire.Common.Git
         public async Task<Ref> GetCurrentBranch(GitWorkingCopy workingCopy)
         {
             var process = new CommandLine(Git.GetExecutableFilePath(), "rev-parse", "--abbrev-ref", "HEAD").RunFrom(workingCopy.Root);
-            using (logger?.LogInvocation(process))
+            using (logger?.LogMinorInvocation(process))
             {
                 var currentBranchName = await GitHelpers.ExpectOneLine(process);
                 var currentBranch = new Ref(currentBranchName);
@@ -41,7 +41,7 @@ namespace Bluewire.Common.Git
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
             var process = new CommandLine(Git.GetExecutableFilePath(), "rev-list", "--max-count=1", @ref).RunFrom(workingCopy.Root);
-            using (logger?.LogInvocation(process))
+            using (logger?.LogMinorInvocation(process))
             {
                 var refHash = await GitHelpers.ExpectOneLine(process);
                 return new Ref(refHash);
@@ -53,7 +53,7 @@ namespace Bluewire.Common.Git
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
             var process = new CommandLine(Git.GetExecutableFilePath(), "show-ref", "--quiet", @ref).RunFrom(workingCopy.Root);
-            using (logger?.LogInvocation(process))
+            using (logger?.LogMinorInvocation(process))
             {
                 var exitCode = await process.Completed;
                 return exitCode == 0;
@@ -70,7 +70,7 @@ namespace Bluewire.Common.Git
         public async Task<bool> IsClean(GitWorkingCopy workingCopy)
         {
             var process = new CommandLine(Git.GetExecutableFilePath(), "status", "--porcelain").RunFrom(workingCopy.Root);
-            using (logger?.LogInvocation(process))
+            using (logger?.LogMinorInvocation(process))
             {
                 var isEmpty = process.StdOut.IsEmpty().ToTask();
                 process.StdOut.StopBuffering();

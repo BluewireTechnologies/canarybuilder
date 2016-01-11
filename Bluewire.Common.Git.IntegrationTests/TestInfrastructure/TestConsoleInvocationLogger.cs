@@ -36,5 +36,10 @@ namespace Bluewire.Common.Git.IntegrationTests.TestInfrastructure
 
             return stdout.Merge(stderr).Subscribe(logger);
         }
+
+        public IDisposable LogMinorInvocation(IConsoleProcess process)
+        {
+            return LogInvocation(process);
+        }
     }
 }

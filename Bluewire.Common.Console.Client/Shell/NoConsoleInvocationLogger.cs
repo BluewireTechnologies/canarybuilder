@@ -9,5 +9,10 @@ namespace Bluewire.Common.Console.Client.Shell
         {
             return Disposable.Empty;
         }
+
+        public IDisposable LogMinorInvocation(IConsoleProcess process)
+        {
+            return Disposable.Empty;
+        }
     }
 }
