@@ -17,7 +17,7 @@ namespace Bluewire.Common.Git.IntegrationTests.TestInfrastructure
         
         public void AfterTest(ITest test)
         {
-            var temporaryPath = TemporaryDirectoryForTest.Get(TestContext.CurrentContext);
+            var temporaryPath = TemporaryDirectoryForTest.Get(test.Properties);
             if (temporaryPath == null) return;
             if (!Directory.Exists(temporaryPath)) return;
             if (TestContext.CurrentContext.Result.Outcome == ResultState.Success)
