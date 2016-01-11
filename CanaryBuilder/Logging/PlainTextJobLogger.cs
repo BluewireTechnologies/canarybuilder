@@ -4,6 +4,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Bluewire.Common.Console.Client.Shell;
+using Bluewire.Common.Git;
 
 namespace CanaryBuilder.Logging
 {
@@ -42,38 +43,15 @@ namespace CanaryBuilder.Logging
                 case Type.Invocation:
                     output.WriteLine($"{indent} [SHELL]   {entry.Line}", ConsoleColor.White);
                     return;
+                case Type.ExitCode:
+                    output.WriteLine($"{indent} [SHELL] Exit code: {entry.Line}", entry.Line == "0" ? ConsoleColor.White : ConsoleColor.Yellow);
+                    return;
                 case Type.BeginScope:
                     output.WriteLine($"{indent} [BEGIN]   {entry.Line}", ConsoleColor.Cyan);
                     return;
             }
         }
         
-        private static string FormatEntryType(Entry entry)
-        {
-            switch (entry.Type)
-            {
-                case Type.StdOut:    return "[STDOUT]";
-                case Type.StdErr:    return "[STDERR]";
-                case Type.Info:      return "[INFO]";
-                case Type.Warning:   return "[WARN]";
-                case Type.Error:     return "[ERROR]";
-                case Type.Invocation: return "[SHELL]";
-                case Type.BeginScope: return "[BEGIN]";
-                case Type.EndScope:  return "[END]";
-            }
-            return "      ";
-        }
-
-        private string FormatEntry(Entry entry)
-        {
-            return String.Concat(
-                new String(' ', entry.Level),
-                " ",
-                FormatEntryType(entry).PadRight(8, ' '),
-                "  ",
-                entry.Line);
-        }
-
         public void Info(string message)
         {
             Write(new Entry { Line = $"{message}", Type = Type.Info, Level = indentLevel });
@@ -102,7 +80,7 @@ namespace CanaryBuilder.Logging
         }
 
         public IDisposable LogInvocation(IConsoleProcess process)
-        {   
+        {
             Write(new Entry { Line = $"{process.CommandLine}", Type = Type.Invocation, Level = indentLevel });
             var scopeIndent = indentLevel + 1;
             var stdout = process.StdOut.Select(l => new Entry { Line = l, Type = Type.StdOut, Level = scopeIndent });
@@ -110,7 +88,12 @@ namespace CanaryBuilder.Logging
 
             var logger = Observer.Create<Entry>(Write);
 
-            return stdout.Merge(stderr).Subscribe(logger);
+            var subscription = stdout.Merge(stderr).Subscribe(logger);
+            return Disposable.Create(() => {
+                var exitCode = process.Completed.Result;
+                Write(new Entry { Line = $"{exitCode}", Type = Type.ExitCode, Level = scopeIndent });
+                subscription.Dispose();
+            });
         }
 
         class Entry
@@ -128,6 +111,7 @@ namespace CanaryBuilder.Logging
             Warning,
             Error,
             Invocation,
+            ExitCode,
             BeginScope,
             EndScope
         }

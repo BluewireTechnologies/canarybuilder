@@ -68,14 +68,11 @@ namespace CanaryBuilder.IntegrationTests.Merge
         }
 
         [Test]
-        public async Task UnsuccessfulMerge_IsSkipped()
+        public async Task SuccessfulJobWithMerges_DoesNotMoveBase()
         {
-            await session.CreateBranchAndCheckout(workingCopy, "input-branch");
-            await WriteFileAndCommit("conflict.txt", "Add file on input-branch");
-
-            await session.Checkout(workingCopy, new Ref("master"));
-            await WriteFileAndCommit("conflict.txt", "Add file on master");
             var initialMaster = await session.ResolveRef(workingCopy, Ref.Head);
+            await session.CreateBranchAndCheckout(workingCopy, "input-branch");
+            await session.Commit(workingCopy, "Branch comit", CommitOptions.AllowEmptyCommit);
 
             var jobDefinition = new MergeJobDefinition
             {
@@ -89,7 +86,49 @@ namespace CanaryBuilder.IntegrationTests.Merge
             await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
 
             Assert.That(await session.RefExists(workingCopy, jobDefinition.FinalBranch));
-            Assert.That(await session.AreRefsEquivalent(workingCopy, initialMaster, jobDefinition.FinalBranch), Is.True);
+            Assert.That(await session.AreRefsEquivalent(workingCopy, jobDefinition.Base, initialMaster), Is.True);
+        }
+
+        [Test]
+        public async Task UnsuccessfulMerge_IsSkipped()
+        {
+            await session.CreateBranchAndCheckout(workingCopy, "input-branch");
+            await WriteFileAndCommit("conflict.txt", "Add file on input-branch");
+
+            await session.Checkout(workingCopy, new Ref("master"));
+            await WriteFileAndCommit("conflict.txt", "Add file on master");
+
+            var jobDefinition = new MergeJobDefinition
+            {
+                Base = new Ref("master"),
+                Merges = {
+                    new MergeCandidate(new Ref("input-branch"))
+                },
+                FinalBranch = new Ref("test-branch")
+            };
+
+            await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
+
+            Assert.That(await session.RefExists(workingCopy, jobDefinition.FinalBranch));
+            Assert.That(await session.AreRefsEquivalent(workingCopy, new Ref("master"), jobDefinition.FinalBranch), Is.True);
+        }
+
+        [Test]
+        public async Task MergeOfNonexistentRef_IsSkipped()
+        {
+            var jobDefinition = new MergeJobDefinition
+            {
+                Base = new Ref("master"),
+                Merges = {
+                    new MergeCandidate(new Ref("does-not-exist"))
+                },
+                FinalBranch = new Ref("test-branch")
+            };
+
+            await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
+
+            Assert.That(await session.RefExists(workingCopy, jobDefinition.FinalBranch));
+            Assert.That(await session.AreRefsEquivalent(workingCopy, new Ref("master"), jobDefinition.FinalBranch), Is.True);
         }
 
         private async Task WriteFileAndCommit(string relativePath, string content)

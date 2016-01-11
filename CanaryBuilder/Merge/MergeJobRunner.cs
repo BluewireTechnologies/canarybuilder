@@ -83,7 +83,7 @@ namespace CanaryBuilder.Merge
             }
             catch
             {
-                await session.AbortMerge(workingCopy);
+                if(workingCopy.IsMerging) await session.AbortMerge(workingCopy);
                 return false;
             }
 
