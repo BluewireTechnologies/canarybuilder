@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using Bluewire.Common.Console.Client.Shell;
@@ -54,9 +55,17 @@ namespace Bluewire.Common.Console.Client.UnitTests.Shell
         public async Task KillingProcessSetsCompleted()
         {
             var invoker = new CommandLineInvoker();
-            
             var process = invoker.Start(new CommandLine(Cmd.GetExecutableFilePath(), "/C", "pause"));
-            process.Kill();
+
+            try
+            {
+                process.Kill();
+            }
+            catch (Win32Exception ex) when (ex.Message == "Access is denied")
+            {
+                Assert.Inconclusive($"Kill() threw an exception: {ex}");
+            }
+
             var exitCode = await process.Completed;
 
             Assert.That(exitCode, Is.EqualTo(-1));
