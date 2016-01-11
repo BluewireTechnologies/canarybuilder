@@ -55,13 +55,13 @@ namespace CanaryBuilder.Merge
             {
                 // Checkout starting branch, ensuring that working copy is left clean.
                 await session.CheckoutCompletelyClean(workingCopy, startingBranch);
-                // Delete temporary branch.
-                if (await session.RefExists(workingCopy, temporaryBranch))
-                {
-                    await session.DeleteBranch(workingCopy, temporaryBranch);
-                }
-
+                
                 await AssertCleanWorkingCopy(session, workingCopy);
+            }
+            // Delete temporary branch if we exited normally.
+            if (await session.RefExists(workingCopy, temporaryBranch))
+            {
+                await session.DeleteBranch(workingCopy, temporaryBranch, true);
             }
         }
 
@@ -82,7 +82,7 @@ namespace CanaryBuilder.Merge
             try
             {
                 // * Try merge. If fails, abort this one and continue with next.
-                await session.Merge(workingCopy, candidate.Ref);
+                await session.Merge(workingCopy, new MergeOptions { FastForward = MergeFastForward.Never }, candidate.Ref);
             }
             catch
             {

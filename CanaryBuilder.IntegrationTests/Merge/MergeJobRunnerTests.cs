@@ -154,6 +154,25 @@ namespace CanaryBuilder.IntegrationTests.Merge
         }
 
         [Test]
+        public async Task MergeIsNotFastForward()
+        {
+            await session.CreateBranchAndCheckout(workingCopy, "input-branch");
+            await session.Commit(workingCopy, "Branch comit", CommitOptions.AllowEmptyCommit);
+
+            var jobDefinition = new MergeJobDefinition
+            {
+                Base = new Ref("master"),
+                Merges = {
+                    new MergeCandidate(new Ref("input-branch"))
+                },
+                FinalBranch = new Ref("test-branch")
+            };
+
+            await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
+            
+            Assert.That(await session.AreRefsEquivalent(workingCopy, jobDefinition.FinalBranch, new Ref("input-branch")), Is.False);
+        }
+        [Test]
         public async Task MergeOfNonexistentRef_IsSkipped()
         {
             var jobDefinition = new MergeJobDefinition
@@ -169,6 +188,51 @@ namespace CanaryBuilder.IntegrationTests.Merge
 
             Assert.That(await session.RefExists(workingCopy, jobDefinition.FinalBranch));
             Assert.That(await session.AreRefsEquivalent(workingCopy, new Ref("master"), jobDefinition.FinalBranch), Is.True);
+        }
+
+        [Test]
+        public async Task JobWithSuccessfulMerge_DeletesTemporaryBranch()
+        {
+            await session.CreateBranchAndCheckout(workingCopy, "input-branch");
+            await WriteFileAndCommit("new-file.txt", "Content");
+
+            var jobDefinition = new MergeJobDefinition
+            {
+                Base = new Ref("master"),
+                TemporaryBranch = new Ref("temp-branch"),
+                Merges = {
+                    new MergeCandidate(new Ref("input-branch"))
+                },
+                FinalBranch = new Ref("test-branch")
+            };
+
+            await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
+            
+            Assert.That(await session.RefExists(workingCopy, jobDefinition.TemporaryBranch), Is.False);
+        }
+
+        [Test]
+        public async Task JobWithFailedMerge_DeletesTemporaryBranch()
+        {
+            await session.CreateBranchAndCheckout(workingCopy, "input-branch");
+            await WriteFileAndCommit("conflict.txt", "Add file on input-branch");
+
+            await session.Checkout(workingCopy, new Ref("master"));
+            await WriteFileAndCommit("conflict.txt", "Add file on master");
+
+            var jobDefinition = new MergeJobDefinition
+            {
+                Base = new Ref("master"),
+                TemporaryBranch = new Ref("temp-branch"),
+                Merges = {
+                    new MergeCandidate(new Ref("input-branch"))
+                },
+                FinalBranch = new Ref("test-branch")
+            };
+
+            await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
+
+            Assert.That(await session.RefExists(workingCopy, jobDefinition.TemporaryBranch), Is.False);
         }
 
         private async Task WriteFileAndCommit(string relativePath, string content)
