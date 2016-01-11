@@ -27,9 +27,14 @@ namespace CanaryBuilder.Logging
             Write(indentLevel, "INFO", message);
         }
 
-        public void Warn(string message)
+        public void Warn(string message, Exception exception)
         {
             Write(indentLevel, "WARN", message, ConsoleColor.Yellow);
+        }
+
+        public void Warn(Exception exception)
+        {
+            Write(indentLevel, "WARN", exception.Message, ConsoleColor.Yellow);
         }
 
         public void Error(string message, Exception exception)

@@ -30,10 +30,12 @@ namespace CanaryBuilder.Merge
             var temporaryBranch = job.TemporaryBranch ?? new Ref($"temp/canary/{Path.GetRandomFileName()}");
             try
             {
+                logger.Info($"Starting at {job.Base}");
                 // Checkout base ref.
                 await session.CheckoutCompletelyClean(workingCopy, job.Base);
                 // Run verifier against it.
                 VerifyBase(workingCopy, job, logger);
+                logger.Info($"Using temporary branch {temporaryBranch}");
                 // Create temporary branch from base ref and checkout.
                 await session.CreateBranchAndCheckout(workingCopy, temporaryBranch);
 
@@ -47,9 +49,17 @@ namespace CanaryBuilder.Merge
                     await AssertCleanWorkingCopy(session, workingCopy);
                 }
                 // Tag, if requested.
-                if (job.FinalTag != null) await session.CreateAnnotatedTag(workingCopy, job.FinalTag, temporaryBranch, $"CanaryBuilder: {successful} merged of {job.Merges.Count}");
+                if (job.FinalTag != null)
+                {
+                    logger.Info($"Tagging the result as {job.FinalTag}");
+                    await session.CreateAnnotatedTag(workingCopy, job.FinalTag, temporaryBranch, $"CanaryBuilder: {successful} merged of {job.Merges.Count}");
+                }
                 // Create final branch if requested.
-                if (job.FinalBranch != null) await session.CreateBranch(workingCopy, job.FinalBranch, temporaryBranch);
+                if (job.FinalBranch != null)
+                {
+                    logger.Info($"Branching the result as {job.FinalBranch}");
+                    await session.CreateBranch(workingCopy, job.FinalBranch, temporaryBranch);
+                }
             }
             finally
             {
@@ -79,27 +89,40 @@ namespace CanaryBuilder.Merge
         /// <returns></returns>
         private async Task<bool> TryMerge(GitSession session, GitWorkingCopy workingCopy, MergeCandidate candidate, IJobLogger logger)
         {
+            logger.Info($"Attempting to merge {candidate.Ref}");
             try
             {
                 // * Try merge. If fails, abort this one and continue with next.
                 await session.Merge(workingCopy, new MergeOptions { FastForward = MergeFastForward.Never }, candidate.Ref);
+                logger.Info($"Cleanly merged {candidate.Ref}");
             }
-            catch
+            catch(Exception ex)
             {
-                if(workingCopy.IsMerging) await session.AbortMerge(workingCopy);
+                if (workingCopy.IsMerging)
+                {
+                    logger.Warn($"Unable to cleanly merge {candidate.Ref}. It will be rolled back.", ex);
+                    await session.AbortMerge(workingCopy);
+                }
+                else
+                {
+                    logger.Warn($"Unable to merge {candidate.Ref}.");
+                }
                 return false;
             }
 
             try
             {
+                logger.Info($"Verifying merge of {candidate.Ref}");
                 // * Apply verifier. If fails, undo merge and continue with next.
                 VerifyMerge(workingCopy, candidate, logger);
             }
-            catch
+            catch(Exception ex)
             {
+                logger.Warn($"Post-merge verification of {candidate.Ref} failed. It will be rolled back.", ex);
                 await session.ResetCompletelyClean(workingCopy, Ref.Head.Parent());
                 return false;
             }
+            logger.Info($"Successfully incorporated {candidate.Ref}");
             return true;
         }
 
