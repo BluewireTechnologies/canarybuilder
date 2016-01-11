@@ -64,6 +64,8 @@
     <Compile Include="GitRepository.cs" />
     <Compile Include="GitSession.cs" />
     <Compile Include="GitWorkingCopy.cs" />
+    <Compile Include="Model\MergeFastForward.cs" />
+    <Compile Include="Model\MergeOptions.cs" />
     <Compile Include="Model\CommitOptions.cs" />
     <Compile Include="Model\GitStatusEntry.cs" />
     <Compile Include="Model\IndexState.cs" />

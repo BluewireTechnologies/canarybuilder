@@ -246,9 +246,20 @@ namespace Bluewire.Common.Git
             await RunSimpleCommand(workingCopy, "reset", option, @ref);
         }
 
-        public async Task Merge(GitWorkingCopy workingCopy, params Ref[] @refs)
+        public Task Merge(GitWorkingCopy workingCopy, params Ref[] @refs)
         {
-            await RunSimpleCommand(workingCopy, "merge", c => c.AddList(@refs.Select(r => r.ToString())));
+            return Merge(workingCopy, default(MergeOptions), @refs);
+        }
+
+        public async Task Merge(GitWorkingCopy workingCopy, MergeOptions options, params Ref[] @refs)
+        {
+            await RunSimpleCommand(workingCopy, "merge", c =>
+            {
+                if (options.FastForward == MergeFastForward.Never) c.Add("--no-ff");
+                else if (options.FastForward == MergeFastForward.Only) c.Add("--ff-only");
+
+                c.AddList(@refs.Select(r => r.ToString()));
+            });
         }
 
         public async Task AbortMerge(GitWorkingCopy workingCopy)
