@@ -28,37 +28,37 @@ namespace CanaryBuilder.Merge
             try
             {
                 // Checkout base ref.
-                await session.Checkout(workingCopy, job.Base);
+                await session.CheckoutCompletelyClean(workingCopy, job.Base);
                 // Run verifier against it.
                 VerifyBase(workingCopy, job, logger);
                 // Create temporary branch from base ref and checkout.
                 await session.CreateBranchAndCheckout(workingCopy, temporaryBranch);
 
+                var successful = 0;
+
                 // Iterate through merges:
                 foreach (var merge in job.Merges)
                 {
-                    // * Try merge. If fails, abort this one and continue with next.
+                    if (await TryMerge(session, workingCopy, merge, logger)) successful++;
 
-                    // * Apply verifier. If fails, undo merge and continue with next.
-                    // VerifyMerge(workingCopy, merge, logger);
+                    await AssertCleanWorkingCopy(session, workingCopy);
                 }
                 // Tag, if requested.
+                if (job.FinalTag != null) await session.CreateAnnotatedTag(workingCopy, job.FinalTag, temporaryBranch, $"CanaryBuilder: {successful} merged of {job.Merges.Count}");
                 // Create final branch if requested.
                 if (job.FinalBranch != null) await session.CreateBranch(workingCopy, job.FinalBranch, temporaryBranch);
             }
             finally
             {
-                // Checkout starting branch.
-                await session.Checkout(workingCopy, startingBranch);
+                // Checkout starting branch, ensuring that working copy is left clean.
+                await session.CheckoutCompletelyClean(workingCopy, startingBranch);
                 // Delete temporary branch.
                 if (await session.RefExists(workingCopy, temporaryBranch))
                 {
                     await session.DeleteBranch(workingCopy, temporaryBranch);
                 }
-                // Ensure working copy is left clean.
-                if (!await session.IsClean(workingCopy))
-                {
-                }
+
+                await AssertCleanWorkingCopy(session, workingCopy);
             }
         }
 
@@ -66,8 +66,50 @@ namespace CanaryBuilder.Merge
         {
         }
 
+        /// <summary>
+        /// Attempt to cleanly merge the specified candidate into HEAD.
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="workingCopy"></param>
+        /// <param name="candidate"></param>
+        /// <param name="logger"></param>
+        /// <returns></returns>
+        private async Task<bool> TryMerge(GitSession session, GitWorkingCopy workingCopy, MergeCandidate candidate, IJobLogger logger)
+        {
+            try
+            {
+                // * Try merge. If fails, abort this one and continue with next.
+                await session.Merge(workingCopy, candidate.Ref);
+            }
+            catch
+            {
+                await session.AbortMerge(workingCopy);
+                return false;
+            }
+
+            try
+            {
+                // * Apply verifier. If fails, undo merge and continue with next.
+                VerifyMerge(workingCopy, candidate, logger);
+            }
+            catch
+            {
+                await session.ResetCompletelyClean(workingCopy, Ref.Head.Parent());
+                return false;
+            }
+            return true;
+        }
+
         private void VerifyMerge(GitWorkingCopy workingCopy, MergeCandidate candidate, IJobLogger logger)
         {
+        }
+
+        private static async Task AssertCleanWorkingCopy(GitSession session, GitWorkingCopy workingCopy)
+        {
+            if (!await session.IsClean(workingCopy))
+            {
+                throw new UncleanWorkingCopyException();
+            }
         }
     }
 }

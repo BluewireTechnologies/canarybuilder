@@ -79,10 +79,12 @@
     <Compile Include="Logging\ConsoleLogWriter.cs" />
     <Compile Include="Logging\IPlainTextLogWriter.cs" />
     <Compile Include="Merge\IWorkingCopyVerifier.cs" />
+    <Compile Include="Merge\JobRunnerException.cs" />
     <Compile Include="Merge\MergeJob.cs" />
     <Compile Include="Merge\MergeJobDefinition.cs" />
     <Compile Include="Merge\MergeCandidate.cs" />
     <Compile Include="Merge\NoWorkingCopyVerifier.cs" />
+    <Compile Include="Merge\UncleanWorkingCopyException.cs" />
     <Compile Include="Parsers\JobScriptSyntaxErrorException.cs" />
     <Compile Include="Parsers\MissingParameterException.cs" />
     <Compile Include="Parsers\ScriptLine.cs" />
