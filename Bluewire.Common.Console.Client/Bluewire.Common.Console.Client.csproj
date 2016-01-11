@@ -61,8 +61,10 @@
     <Compile Include="Shell\CommandLine.cs" />
     <Compile Include="Shell\CommandLineExtensions.cs" />
     <Compile Include="Shell\CommandLineInvoker.cs" />
+    <Compile Include="Shell\ConsoleInvocationLogScope.cs" />
     <Compile Include="Shell\ICommandLine.cs" />
     <Compile Include="Shell\IConsoleInvocationLogger.cs" />
+    <Compile Include="Shell\IConsoleInvocationLogScope.cs" />
     <Compile Include="Shell\IConsoleProcess.cs" />
     <Compile Include="Shell\IOutputPipe.cs" />
     <Compile Include="Shell\NoConsoleInvocationLogger.cs" />

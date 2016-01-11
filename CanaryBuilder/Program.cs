@@ -9,6 +9,7 @@ using Bluewire.Common.Console.Logging;
 using Bluewire.Common.Console.ThirdParty;
 using CanaryBuilder.Logging;
 using CanaryBuilder.Merge;
+using CanaryBuilder.Parsers;
 using log4net.Core;
 
 namespace CanaryBuilder
@@ -50,24 +51,35 @@ namespace CanaryBuilder
             {
                 if (String.IsNullOrWhiteSpace(arguments.ScriptPath)) throw new InvalidArgumentsException("No script path specified for 'merge' mode.");
                 if (String.IsNullOrWhiteSpace(arguments.WorkingCopy)) throw new InvalidArgumentsException("No working copy specified for 'merge' mode.");
-
-                try
+                
+                using (var console = new ConsoleLogWriter())
                 {
-                    using (var console = new ConsoleLogWriter())
-                    {
-                        await new MergeJob(arguments.WorkingCopy, arguments.ScriptPath).Run(new PlainTextJobLogger(console));
-                    }
-                    return 0;
-                }
-                catch (Exception ex)
-                {
-                    Log.Console.Error(ex);
-                    return 4;
+                    var logger = new PlainTextJobLogger(console);
+                    return await RunMergeJob(logger);
                 }
             }
             throw new InvalidArgumentsException("Nothing to do.");
         }
-        
+
+        private async Task<int> RunMergeJob(IJobLogger logger)
+        {
+            try
+            {
+                await new MergeJob(arguments.WorkingCopy, arguments.ScriptPath).Run(logger);
+                return 0;
+            }
+            catch (JobScriptException ex)
+            {
+                logger.Error(ex);
+                return 4;
+            }
+            catch (JobRunnerException ex)
+            {
+                logger.Error(ex);
+                return 5;
+            }
+        }
+
         class Arguments : IVerbosityArgument, IArgumentList
         {
             private readonly IEnumerable<Level> logLevels = new List<Level> { Level.Warn, Level.Info, Level.Debug };

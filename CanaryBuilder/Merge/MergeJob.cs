@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Bluewire.Common.Git;
 using CanaryBuilder.Logging;
+using CanaryBuilder.Parsers;
 
 namespace CanaryBuilder.Merge
 {
@@ -25,7 +26,7 @@ namespace CanaryBuilder.Merge
         public async Task Run(IJobLogger logger)
         {
             var git = await new GitFinder().FromEnvironment();
-
+            
             var jobDefinition = LoadScript(scriptPath);
 
             var workingCopy = new GitWorkingCopy(workingCopyPath);

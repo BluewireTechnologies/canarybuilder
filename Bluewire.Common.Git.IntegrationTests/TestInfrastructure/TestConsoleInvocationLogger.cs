@@ -25,7 +25,7 @@ namespace Bluewire.Common.Git.IntegrationTests.TestInfrastructure
             lock(this) log.WriteLine(line);
         }
 
-        public IDisposable LogInvocation(IConsoleProcess process)
+        public IConsoleInvocationLogScope LogInvocation(IConsoleProcess process)
         {
             WriteLine($"[Shell]  {process.CommandLine}");
 
@@ -34,10 +34,10 @@ namespace Bluewire.Common.Git.IntegrationTests.TestInfrastructure
 
             var logger = Observer.Create<string>(WriteLine);
 
-            return stdout.Merge(stderr).Subscribe(logger);
+            return new ConsoleInvocationLogScope(stdout.Merge(stderr).Subscribe(logger));
         }
 
-        public IDisposable LogMinorInvocation(IConsoleProcess process)
+        public IConsoleInvocationLogScope LogMinorInvocation(IConsoleProcess process)
         {
             return LogInvocation(process);
         }

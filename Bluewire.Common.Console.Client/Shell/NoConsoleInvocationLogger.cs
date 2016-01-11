@@ -5,14 +5,14 @@ namespace Bluewire.Common.Console.Client.Shell
 {
     public class NoConsoleInvocationLogger : IConsoleInvocationLogger
     {
-        public IDisposable LogInvocation(IConsoleProcess process)
+        public IConsoleInvocationLogScope LogInvocation(IConsoleProcess process)
         {
-            return Disposable.Empty;
+            return ConsoleInvocationLogScope.None;
         }
 
-        public IDisposable LogMinorInvocation(IConsoleProcess process)
+        public IConsoleInvocationLogScope LogMinorInvocation(IConsoleProcess process)
         {
-            return Disposable.Empty;
+            return ConsoleInvocationLogScope.None;
         }
     }
 }

@@ -32,6 +32,46 @@ namespace CanaryBuilder.IntegrationTests.Merge
         }
 
         [Test]
+        public async Task FailsIfOutputBranchAlreadyExists()
+        {
+            await session.CreateBranch(workingCopy, "output-branch");
+            var jobDefinition = new MergeJobDefinition
+            {
+                Base = new Ref("master"),
+                FinalBranch = new Ref("output-branch")
+            };
+
+            try
+            {
+                await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
+                Assert.Fail();
+            }
+            catch (OutputRefAlreadyExistsException)
+            {
+            }
+        }
+
+        [Test]
+        public async Task FailsIfOutputTagAlreadyExists()
+        {
+            await session.CreateTag(workingCopy, "output-tag", Ref.Head, "conflicting tag");
+            var jobDefinition = new MergeJobDefinition
+            {
+                Base = new Ref("master"),
+                FinalTag = new Ref("output-tag")
+            };
+
+            try
+            {
+                await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
+                Assert.Fail();
+            }
+            catch (OutputRefAlreadyExistsException)
+            {
+            }
+        }
+
+        [Test]
         public async Task JobWithNoMerges_Yields_FinalBranchSameAsBase()
         {
             var jobDefinition = new MergeJobDefinition

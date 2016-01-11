@@ -8,7 +8,8 @@ namespace CanaryBuilder.Logging
     {
         void Info(string message);
         void Warn(string message);
-        void Error(string message);
+        void Error(string message, Exception exception = null);
+        void Error(Exception exception);
 
         IDisposable EnterScope(string message);
     }

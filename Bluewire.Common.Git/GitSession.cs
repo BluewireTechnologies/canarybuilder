@@ -53,8 +53,10 @@ namespace Bluewire.Common.Git
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
             var process = new CommandLine(Git.GetExecutableFilePath(), "show-ref", "--quiet", @ref).RunFrom(workingCopy.Root);
-            using (logger?.LogMinorInvocation(process))
+            using (var log = logger?.LogMinorInvocation(process))
             {
+                log?.IgnoreExitCode();
+
                 var exitCode = await process.Completed;
                 return exitCode == 0;
             }

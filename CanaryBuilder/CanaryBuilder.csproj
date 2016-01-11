@@ -84,6 +84,7 @@
     <Compile Include="Merge\MergeJobDefinition.cs" />
     <Compile Include="Merge\MergeCandidate.cs" />
     <Compile Include="Merge\NoWorkingCopyVerifier.cs" />
+    <Compile Include="Merge\OutputRefAlreadyExistsException.cs" />
     <Compile Include="Merge\UncleanWorkingCopyException.cs" />
     <Compile Include="Parsers\JobScriptSyntaxErrorException.cs" />
     <Compile Include="Parsers\MissingParameterException.cs" />

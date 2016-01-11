@@ -32,9 +32,14 @@ namespace CanaryBuilder.Logging
             Write(indentLevel, "WARN", message, ConsoleColor.Yellow);
         }
 
-        public void Error(string message)
+        public void Error(string message, Exception exception)
         {
             Write(indentLevel, "ERROR", message, ConsoleColor.Red);
+        }
+
+        public void Error(Exception exception)
+        {
+            Write(indentLevel, "ERROR", exception.Message, ConsoleColor.Red);
         }
 
         public IDisposable EnterScope(string message)
@@ -45,31 +50,76 @@ namespace CanaryBuilder.Logging
             return Disposable.Create(() => { indentLevel--; });
         }
 
-        public IDisposable LogInvocation(IConsoleProcess process)
+        public IConsoleInvocationLogScope LogInvocation(IConsoleProcess process)
         {
             Write(indentLevel, "SHELL", process.CommandLine.ToString(), ConsoleColor.White);
-            var scopeIndent = indentLevel + 1;
-
-            var stdOutLogger = Observer.Create<string>(l => Write(scopeIndent, "STDOUT", l));
-            var stdErrLogger = Observer.Create<string>(l => Write(scopeIndent, "STDERR", l, ConsoleColor.DarkYellow));
-
-            var stdOutSubscription = process.StdOut.Subscribe(stdOutLogger);
-            var stdErrSubscription = process.StdErr.Subscribe(stdErrLogger);
-
-            return Disposable.Create(() => {
-                var exitCode = process.Completed.Result;
-                Write(scopeIndent, "SHELL", $"Exit code: {exitCode}", exitCode == 0 ? ConsoleColor.White : ConsoleColor.Yellow);
-                stdOutSubscription.Dispose();
-                stdErrSubscription.Dispose();
-            });
+            return new InvocationLogScope(this, process);
         }
 
-        public IDisposable LogMinorInvocation(IConsoleProcess process)
+        public IConsoleInvocationLogScope LogMinorInvocation(IConsoleProcess process)
         {
-            return Disposable.Create(() => {
+            return new MinorInvocationLogScope(this, process);
+        }
+
+        class InvocationLogScope : ConsoleInvocationLogScope
+        {
+            private readonly PlainTextJobLogger parent;
+            private readonly IConsoleProcess process;
+            private readonly int scopeIndent;
+            private bool highlightErrorCode = true;
+
+            public InvocationLogScope(PlainTextJobLogger parent, IConsoleProcess process)
+            {
+                this.parent = parent;
+                this.process = process;
+                this.scopeIndent = parent.indentLevel + 1;
+
+                var stdOutLogger = Observer.Create<string>(l => parent.Write(scopeIndent, "STDOUT", l));
+                var stdErrLogger = Observer.Create<string>(l => parent.Write(scopeIndent, "STDERR", l, ConsoleColor.DarkYellow));
+
+                RecordSubscription(process.StdOut.Subscribe(stdOutLogger));
+                RecordSubscription(process.StdErr.Subscribe(stdErrLogger));
+            }
+
+            public override void IgnoreExitCode()
+            {
+                highlightErrorCode = false;
+            }
+
+            public override void Dispose()
+            {
                 var exitCode = process.Completed.Result;
-                Write(indentLevel, "SHELL", $"{process.CommandLine} exited with code {exitCode}");
-            });
+                parent.Write(scopeIndent, "SHELL", $"Exit code: {exitCode}", (highlightErrorCode && exitCode != 0) ? ConsoleColor.Yellow : ConsoleColor.White);
+                base.Dispose();
+            }
+        }
+
+        class MinorInvocationLogScope : ConsoleInvocationLogScope
+        {
+            private readonly PlainTextJobLogger parent;
+            private readonly IConsoleProcess process;
+            private bool showErrorCode = true;
+
+            public MinorInvocationLogScope(PlainTextJobLogger parent, IConsoleProcess process)
+            {
+                this.parent = parent;
+                this.process = process;
+            }
+
+            public override void IgnoreExitCode()
+            {
+                showErrorCode = false;
+            }
+
+            public override void Dispose()
+            {
+                var exitCode = process.Completed.Result;
+                if (showErrorCode && exitCode != 0)
+                {
+                    parent.Write(parent.indentLevel, "SHELL", $"{process.CommandLine} exited with code {exitCode}", ConsoleColor.Yellow);
+                }
+                base.Dispose();
+            }
         }
     }
 }
