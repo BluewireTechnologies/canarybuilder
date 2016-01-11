@@ -210,7 +210,8 @@ namespace Bluewire.Common.Git
 
         public async Task DeleteBranch(GitWorkingCopy workingCopy, Ref branch, bool force = false)
         {
-            await RunSimpleCommand(workingCopy, "branch", "--delete", force ? "--force" : null, branch);
+            // I'm currently running Git v1.9.5, which doesn't understand 'branch --delete --force'
+            await RunSimpleCommand(workingCopy, "branch", force ? "-D" : "--delete", branch);
         }
 
         public async Task Commit(GitWorkingCopy workingCopy, string message, CommitOptions options = 0)
