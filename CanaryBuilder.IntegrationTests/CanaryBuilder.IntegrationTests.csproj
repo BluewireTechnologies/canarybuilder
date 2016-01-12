@@ -54,13 +54,13 @@
     <Compile Include="TestInfrastructure\RepositoryBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Bluewire.Common.Git.IntegrationTests\Bluewire.Common.Git.IntegrationTests.csproj">
+    <ProjectReference Include="..\Bluewire.Common.GitWrapper.IntegrationTests\Bluewire.Common.GitWrapper.IntegrationTests.csproj">
       <Project>{b9dbc4c3-7733-49ba-b797-e9cb9d616403}</Project>
-      <Name>Bluewire.Common.Git.IntegrationTests</Name>
+      <Name>Bluewire.Common.GitWrapper.IntegrationTests</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Bluewire.Common.Git\Bluewire.Common.Git.csproj">
+    <ProjectReference Include="..\Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj">
       <Project>{815563f8-0af9-4e56-9160-a26cdd1db163}</Project>
-      <Name>Bluewire.Common.Git</Name>
+      <Name>Bluewire.Common.GitWrapper</Name>
     </ProjectReference>
     <ProjectReference Include="..\CanaryBuilder\CanaryBuilder.csproj">
       <Project>{d6e6ba6e-3981-4acd-a204-e619bca672de}</Project>

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Bluewire.Common.Git;
+using Bluewire.Common.GitWrapper;
 
 namespace CanaryBuilder
 {

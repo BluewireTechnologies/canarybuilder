@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using Bluewire.Common.Git;
-using Bluewire.Common.Git.Model;
+using Bluewire.Common.GitWrapper;
+using Bluewire.Common.GitWrapper.Model;
 using CanaryBuilder.Logging;
 
 namespace CanaryBuilder.Merge

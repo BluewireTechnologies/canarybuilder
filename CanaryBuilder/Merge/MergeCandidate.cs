@@ -1,5 +1,5 @@
 using System;
-using Bluewire.Common.Git.Model;
+using Bluewire.Common.GitWrapper.Model;
 
 namespace CanaryBuilder.Merge
 {

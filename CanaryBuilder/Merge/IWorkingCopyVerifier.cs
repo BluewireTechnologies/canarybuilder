@@ -1,5 +1,5 @@
 using System.IO;
-using Bluewire.Common.Git;
+using Bluewire.Common.GitWrapper;
 
 namespace CanaryBuilder.Merge
 {

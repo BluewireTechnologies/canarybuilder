@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Bluewire.Common.Git;
+using Bluewire.Common.GitWrapper;
 
 namespace CanaryBuilder.IntegrationTests.TestInfrastructure
 {

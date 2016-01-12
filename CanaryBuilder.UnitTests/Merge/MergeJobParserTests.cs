@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
-using Bluewire.Common.Git.Model;
+using Bluewire.Common.GitWrapper.Model;
 using CanaryBuilder.Merge;
 using CanaryBuilder.Parsers;
 using NUnit.Framework;

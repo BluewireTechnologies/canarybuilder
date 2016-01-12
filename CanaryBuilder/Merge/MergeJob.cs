@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Bluewire.Common.Git;
+using Bluewire.Common.GitWrapper;
 using CanaryBuilder.Logging;
 using CanaryBuilder.Parsers;
 
