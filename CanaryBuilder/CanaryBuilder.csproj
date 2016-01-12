@@ -40,6 +40,10 @@
       <HintPath>..\packages\Bluewire.Common.Console.9.0.4\lib\net45\Bluewire.Common.Console.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Bluewire.Common.Console.Client, Version=9.0.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Bluewire.Common.Console.Client.9.0.7\lib\net45\Bluewire.Common.Console.Client.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="log4net, Version=1.2.12.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.2\lib\net40-full\log4net.dll</HintPath>
       <Private>True</Private>
@@ -100,10 +104,6 @@
     <Compile Include="Merge\MergeJobRunner.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Bluewire.Common.Console.Client\Bluewire.Common.Console.Client.csproj">
-      <Project>{c66a3f12-79e2-46bd-8aab-d75414e14b6c}</Project>
-      <Name>Bluewire.Common.Console.Client</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Bluewire.Common.Git\Bluewire.Common.Git.csproj">
       <Project>{815563f8-0af9-4e56-9160-a26cdd1db163}</Project>
       <Name>Bluewire.Common.Git</Name>

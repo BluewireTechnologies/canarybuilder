@@ -54,10 +54,6 @@
     <Compile Include="TestInfrastructure\RepositoryBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Bluewire.Common.Console.Client\Bluewire.Common.Console.Client.csproj">
-      <Project>{c66a3f12-79e2-46bd-8aab-d75414e14b6c}</Project>
-      <Name>Bluewire.Common.Console.Client</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Bluewire.Common.Git.IntegrationTests\Bluewire.Common.Git.IntegrationTests.csproj">
       <Project>{b9dbc4c3-7733-49ba-b797-e9cb9d616403}</Project>
       <Name>Bluewire.Common.Git.IntegrationTests</Name>

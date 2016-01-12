@@ -31,6 +31,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Bluewire.Common.Console.Client, Version=9.0.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Bluewire.Common.Console.Client.9.0.7\lib\net45\Bluewire.Common.Console.Client.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="nunit.framework, Version=3.0.5813.39031, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.3.0.1\lib\net45\nunit.framework.dll</HintPath>
       <Private>True</Private>
@@ -75,10 +79,6 @@
     <Compile Include="TestInfrastructure\TemporaryDirectoryForTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Bluewire.Common.Console.Client\Bluewire.Common.Console.Client.csproj">
-      <Project>{c66a3f12-79e2-46bd-8aab-d75414e14b6c}</Project>
-      <Name>Bluewire.Common.Console.Client</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Bluewire.Common.Git\Bluewire.Common.Git.csproj">
       <Project>{815563f8-0af9-4e56-9160-a26cdd1db163}</Project>
       <Name>Bluewire.Common.Git</Name>
