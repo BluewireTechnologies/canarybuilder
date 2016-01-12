@@ -8,13 +8,19 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
     [TestFixture]
     public class GitAddTests
     {
+        private GitSession session;
+        private GitWorkingCopy workingCopy;
+
+        [SetUp]
+        public async Task SetUp()
+        {
+            session = await Default.GitSession();
+            workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
+        }
+
         [Test]
         public async Task AddingFileStagesIt()
         {
-            var session = await Default.GitSession();
-
-            var workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
-
             File.AppendAllText(workingCopy.Path("testfile"), "contents");
 
             await session.AddFile(workingCopy, "testfile");

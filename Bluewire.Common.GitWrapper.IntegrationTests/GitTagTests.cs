@@ -7,12 +7,19 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
     [TestFixture]
     public class GitTagTests
     {
+        private GitSession session;
+        private GitWorkingCopy workingCopy;
+
+        [SetUp]
+        public async Task SetUp()
+        {
+            session = await Default.GitSession();
+            workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
+        }
+
         [Test]
         public async Task CanCreateTagFromSpecificRef()
         {
-            var session = await Default.GitSession();
-
-            var workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
             await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
             var firstCommit = await session.ResolveRef(workingCopy, Ref.Head);
             await session.Commit(workingCopy, "second commit", CommitOptions.AllowEmptyCommit);
@@ -25,9 +32,6 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
         [Test]
         public async Task CanDetectExistingTagRef()
         {
-            var session = await Default.GitSession();
-
-            var workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
             await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
 
             var tag = await session.CreateTag(workingCopy, "new-tag", Ref.Head, "Test tag");
@@ -38,9 +42,6 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
         [Test]
         public async Task CanDetectNotExistingTagRef()
         {
-            var session = await Default.GitSession();
-
-            var workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
             await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
 
             Assert.That(await session.RefExists(workingCopy, new Ref("does-not-exist")), Is.False);

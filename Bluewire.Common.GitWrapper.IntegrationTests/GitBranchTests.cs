@@ -7,12 +7,19 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
     [TestFixture]
     public class GitBranchTests
     {
+        private GitSession session;
+        private GitWorkingCopy workingCopy;
+
+        [SetUp]
+        public async Task SetUp()
+        {
+            session = await Default.GitSession();
+            workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
+        }
+
         [Test]
         public async Task NewRepositoryContainsMasterBranchAfterFirstComment()
         {
-            var session = await Default.GitSession();
-            
-            var workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
             await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
 
             var branches = await session.ListBranches(workingCopy);
@@ -20,12 +27,10 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
             Assert.That(branches, Is.EquivalentTo(new[] { new Ref("master") }));
         }
 
+
         [Test]
         public async Task CanCreateBranch()
         {
-            var session = await Default.GitSession();
-
-            var workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
             await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
 
             var branch = await session.CreateBranch(workingCopy, "new-branch");
@@ -38,9 +43,6 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
         [Test]
         public async Task CanCreateBranchFromSpecificRef()
         {
-            var session = await Default.GitSession();
-
-            var workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
             await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
             var firstCommit = await session.ResolveRef(workingCopy, Ref.Head);
             await session.Commit(workingCopy, "second commit", CommitOptions.AllowEmptyCommit);
@@ -53,9 +55,6 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
         [Test]
         public async Task CanCreateAndCheckoutBranchFromSpecificRef()
         {
-            var session = await Default.GitSession();
-
-            var workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
             await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
             var firstCommit = await session.ResolveRef(workingCopy, Ref.Head);
             await session.Commit(workingCopy, "second commit", CommitOptions.AllowEmptyCommit);
@@ -69,9 +68,6 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
         [Test]
         public async Task CanDetectExistingBranchRef()
         {
-            var session = await Default.GitSession();
-
-            var workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
             await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
 
             var branch = await session.CreateBranch(workingCopy, "new-branch");
@@ -82,9 +78,6 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
         [Test]
         public async Task CanDetectNotExistingBranchRef()
         {
-            var session = await Default.GitSession();
-
-            var workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
             await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
 
             Assert.That(await session.RefExists(workingCopy, new Ref("does-not-exist")), Is.False);
