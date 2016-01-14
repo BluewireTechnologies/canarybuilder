@@ -37,12 +37,17 @@
 		<NUnitProject Include="Bluewire.Common.GitWrapper.UnitTests\Bluewire.Common.GitWrapper.UnitTests.csproj" />
         <NUnitProject Include="Bluewire.Common.GitWrapper.IntegrationTests\Bluewire.Common.GitWrapper.IntegrationTests.csproj" />
         <NUnitProject Include="CanaryBuilder.UnitTests\CanaryBuilder.UnitTests.csproj" />
-        
+        <NUnitProject Include="CanaryCollector.UnitTests\CanaryCollector.UnitTests.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <OutputProject Include="CanaryBuilder\CanaryBuilder.csproj" />
+        <OutputProject Include="CanaryCollector\CanaryCollector.csproj" />
     </ItemGroup>
     
 	<Target DependsOnTargets="ValidateParameters;PrepareOutputDirectory" Name="Build">
 		<MSBuild Projects="@(OctopackProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration);RunOctoPack=true;@(ApplicationProjectsProperties)" />
-        <MSBuild Projects="CanaryBuilder\CanaryBuilder.csproj" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration)">
+        <MSBuild Projects="@(OutputProject)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration)">
           <Output TaskParameter="TargetOutputs" ItemName="OutputBinaries" />
         </MSBuild>
 	</Target>
