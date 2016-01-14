@@ -35,11 +35,11 @@ namespace Bluewire.Common.GitWrapper
             }
         }
 
-        public async Task<Ref> ResolveRef(GitWorkingCopy workingCopy, Ref @ref)
+        public async Task<Ref> ResolveRef(IGitFilesystemContext workingCopyOrRepo, Ref @ref)
         {
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
-            var process = new CommandLine(Git.GetExecutableFilePath(), "rev-list", "--max-count=1", @ref).RunFrom(workingCopy.Root);
+            var process = workingCopyOrRepo.Invoke(new CommandLine(Git.GetExecutableFilePath(), "rev-list", "--max-count=1", @ref));
             using (logger?.LogMinorInvocation(process))
             {
                 var refHash = await GitHelpers.ExpectOneLine(process);
@@ -47,11 +47,11 @@ namespace Bluewire.Common.GitWrapper
             }
         }
 
-        public async Task<bool> RefExists(GitWorkingCopy workingCopy, Ref @ref)
+        public async Task<bool> RefExists(IGitFilesystemContext workingCopyOrRepo, Ref @ref)
         {
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
-            var process = new CommandLine(Git.GetExecutableFilePath(), "show-ref", "--quiet", @ref).RunFrom(workingCopy.Root);
+            var process = workingCopyOrRepo.Invoke(new CommandLine(Git.GetExecutableFilePath(), "show-ref", "--quiet", @ref));
             using (var log = logger?.LogMinorInvocation(process))
             {
                 log?.IgnoreExitCode();
@@ -61,10 +61,10 @@ namespace Bluewire.Common.GitWrapper
             }
         }
 
-        public async Task<bool> AreRefsEquivalent(GitWorkingCopy workingCopy, Ref a, Ref b)
+        public async Task<bool> AreRefsEquivalent(IGitFilesystemContext workingCopyOrRepo, Ref a, Ref b)
         {
-            var resolvedA = await ResolveRef(workingCopy, a);
-            var resolvedB = await ResolveRef(workingCopy, b);
+            var resolvedA = await ResolveRef(workingCopyOrRepo, a);
+            var resolvedB = await ResolveRef(workingCopyOrRepo, b);
             return Equals(resolvedA, resolvedB);
         }
 
@@ -141,11 +141,11 @@ namespace Bluewire.Common.GitWrapper
             asyncResult.AsyncWaitHandle.WaitOne();
         }
 
-        public async Task<Ref[]> ListBranches(GitWorkingCopy workingCopy)
+        public async Task<Ref[]> ListBranches(IGitFilesystemContext workingCopyOrRepo)
         {
-            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+            if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
 
-            var process = new CommandLine(Git.GetExecutableFilePath(), "branch", "--list").RunFrom(workingCopy.Root);
+            var process = workingCopyOrRepo.Invoke(new CommandLine(Git.GetExecutableFilePath(), "branch", "--list"));
             using (logger?.LogInvocation(process))
             {
                 var branchNames = process.StdOut
@@ -160,20 +160,20 @@ namespace Bluewire.Common.GitWrapper
             }
         }
 
-        public async Task<Ref> CreateBranch(GitWorkingCopy workingCopy, string branchName, Ref start = null)
+        public async Task<Ref> CreateBranch(IGitFilesystemContext workingCopyOrRepo, string branchName, Ref start = null)
         {
             var branch = new Ref(branchName);
-            await RunSimpleCommand(workingCopy, "branch", branch, start ?? Ref.Head);
+            await RunSimpleCommand(workingCopyOrRepo, "branch", branch, start ?? Ref.Head);
             return branch;
         }
 
-        public async Task<Ref> CreateTag(GitWorkingCopy workingCopy, string tagName, Ref tagLocation, string message, bool force = false)
+        public async Task<Ref> CreateTag(IGitFilesystemContext workingCopyOrRepo, string tagName, Ref tagLocation, string message, bool force = false)
         {
             if (tagLocation == null) throw new ArgumentNullException(nameof(tagLocation));
             if (message == null) throw new ArgumentNullException(nameof(message));
 
             var tag = new Ref(tagName);
-            await RunSimpleCommand(workingCopy, "tag", tag,
+            await RunSimpleCommand(workingCopyOrRepo, "tag", tag,
                 force ? "--force" : null,
                 "--message", message,
                 tagLocation);
@@ -181,13 +181,13 @@ namespace Bluewire.Common.GitWrapper
             return tag;
         }
 
-        public async Task<Ref> CreateAnnotatedTag(GitWorkingCopy workingCopy, string tagName, Ref tagLocation, string message, bool force = false)
+        public async Task<Ref> CreateAnnotatedTag(IGitFilesystemContext workingCopyOrRepo, string tagName, Ref tagLocation, string message, bool force = false)
         {
             if (tagLocation == null) throw new ArgumentNullException(nameof(tagLocation));
             if (message == null) throw new ArgumentNullException(nameof(message));
 
             var tag = new Ref(tagName);
-            await RunSimpleCommand(workingCopy, "tag", "--annotate", tag,
+            await RunSimpleCommand(workingCopyOrRepo, "tag", "--annotate", tag,
                 force ? "--force" : null,
                 "--message", message,
                 tagLocation);
@@ -195,9 +195,9 @@ namespace Bluewire.Common.GitWrapper
             return tag;
         }
 
-        public async Task DeleteTag(GitWorkingCopy workingCopy, Ref tag)
+        public async Task DeleteTag(IGitFilesystemContext workingCopyOrRepo, Ref tag)
         {
-            await RunSimpleCommand(workingCopy, "tag", "--delete", tag);
+            await RunSimpleCommand(workingCopyOrRepo, "tag", "--delete", tag);
         }
 
         public async Task<Ref> CreateBranchAndCheckout(GitWorkingCopy workingCopy, string branchName, Ref start = null)
@@ -207,10 +207,10 @@ namespace Bluewire.Common.GitWrapper
             return branch;
         }
 
-        public async Task DeleteBranch(GitWorkingCopy workingCopy, Ref branch, bool force = false)
+        public async Task DeleteBranch(IGitFilesystemContext workingCopyOrRepo, Ref branch, bool force = false)
         {
             // I'm currently running Git v1.9.5, which doesn't understand 'branch --delete --force'
-            await RunSimpleCommand(workingCopy, "branch", force ? "-D" : "--delete", branch);
+            await RunSimpleCommand(workingCopyOrRepo, "branch", force ? "-D" : "--delete", branch);
         }
 
         public async Task Commit(GitWorkingCopy workingCopy, string message, CommitOptions options = 0)
@@ -269,29 +269,21 @@ namespace Bluewire.Common.GitWrapper
         /// <summary>
         /// Helper method. Runs a command which is expected to simply succeed or fail. Output is ignored.
         /// </summary>
-        /// <param name="workingCopy"></param>
-        /// <param name="gitCommand"></param>
-        /// <param name="arguments"></param>
-        /// <returns></returns>
-        private Task RunSimpleCommand(GitWorkingCopy workingCopy, string gitCommand, params string[] arguments)
+        private Task RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, string gitCommand, params string[] arguments)
         {
-            return RunSimpleCommand(workingCopy, gitCommand, c => c.Add(arguments));
+            return RunSimpleCommand(workingCopyOrRepo, gitCommand, c => c.Add(arguments));
         }
 
         /// <summary>
         /// Helper method. Runs a command which is expected to simply succeed or fail. Output is ignored.
         /// </summary>
-        /// <param name="workingCopy"></param>
-        /// <param name="gitCommand"></param>
-        /// <param name="prepareCommand"></param>
-        /// <returns></returns>
-        private async Task RunSimpleCommand(GitWorkingCopy workingCopy, string gitCommand, Action<CommandLine> prepareCommand)
+        private async Task RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, string gitCommand, Action<CommandLine> prepareCommand)
         {
-            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+            if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
 
             var cmd = new CommandLine(Git.GetExecutableFilePath(), gitCommand);
             prepareCommand(cmd);
-            var process = cmd.RunFrom(workingCopy.Root);
+            var process = workingCopyOrRepo.Invoke(cmd);
             using (logger?.LogInvocation(process))
             {
                 process.StdOut.StopBuffering();

@@ -9,12 +9,14 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
     {
         private GitSession session;
         private GitWorkingCopy workingCopy;
+        private GitRepository repository;
 
         [SetUp]
         public async Task SetUp()
         {
             session = await Default.GitSession();
             workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
+            repository = workingCopy.GetDefaultRepository();
         }
 
         [Test]
@@ -28,7 +30,19 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
 
             Assert.That(await session.AreRefsEquivalent(workingCopy, tag, firstCommit), Is.True);
         }
-        
+
+        [Test]
+        public async Task CanCreateTagFromSpecificRefWithoutWorkingCopy()
+        {
+            await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
+            var firstCommit = await session.ResolveRef(workingCopy, Ref.Head);
+            await session.Commit(workingCopy, "second commit", CommitOptions.AllowEmptyCommit);
+
+            var tag = await session.CreateTag(repository, "new-tag", firstCommit, "Test tag");
+
+            Assert.That(await session.AreRefsEquivalent(repository, tag, firstCommit), Is.True);
+        }
+
         [Test]
         public async Task CanDetectExistingTagRef()
         {

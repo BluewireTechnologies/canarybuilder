@@ -1,13 +1,15 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using Bluewire.Common.Console.Client.Shell;
+using Bluewire.Common.GitWrapper.Model;
 
 namespace Bluewire.Common.GitWrapper
 {
     /// <summary>
     /// Location of a working copy directory.
     /// </summary>
-    public class GitWorkingCopy
+    public class GitWorkingCopy : IGitFilesystemContext
     {
         public GitWorkingCopy(string workingCopyPath)
         {
@@ -58,6 +60,11 @@ namespace Bluewire.Common.GitWrapper
         {
             if (relativePath == null) throw new ArgumentNullException(nameof(relativePath));
             return System.IO.Path.Combine(Root, relativePath);
+        }
+
+        IConsoleProcess IGitFilesystemContext.Invoke(CommandLine cmd)
+        {
+            return cmd.RunFrom(Root);
         }
     }
 }

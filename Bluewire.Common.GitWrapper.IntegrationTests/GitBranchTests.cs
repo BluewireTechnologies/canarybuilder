@@ -9,12 +9,14 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
     {
         private GitSession session;
         private GitWorkingCopy workingCopy;
+        private GitRepository repository;
 
         [SetUp]
         public async Task SetUp()
         {
             session = await Default.GitSession();
             workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
+            repository = workingCopy.GetDefaultRepository();
         }
 
         [Test]
@@ -36,6 +38,18 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
             var branch = await session.CreateBranch(workingCopy, "new-branch");
 
             var branches = await session.ListBranches(workingCopy);
+            Assert.That(branch, Is.EqualTo(new Ref("new-branch")));
+            Assert.That(branches, Is.EquivalentTo(new[] { branch, new Ref("master") }));
+        }
+
+        [Test]
+        public async Task CanCreateBranchWithoutWorkingCopy()
+        {
+            await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
+
+            var branch = await session.CreateBranch(repository, "new-branch");
+
+            var branches = await session.ListBranches(repository);
             Assert.That(branch, Is.EqualTo(new Ref("new-branch")));
             Assert.That(branches, Is.EquivalentTo(new[] { branch, new Ref("master") }));
         }

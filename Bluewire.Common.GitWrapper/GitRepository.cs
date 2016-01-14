@@ -1,12 +1,14 @@
 ﻿using System;
 using System.IO;
+using Bluewire.Common.Console.Client.Shell;
+using Bluewire.Common.GitWrapper.Model;
 
 namespace Bluewire.Common.GitWrapper
 {
     /// <summary>
     /// Location of a Git repository.
     /// </summary>
-    public class GitRepository
+    public class GitRepository : IGitFilesystemContext
     {
         public string Location { get; }
 
@@ -30,6 +32,12 @@ namespace Bluewire.Common.GitWrapper
                 return new GitRepository(path);
             }
             return new GitWorkingCopy(path).GetDefaultRepository();
+        }
+
+        IConsoleProcess IGitFilesystemContext.Invoke(CommandLine cmd)
+        {
+            // We could just as easily use '--git-dir <location>' here, I think, but I'm not sure of all the implications.
+            return cmd.RunFrom(Location);
         }
     }
 }
