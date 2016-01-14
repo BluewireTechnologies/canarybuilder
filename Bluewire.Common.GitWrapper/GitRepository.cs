@@ -8,18 +8,28 @@ namespace Bluewire.Common.GitWrapper
     /// </summary>
     public class GitRepository
     {
-        private readonly string gitDirPath;
+        public string Location { get; }
 
         public GitRepository(string gitDirPath)
         {
-            this.gitDirPath = gitDirPath;
-            if (!Directory.Exists(gitDirPath)) throw new DirectoryNotFoundException($"Repository not found: {gitDirPath}");
+            this.Location = gitDirPath;
+            if (!Directory.Exists(Location)) throw new DirectoryNotFoundException($"Repository not found: {gitDirPath}");
         }
         
         public string Path(string relativePath)
         {
             if (relativePath == null) throw new ArgumentNullException(nameof(relativePath));
-            return System.IO.Path.Combine(gitDirPath, relativePath);
+            return System.IO.Path.Combine(Location, relativePath);
+        }
+
+        public static GitRepository Find(string path)
+        {
+            var directory = new DirectoryInfo(path);
+            if (directory.Name.EndsWith(".git"))
+            {
+                return new GitRepository(path);
+            }
+            return new GitWorkingCopy(path).GetDefaultRepository();
         }
     }
 }

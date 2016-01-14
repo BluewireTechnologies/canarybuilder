@@ -38,5 +38,37 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
 
             Assert.False(await session.IsClean(workingCopy));
         }
+
+        [Test]
+        public async Task NewWorkingCopyHasRepository()
+        {
+            var session = await Default.GitSession();
+
+            var workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
+
+            Assert.That(workingCopy.GetDefaultRepository(), Is.Not.Null);
+        }
+
+        [Test]
+        public async Task CanFindRepositoryInWorkingCopy()
+        {
+            var session = await Default.GitSession();
+
+            var workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
+
+            var repository = GitRepository.Find(workingCopy.Root);
+            Assert.That(repository.Location, Is.EqualTo(workingCopy.GetDefaultRepository().Location));
+        }
+
+        [Test]
+        public async Task CanFindRepositoryInWorkingCopyRepository()
+        {
+            var session = await Default.GitSession();
+
+            var workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
+
+            var repository = GitRepository.Find(workingCopy.Path(".git"));
+            Assert.That(repository.Location, Is.EqualTo(workingCopy.GetDefaultRepository().Location));
+        }
     }
 }
