@@ -43,6 +43,7 @@
     <ItemGroup>
         <OutputProject Include="CanaryBuilder\CanaryBuilder.csproj" />
         <OutputProject Include="CanaryCollector\CanaryCollector.csproj" />
+        <OutputFile Include="Driver\Generate-NightlyCanaryBranch.ps1" />
     </ItemGroup>
     
 	<Target DependsOnTargets="ValidateParameters;PrepareOutputDirectory" Name="Build">
@@ -62,6 +63,7 @@
 		
 		<Copy SourceFiles="@(OctopackPackages)" DestinationFolder="$(OutputDirectory)" />
         <Copy SourceFiles="@(OutputBinaries)" DestinationFiles="@(OutputBinaries->'$(OutputDirectory)\%(FileName)%(Extension)')" />
+        <Copy SourceFiles="@(OutputFile)" DestinationFiles="@(OutputFile->'$(OutputDirectory)\%(FileName)%(Extension)')" />
 	</Target>
 	
 	<Target Name="PrepareOutputDirectory" DependsOnTargets="ValidateParameters">
