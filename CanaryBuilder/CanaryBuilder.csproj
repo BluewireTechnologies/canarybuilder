@@ -36,12 +36,12 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Bluewire.Common.Console, Version=9.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Bluewire.Common.Console.9.0.9\lib\net45\Bluewire.Common.Console.dll</HintPath>
+    <Reference Include="Bluewire.Common.Console, Version=9.0.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Bluewire.Common.Console.9.0.10\lib\net45\Bluewire.Common.Console.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Bluewire.Common.Console.Client, Version=9.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Bluewire.Common.Console.Client.9.0.9\lib\net45\Bluewire.Common.Console.Client.dll</HintPath>
+    <Reference Include="Bluewire.Common.Console.Client, Version=9.0.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Bluewire.Common.Console.Client.9.0.10\lib\net45\Bluewire.Common.Console.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="log4net, Version=1.2.12.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
