@@ -10,21 +10,25 @@ namespace CanaryCollector.Collectors
     public class PendingReviewTicketBranchCollector : IBranchCollector
     {
         private readonly ITicketProvider ticketProvider;
-        private readonly GitRepository gitRepository;
+        private readonly IBranchProvider branchProvider;
 
-        public PendingReviewTicketBranchCollector(ITicketProvider ticketProvider, GitRepository gitRepository)
+        public PendingReviewTicketBranchCollector(ITicketProvider ticketProvider, IBranchProvider branchProvider)
         {
             if (ticketProvider == null) throw new ArgumentNullException(nameof(ticketProvider));
-            if (gitRepository == null) throw new ArgumentNullException(nameof(gitRepository));
+            if (branchProvider == null) throw new ArgumentNullException(nameof(branchProvider));
             this.ticketProvider = ticketProvider;
-            this.gitRepository = gitRepository;
+            this.branchProvider = branchProvider;
         }
 
         public async Task<IEnumerable<Branch>> CollectBranches()
         {
             var pendingIssues = ticketProvider.GetTicketsPendingReview();
 
-            return pendingIssues.Select(i => new Branch { Name = $"{i.Identifier}: {i.Type}" });
+            var availableBranches = await branchProvider.GetUnmergedBranches("master");
+
+            return new TicketAndBranchAssociator().Apply(pendingIssues, availableBranches)
+                .OrderBy(a => a.Ticket.Type).ThenBy(a => a.Branch.Name)
+                .Select(a => a.Branch);
         }    
     }
 }

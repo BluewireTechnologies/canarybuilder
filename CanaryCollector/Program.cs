@@ -45,7 +45,7 @@ namespace CanaryCollector
             var collectors = new List<IBranchCollector>();
             collectors.AddRange(factory.CreateUriCollectors(arguments.IncludeUris));
             collectors.AddRange(factory.CreateTagCollectors(arguments.IncludeTags));
-            if (arguments.IncludePending) collectors.Add(factory.CreatePendingCollector());
+            if (arguments.IncludePending) collectors.Add(await factory.CreatePendingCollector());
             if (!collectors.Any()) throw new InvalidArgumentsException("Nothing to do. Please specify --pending, --tag or --uri.");
 
             var branches = new List<Branch>();

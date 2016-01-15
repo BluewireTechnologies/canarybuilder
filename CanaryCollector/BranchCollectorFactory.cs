@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Bluewire.Common.Console;
 using Bluewire.Common.GitWrapper;
 using CanaryCollector.Collectors;
@@ -18,6 +19,7 @@ namespace CanaryCollector
         {
             this.youtrackUri = youtrackUri;
             this.repositoryPath = repositoryPath;
+            sharedGitSession = new Lazy<Task<GitSession>>(async () => new GitSession(await new GitFinder().FromEnvironment()));
         }
 
         private GitRepository FindAndVerifyRepository(string dependentParameter)
@@ -46,11 +48,12 @@ namespace CanaryCollector
             }
         }
 
-        public IBranchCollector CreatePendingCollector()
+        public async Task<IBranchCollector> CreatePendingCollector()
         {
             var youtrackConnection = CreateYoutrackConnection("--pending");
             var gitRepository = FindAndVerifyRepository("--pending");
-            return new PendingReviewTicketBranchCollector(new YouTrackTicketProvider(youtrackConnection), gitRepository);
+
+            return new PendingReviewTicketBranchCollector(new YouTrackTicketProvider(youtrackConnection), new GitRemoteBranchProvider(await sharedGitSession.Value, gitRepository));
         }
 
         public IEnumerable<IBranchCollector> CreateTagCollectors(ICollection<string> tags)
@@ -65,5 +68,7 @@ namespace CanaryCollector
             if (!uris.Any()) yield break;
             throw new NotImplementedException();
         }
+
+        private readonly Lazy<Task<GitSession>> sharedGitSession;
     }
 }
