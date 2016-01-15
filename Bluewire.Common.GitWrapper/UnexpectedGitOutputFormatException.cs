@@ -15,6 +15,10 @@ namespace Bluewire.Common.GitWrapper
             Details = details;
         }
 
+        public UnexpectedGitOutputFormatException(ICommandLine commandLine, string message) : base(commandLine, 0, message)
+        {
+        }
+
         public override void Explain(TextWriter writer)
         {
             writer.WriteLine(Message);

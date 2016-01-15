@@ -2,11 +2,19 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Bluewire.Common.Console.Client.Shell;
 
 namespace Bluewire.Common.GitWrapper
 {
     public class GitFinder
     {
+        private readonly IConsoleInvocationLogger logger;
+
+        public GitFinder(IConsoleInvocationLogger logger = null)
+        {
+            this.logger = logger;
+        }
+
         public async Task<Git> FromEnvironment()
         {
             const string binaryName = "git.exe";
@@ -21,7 +29,7 @@ namespace Bluewire.Common.GitWrapper
                 if (File.Exists(maybeGitPath))
                 {
                     var git = new Git(maybeGitPath);
-                    await git.Validate();
+                    await git.Validate(logger);
                     return git;
                 }
             }

@@ -22,21 +22,23 @@ namespace Bluewire.Common.GitWrapper
         public string GetExecutableFilePath() => exePath;
         private string GetExecutableDirectory() => Path.Combine(Path.GetPathRoot(exePath), Path.GetDirectoryName(exePath));
 
-        public async Task Validate()
+        public async Task Validate(IConsoleInvocationLogger logger = null)
         {
             // check that the binary can execute
-            await GetVersionString();
+            await GetVersionString(logger);
         }
 
-        public async Task<string> GetVersionString()
+        public async Task<string> GetVersionString(IConsoleInvocationLogger logger = null)
         {
             var process = new CommandLine(exePath, "--version").RunFrom(GetExecutableDirectory());
+            using (logger?.LogMinorInvocation(process))
+            {
+                var versionString = await GitHelpers.ExpectOneLine(process); ;
+                const string expectedPrefix = "git version ";
+                if (!versionString.StartsWith(expectedPrefix)) throw new UnexpectedGitOutputFormatException(process.CommandLine);
 
-            var versionString = await GitHelpers.ExpectOneLine(process); ;
-            const string expectedPrefix = "git version ";
-            if (!versionString.StartsWith(expectedPrefix)) throw new UnexpectedGitOutputFormatException(process.CommandLine);
-
-            return versionString.Substring(expectedPrefix.Length).Trim();
+                return versionString.Substring(expectedPrefix.Length).Trim();
+            }
         }
     }
 }

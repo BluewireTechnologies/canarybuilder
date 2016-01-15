@@ -12,8 +12,9 @@ namespace Bluewire.Common.GitWrapper
             await ExpectSuccess(process);
 
             var lines = await process.StdOut.ReadAllLinesAsync();
-            if(lines.Count() != 1) throw new UnexpectedGitOutputFormatException(process.CommandLine);
-            if(String.IsNullOrWhiteSpace(lines.Single())) throw new UnexpectedGitOutputFormatException(process.CommandLine);
+            if (!lines.Any()) throw new UnexpectedGitOutputFormatException(process.CommandLine, "No output.");
+            if (lines.Count() > 1) throw new UnexpectedGitOutputFormatException(process.CommandLine, new UnexpectedGitOutputFormatDetails { Line = lines[1], Explanations = { $"{lines.Count() - 1} excess lines." } });
+            if (String.IsNullOrWhiteSpace(lines.Single())) throw new UnexpectedGitOutputFormatException(process.CommandLine, "Empty output.");
             return lines.Single();
         }
 
