@@ -96,5 +96,18 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
 
             Assert.That(await session.RefExists(workingCopy, new Ref("does-not-exist")), Is.False);
         }
+
+        [Test]
+        public async Task CanListOnlyUnmergedBranches()
+        {
+            await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
+            var firstCommit = await session.ResolveRef(workingCopy, Ref.Head);
+            await session.Commit(workingCopy, "second commit", CommitOptions.AllowEmptyCommit);
+
+            var branch = await session.CreateBranchAndCheckout(workingCopy, "new-branch", firstCommit);
+
+            Assert.That(await session.ListBranches(workingCopy, new ListBranchesOptions { UnmergedWith = new Ref("master") }), Is.Empty);
+            Assert.That(await session.ListBranches(workingCopy, new ListBranchesOptions { UnmergedWith = branch }), Is.EqualTo(new[] { new Ref("master") }));
+        }
     }
 }

@@ -141,17 +141,21 @@ namespace Bluewire.Common.GitWrapper
             asyncResult.AsyncWaitHandle.WaitOne();
         }
 
-        public async Task<Ref[]> ListBranches(IGitFilesystemContext workingCopyOrRepo)
+        public async Task<Ref[]> ListBranches(IGitFilesystemContext workingCopyOrRepo, ListBranchesOptions options = default(ListBranchesOptions))
         {
             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
 
-            var process = workingCopyOrRepo.Invoke(new CommandLine(Git.GetExecutableFilePath(), "branch", "--list"));
+            var cmd = new CommandLine(Git.GetExecutableFilePath(), "branch", "--list");
+            if (options.Remote) cmd.Add("--remotes");
+            if (options.UnmergedWith != null) cmd.Add("--no-merged", options.UnmergedWith);
+
+            var process = workingCopyOrRepo.Invoke(cmd);
             using (logger?.LogInvocation(process))
             {
                 var branchNames = process.StdOut
                     .Where(l => !String.IsNullOrWhiteSpace(l))
                     .Select(l => l.Substring(2))
-                    .Where(l => !l.StartsWith("(detach"))
+                    .Where(l => !l.StartsWith("(detach") && !l.Contains(" -> "))
                     .Select(l => new Ref(l))
                     .ToArray().ToTask();
 
@@ -159,7 +163,7 @@ namespace Bluewire.Common.GitWrapper
                 return await branchNames;
             }
         }
-
+        
         public async Task<Ref> CreateBranch(IGitFilesystemContext workingCopyOrRepo, string branchName, Ref start = null)
         {
             var branch = new Ref(branchName);

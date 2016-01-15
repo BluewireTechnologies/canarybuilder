@@ -69,6 +69,7 @@
     <Compile Include="GitSession.cs" />
     <Compile Include="GitWorkingCopy.cs" />
     <Compile Include="Model\IGitFilesystemContext.cs" />
+    <Compile Include="Model\ListBranchesOptions.cs" />
     <Compile Include="Model\MergeFastForward.cs" />
     <Compile Include="Model\MergeOptions.cs" />
     <Compile Include="Model\CommitOptions.cs" />
