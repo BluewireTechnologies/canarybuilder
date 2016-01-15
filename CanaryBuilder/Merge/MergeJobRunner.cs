@@ -24,8 +24,8 @@ namespace CanaryBuilder.Merge
             // Assert working copy is clean.
             if (!await session.IsClean(workingCopy)) throw new InvalidOperationException("Working copy is not clean.");
             
-            if (job.FinalTag != null && await session.RefExists(workingCopy, job.FinalTag)) throw new OutputRefAlreadyExistsException($"An existing ref conflicts with the requested tag: {job.FinalTag}");
-            if (job.FinalBranch != null && await session.RefExists(workingCopy, job.FinalBranch)) throw new OutputRefAlreadyExistsException($"An existing ref conflicts with the requested branch: {job.FinalBranch}");
+            if (job.FinalTag != null && await session.TagExists(workingCopy, job.FinalTag)) throw new OutputRefAlreadyExistsException($"An existing ref conflicts with the requested tag: {job.FinalTag}");
+            if (job.FinalBranch != null && await session.BranchExists(workingCopy, job.FinalBranch)) throw new OutputRefAlreadyExistsException($"An existing ref conflicts with the requested branch: {job.FinalBranch}");
             
             var temporaryBranch = job.TemporaryBranch ?? new Ref($"temp/canary/{Path.GetRandomFileName()}");
             try
@@ -69,7 +69,7 @@ namespace CanaryBuilder.Merge
                 await AssertCleanWorkingCopy(session, workingCopy);
             }
             // Delete temporary branch if we exited normally.
-            if (await session.RefExists(workingCopy, temporaryBranch))
+            if (await session.BranchExists(workingCopy, temporaryBranch))
             {
                 await session.DeleteBranch(workingCopy, temporaryBranch, true);
             }

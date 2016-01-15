@@ -32,8 +32,10 @@ function Run-Git()
 
 Try {
     
+    Run-Git fetch;
     # Clean up the previous build, if necessary.
-    Run-Git branch -D "${createBranch}" 2> $null;
+    Run-Git branch -D "${createBranch}";# 2> $null;
+    
     
     $branches = @(./CanaryCollector.exe --youtrack "${youtrackUri}" --repo "${workingCopy}" --pending -v);
     if(!$?) { exit 1; }
