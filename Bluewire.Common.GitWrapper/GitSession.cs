@@ -61,6 +61,34 @@ namespace Bluewire.Common.GitWrapper
             }
         }
 
+        public async Task<bool> ExactRefExists(IGitFilesystemContext workingCopyOrRepo, Ref @ref)
+        {
+            if (@ref == null) throw new ArgumentNullException(nameof(@ref));
+
+            var process = workingCopyOrRepo.Invoke(new CommandLine(Git.GetExecutableFilePath(), "show-ref", "--verify", "--quiet", @ref));
+            using (var log = logger?.LogMinorInvocation(process))
+            {
+                log?.IgnoreExitCode();
+
+                var exitCode = await process.Completed;
+                return exitCode == 0;
+            }
+        }
+
+        public async Task<bool> BranchExists(IGitFilesystemContext workingCopyOrRepo, Ref branch)
+        {
+            if (branch == null) throw new ArgumentNullException(nameof(branch));
+
+            return await ExactRefExists(workingCopyOrRepo, new Ref($"refs/heads/{branch}"));
+        }
+
+        public async Task<bool> TagExists(IGitFilesystemContext workingCopyOrRepo, Ref tag)
+        {
+            if (tag == null) throw new ArgumentNullException(nameof(tag));
+
+            return await ExactRefExists(workingCopyOrRepo, new Ref($"refs/tags/{tag}"));
+        }
+
         public async Task<bool> AreRefsEquivalent(IGitFilesystemContext workingCopyOrRepo, Ref a, Ref b)
         {
             var resolvedA = await ResolveRef(workingCopyOrRepo, a);

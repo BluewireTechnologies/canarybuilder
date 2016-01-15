@@ -86,7 +86,7 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
 
             var branch = await session.CreateBranch(workingCopy, "new-branch");
 
-            Assert.That(await session.RefExists(workingCopy, branch), Is.True);
+            Assert.That(await session.BranchExists(workingCopy, branch), Is.True);
         }
 
         [Test]
@@ -94,7 +94,7 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
         {
             await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
 
-            Assert.That(await session.RefExists(workingCopy, new Ref("does-not-exist")), Is.False);
+            Assert.That(await session.BranchExists(workingCopy, new Ref("does-not-exist")), Is.False);
         }
 
         [Test]

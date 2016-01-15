@@ -50,7 +50,7 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
 
             var tag = await session.CreateTag(workingCopy, "new-tag", Ref.Head, "Test tag");
 
-            Assert.That(await session.RefExists(workingCopy, tag), Is.True);
+            Assert.That(await session.TagExists(workingCopy, tag), Is.True);
         }
 
         [Test]
@@ -58,7 +58,7 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
         {
             await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
 
-            Assert.That(await session.RefExists(workingCopy, new Ref("does-not-exist")), Is.False);
+            Assert.That(await session.TagExists(workingCopy, new Ref("does-not-exist")), Is.False);
         }
     }
 }
