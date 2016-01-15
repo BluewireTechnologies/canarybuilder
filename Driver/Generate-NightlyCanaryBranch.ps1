@@ -30,15 +30,19 @@ function Run-Git()
     }
 }
 
+function Run-CanaryCollector()
+{
+    ./CanaryCollector.exe --youtrack "${youtrackUri}" --repo "${workingCopy}" --pending -v;
+    if(!$?) { throw "CanaryCollector exited with code $LASTEXITCODE"; }
+}
+
 Try {
     
     Run-Git fetch;
     # Clean up the previous build, if necessary.
-    Run-Git branch -D "${createBranch}";# 2> $null;
+    Run-Git branch -D "${createBranch}" 2> $null;
     
-    
-    $branches = @(./CanaryCollector.exe --youtrack "${youtrackUri}" --repo "${workingCopy}" --pending -v);
-    if(!$?) { exit 1; }
+    $branches = @( Run-CanaryCollector );
     
     "
 start at: master
@@ -47,7 +51,7 @@ $(${branches} |% { "merge: $_" } | Out-String)
 " | Set-Content canary.merge
 
     ./CanaryBuilder.exe merge canary.merge "${workingCopy}"
-    if(!$?) { exit 1; }
+    if(!$?) { throw "CanaryBuilder exited with code $LASTEXITCODE"; }
     
     Run-Git push -f "${pushTarget}" "${createBranch}";
     
