@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Bluewire.Common.Console;
+using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.Console.Logging;
 using Bluewire.Common.Console.ThirdParty;
 using CanaryCollector.Model;
@@ -40,7 +44,7 @@ namespace CanaryCollector
 
         private async Task<int> Run()
         {
-            var factory = new BranchCollectorFactory(arguments.YoutrackUri, arguments.RepositoryPath);
+            var factory = new BranchCollectorFactory(arguments.YoutrackUri, arguments.RepositoryPath, Log.Console.IsDebugEnabled ? new ConsoleInvocationLogger() : null);
 
             var collectors = new List<IBranchCollector>();
             collectors.AddRange(factory.CreateUriCollectors(arguments.IncludeUris));
@@ -92,6 +96,31 @@ namespace CanaryCollector
 
             public Uri YoutrackUri { get; set; }
             public string RepositoryPath { get; set; }
+        }
+
+        class ConsoleInvocationLogger : IConsoleInvocationLogger
+        {
+            private void WriteLine(string line)
+            {
+                Log.Console.Debug(line);
+            }
+
+            public IConsoleInvocationLogScope LogInvocation(IConsoleProcess process)
+            {
+                WriteLine($" [SHELL]  {process.CommandLine}");
+
+                var stdout = process.StdOut.Select(l => $"  [STDOUT]  {l}");
+                var stderr = process.StdErr.Select(l => $"  [STDERR]  {l}");
+
+                var logger = Observer.Create<string>(WriteLine);
+
+                return new ConsoleInvocationLogScope(stdout.Merge(stderr).Subscribe(logger));
+            }
+
+            public IConsoleInvocationLogScope LogMinorInvocation(IConsoleProcess process)
+            {
+                return LogInvocation(process);
+            }
         }
     }
 }

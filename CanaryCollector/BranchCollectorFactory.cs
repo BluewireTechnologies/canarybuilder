@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Bluewire.Common.Console;
+using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.GitWrapper;
 using CanaryCollector.Collectors;
 using CanaryCollector.Remote.YouTrack;
@@ -15,11 +16,11 @@ namespace CanaryCollector
         private readonly Uri youtrackUri;
         private readonly string repositoryPath;
 
-        public BranchCollectorFactory(Uri youtrackUri, string repositoryPath)
+        public BranchCollectorFactory(Uri youtrackUri, string repositoryPath, IConsoleInvocationLogger logger = null)
         {
             this.youtrackUri = youtrackUri;
             this.repositoryPath = repositoryPath;
-            sharedGitSession = new Lazy<Task<GitSession>>(async () => new GitSession(await new GitFinder().FromEnvironment()));
+            sharedGitSession = new Lazy<Task<GitSession>>(async () => new GitSession(await new GitFinder().FromEnvironment(), logger));
         }
 
         private GitRepository FindAndVerifyRepository(string dependentParameter)
