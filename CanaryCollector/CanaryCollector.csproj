@@ -70,6 +70,7 @@
   <ItemGroup>
     <Compile Include="BranchCollectorFactory.cs" />
     <Compile Include="Collectors\ITicketProvider.cs" />
+    <Compile Include="Collectors\TicketAndBranchAssociator.cs" />
     <Compile Include="Remote\YouTrack\YouTrackTicketProvider.cs" />
     <Compile Include="Model\TicketLinkedBranch.cs" />
     <Compile Include="Remote\YouTrack\YouTrack.cs" />
@@ -91,6 +92,10 @@
     <ProjectReference Include="..\Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj">
       <Project>{815563F8-0AF9-4E56-9160-A26CDD1DB163}</Project>
       <Name>Bluewire.Common.GitWrapper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Bluewire.Conventions\Bluewire.Conventions.csproj">
+      <Project>{7FD6A3BA-5B0C-4EC5-BC18-D1CEA058B7E9}</Project>
+      <Name>Bluewire.Conventions</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
