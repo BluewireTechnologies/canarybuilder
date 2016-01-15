@@ -34,7 +34,8 @@
     </ItemGroup>
     
     <ItemGroup>
-		<NUnitProject Include="Bluewire.Common.GitWrapper.UnitTests\Bluewire.Common.GitWrapper.UnitTests.csproj" />
+        <NUnitProject Include="Bluewire.Conventions.UnitTests\Bluewire.Conventions.UnitTests.csproj" />
+        <NUnitProject Include="Bluewire.Common.GitWrapper.UnitTests\Bluewire.Common.GitWrapper.UnitTests.csproj" />
         <NUnitProject Include="Bluewire.Common.GitWrapper.IntegrationTests\Bluewire.Common.GitWrapper.IntegrationTests.csproj" />
         <NUnitProject Include="CanaryBuilder.UnitTests\CanaryBuilder.UnitTests.csproj" />
         <NUnitProject Include="CanaryBuilder.IntegrationTests\CanaryBuilder.IntegrationTests.csproj" />
