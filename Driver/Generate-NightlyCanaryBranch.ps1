@@ -1,8 +1,10 @@
 param(
     [string]$createBranch,
-    [string]$pushTarget,
     [string]$youtrackUri,
-    [string]$workingCopy = "workingCopy"
+    [string]$teamcityProjectId,
+    [string]$downstream,
+    [string]$workingCopy = "workingCopy",
+    [string]$baseBranch = "master" # Only master is currently supported
 )
 
 if($createBranch -eq "master")
@@ -20,6 +22,7 @@ if($createBranch -like "feature/*" -or
     exit 2;
 }
 
+
 function Run-Git()
 {
     pushd "${workingCopy}"
@@ -36,24 +39,44 @@ function Run-CanaryCollector()
     if(!$?) { throw "CanaryCollector exited with code $LASTEXITCODE"; }
 }
 
+function Put-Parameter($name, $value)
+{
+	Write-Host "##teamcity[setParameter name='$name' value='$value']"
+}
+
+function Configure-TeamCityOutputProperties()
+{
+    if(!$teamcityProjectId) { return; }
+    "Configuring TeamCity output";
+    Put-Parameter "teamcity.build.branch" "${createBranch}";
+    Put-Parameter "vcsroot.branch" "${createBranch}";
+    Put-Parameter "vcsroot.${teamcityProjectId}.branch" "${createBranch}";
+}
+
 Try {
-    
+    "Fetching all branches from remotes";
     Run-Git fetch;
+    "Cleaning old target branch";
     # Clean up the previous build, if necessary.
     Run-Git branch -D "${createBranch}" 2> $null;
     
+    "Collecting candidate branches";
     $branches = @( Run-CanaryCollector );
     
     "
-start at: master
+start at: ${baseBranch}
 produce branch: ${createBranch}
 $(${branches} |% { "merge: $_" } | Out-String)
 " | Set-Content canary.merge
 
+    "Building target branch";
     ./CanaryBuilder.exe merge canary.merge "${workingCopy}"
     if(!$?) { throw "CanaryBuilder exited with code $LASTEXITCODE"; }
     
-    Run-Git push -f "${pushTarget}" "${createBranch}";
+    "Pushing target branch";
+    Run-Git push -f "${downstream}" "${createBranch}";
+    
+    Configure-TeamCityOutputProperties;
     
 } catch {
     Write-Host $_;
