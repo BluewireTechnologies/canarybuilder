@@ -48,7 +48,8 @@ namespace CanaryCollector.Remote.YouTrack
             private static readonly StringComparer comparer = StringComparer.InvariantCultureIgnoreCase;
             public static IssueTicketType Convert(object type)
             {
-                if (comparer.Equals(type, "bug")) return IssueTicketType.BugFix;
+                if (comparer.Equals(type, "bug")) return IssueTicketType.Bug;
+                if (comparer.Equals(type, "usability problem")) return IssueTicketType.UsabilityProblem;
                 if (comparer.Equals(type, "feature")) return IssueTicketType.Feature;
                 if (comparer.Equals(type, "technical debt")) return IssueTicketType.TechnicalDebt;
                 if (comparer.Equals(type, "performance")) return IssueTicketType.Performance;

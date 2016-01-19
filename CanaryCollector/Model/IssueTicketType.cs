@@ -2,10 +2,11 @@
 {
     public enum IssueTicketType
     {
-        BugFix = 0,
-        Feature = 1,
-        TechnicalDebt = 2,
-        Performance = 3,
+        Bug = 0,
+        UsabilityProblem = 1,
+        Feature = 2,
+        TechnicalDebt = 4,
+        Performance = 5,
         Unknown = 255
     }
 }

@@ -98,7 +98,6 @@
     <Compile Include="Remote\YouTrack\YouTrack.cs" />
     <Compile Include="Model\Branch.cs" />
     <Compile Include="IBranchCollector.cs" />
-    <Compile Include="Model\BranchType.cs" />
     <Compile Include="Model\IssueTicket.cs" />
     <Compile Include="Collectors\PendingReviewTicketBranchCollector.cs" />
     <Compile Include="Model\IssueTicketType.cs" />
