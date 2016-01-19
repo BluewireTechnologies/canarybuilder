@@ -35,7 +35,7 @@ function Run-Git()
 
 function Run-CanaryCollector()
 {
-    ./CanaryCollector.exe --youtrack "${youtrackUri}" --repo "${workingCopy}" --pending -v;
+    ./CanaryCollector.exe --youtrack "${youtrackUri}" --repo "${workingCopy}" --tag Canary --pending -v;
     if(!$?) { throw "CanaryCollector exited with code $LASTEXITCODE"; }
 }
 
