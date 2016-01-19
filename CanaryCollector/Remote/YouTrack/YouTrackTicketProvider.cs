@@ -26,6 +26,13 @@ namespace CanaryCollector.Remote.YouTrack
 
         }
 
+        public IEnumerable<IssueTicket> GetTicketsWithTag(string tagName)
+        {
+            var issueManagement = new IssueManagement(youtrackConnection);
+
+            return issueManagement.GetIssuesBySearch($"tag: {{{tagName}}}").Select(ReadTicket).ToArray();
+        }
+
         private static IssueTicket ReadTicket(Issue issue)
         {
             object type;

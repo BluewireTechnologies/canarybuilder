@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -92,6 +93,7 @@
     <Compile Include="Collectors\GitBranchProvider.cs" />
     <Compile Include="Collectors\IBranchProvider.cs" />
     <Compile Include="Collectors\ITicketProvider.cs" />
+    <Compile Include="Collectors\TaggedTicketBranchCollector.cs" />
     <Compile Include="Collectors\TicketAndBranchAssociator.cs" />
     <Compile Include="Remote\YouTrack\YouTrackTicketProvider.cs" />
     <Compile Include="Model\TicketLinkedBranch.cs" />

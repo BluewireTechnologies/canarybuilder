@@ -57,11 +57,14 @@ namespace CanaryCollector
             return new PendingReviewTicketBranchCollector(new YouTrackTicketProvider(youtrackConnection), new GitRemoteBranchProvider(await sharedGitSession.Value, gitRepository));
         }
 
-        public IEnumerable<IBranchCollector> CreateTagCollectors(ICollection<string> tags)
+        public async Task<IBranchCollector[]> CreateTagCollectors(ICollection<string> tags)
         {
-            if (!tags.Any()) yield break;
+            if (!tags.Any()) return new IBranchCollector[0];
             var youtrackConnection = CreateYoutrackConnection("--tag");
-            throw new NotImplementedException();
+            var gitRepository = FindAndVerifyRepository("--tag");
+            var branchProvider = new GitRemoteBranchProvider(await sharedGitSession.Value, gitRepository);
+
+            return tags.Select(t => new TaggedTicketBranchCollector(new YouTrackTicketProvider(youtrackConnection), branchProvider, t)).ToArray();
         }
 
         public IEnumerable<IBranchCollector> CreateUriCollectors(ICollection<Uri> uris)
