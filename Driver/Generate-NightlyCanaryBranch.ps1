@@ -23,7 +23,7 @@ if($createBranch -like "feature/*" -or
     exit 2;
 }
 
-$verifierCommand = '"C:\Program Files (x86)\MSbuild\14.0\Bin\MSBuild.exe" UnitTests.Task.proj';
+$verifierCommand = '"C:\Program Files (x86)\MSbuild\14.0\Bin\MSBuild.exe" /v:minimal UnitTests.Task.proj';
 $datestamp = $(Get-Date).ToString("yyyyMMdd-HHmm");
 
 function Run-Git()
