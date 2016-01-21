@@ -35,7 +35,7 @@ namespace Bluewire.Common.GitWrapper.Model
 
         public static implicit operator string(Ref @ref)
         {
-            return @ref.ToString();
+            return @ref?.ToString();
         }
 
         protected bool Equals(Ref other)
