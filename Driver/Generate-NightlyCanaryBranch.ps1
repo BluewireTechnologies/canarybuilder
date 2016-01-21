@@ -3,6 +3,7 @@ param(
     [string]$youtrackUri,
     [string]$teamcityProjectId,
     [string]$downstream,
+    [string]$tagPrefix,
     [string]$workingCopy = "workingCopy",
     [string]$baseBranch = "master" # Only master is currently supported
 )
@@ -23,6 +24,7 @@ if($createBranch -like "feature/*" -or
 }
 
 $verifierCommand = '"C:\Program Files (x86)\MSbuild\14.0\Bin\MSBuild.exe" UnitTests.Task.proj';
+$datestamp = $(Get-Date).ToString("yyyyMMdd-HHmm");
 
 function Run-Git()
 {
@@ -67,10 +69,15 @@ Try {
     "
 start at: ${baseBranch}
 produce branch: ${createBranch}
-verify with: ${$verifierCommand}
-verify merges with: ${$verifierCommand}
+verify with: ${verifierCommand}
+verify merges with: ${verifierCommand}
 $(${branches} |% { "merge: $_" } | Out-String)
 " | Set-Content canary.merge
+
+    if($tagPrefix)
+    {
+        "produce tag: ${tagPrefix}${datestamp}" | Add-Content canary.merge;
+    }
 
     "Building target branch";
     ./CanaryBuilder.exe merge canary.merge "${workingCopy}"
