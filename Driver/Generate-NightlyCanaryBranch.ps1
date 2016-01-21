@@ -22,6 +22,7 @@ if($createBranch -like "feature/*" -or
     exit 2;
 }
 
+$verifierCommand = '"C:\Program Files (x86)\MSbuild\14.0\Bin\MSBuild.exe" UnitTests.Task.proj';
 
 function Run-Git()
 {
@@ -66,6 +67,8 @@ Try {
     "
 start at: ${baseBranch}
 produce branch: ${createBranch}
+verify with: ${$verifierCommand}
+verify merges with: ${$verifierCommand}
 $(${branches} |% { "merge: $_" } | Out-String)
 " | Set-Content canary.merge
 
