@@ -75,6 +75,7 @@
     <Compile Include="Merge\MergeJobRunnerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestInfrastructure\Attributes.cs" />
+    <Compile Include="XAssert.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Bluewire.Common.GitWrapper.IntegrationTests\Bluewire.Common.GitWrapper.IntegrationTests.csproj">

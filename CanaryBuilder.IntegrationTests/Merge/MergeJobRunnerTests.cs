@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.IO;
 using System.Threading.Tasks;
 using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.IntegrationTests;
@@ -40,15 +36,8 @@ namespace CanaryBuilder.IntegrationTests.Merge
                 Base = new Ref("master"),
                 FinalBranch = new Ref("output-branch")
             };
-
-            try
-            {
-                await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
-                Assert.Fail();
-            }
-            catch (OutputRefAlreadyExistsException)
-            {
-            }
+            
+            await XAssert.ThrowsAsync<OutputRefAlreadyExistsException>(() => sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>()));
         }
 
         [Test]
@@ -61,14 +50,8 @@ namespace CanaryBuilder.IntegrationTests.Merge
                 FinalTag = new Ref("output-tag")
             };
 
-            try
-            {
-                await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
-                Assert.Fail();
-            }
-            catch (OutputRefAlreadyExistsException)
-            {
-            }
+
+            await XAssert.ThrowsAsync<OutputRefAlreadyExistsException>(() => sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>()));
         }
 
         [Test]
@@ -83,15 +66,8 @@ namespace CanaryBuilder.IntegrationTests.Merge
                 Verifier = failingVerifier.Object,
                 FinalTag = new Ref("output-tag")
             };
-
-            try
-            {
-                await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
-                Assert.Fail();
-            }
-            catch (InvalidWorkingCopyStateException)
-            {
-            }
+            
+            await XAssert.ThrowsAsync<InvalidWorkingCopyStateException>(() => sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>()));
         }
         
         [Test]
