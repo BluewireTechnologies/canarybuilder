@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
@@ -260,13 +261,13 @@ namespace Bluewire.Common.GitWrapper
         public async Task CheckoutCompletelyClean(GitWorkingCopy workingCopy, Ref @ref = null)
         {
             await RunSimpleCommand(workingCopy, "checkout", "--force", @ref);
-            await RunSimpleCommand(workingCopy, "clean", "--force", "-xd", @ref);
+            await RunSimpleCommand(workingCopy, "clean", "--force", "-xd");
         }
 
         public async Task ResetCompletelyClean(GitWorkingCopy workingCopy, Ref @ref = null)
         {
             await RunSimpleCommand(workingCopy, "reset", "--hard", @ref);
-            await RunSimpleCommand(workingCopy, "clean", "--force", "-xd", @ref);
+            await RunSimpleCommand(workingCopy, "clean", "--force", "-xd");
         }
 
         // TODO: Better API for 'git reset'
