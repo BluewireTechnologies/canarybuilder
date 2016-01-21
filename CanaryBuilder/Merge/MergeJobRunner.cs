@@ -75,8 +75,13 @@ namespace CanaryBuilder.Merge
             }
         }
 
-        private void VerifyBase(GitWorkingCopy workingCopy, MergeJobDefinition job, IJobLogger logger)
+        private static void VerifyBase(GitWorkingCopy workingCopy, MergeJobDefinition job, IJobLogger logger)
         {
+            if (job.Verifier == null) return;
+            using (logger.EnterScope("Verifying working copy"))
+            {
+                job.Verifier.Verify(workingCopy, logger);
+            }
         }
 
         /// <summary>
@@ -128,6 +133,11 @@ namespace CanaryBuilder.Merge
 
         private void VerifyMerge(GitWorkingCopy workingCopy, MergeCandidate candidate, IJobLogger logger)
         {
+            if (candidate.Verifier == null) return;
+            using (logger.EnterScope("Verifying working copy"))
+            {
+                candidate.Verifier.Verify(workingCopy, logger);
+            }
         }
 
         private static async Task AssertCleanWorkingCopy(GitSession session, GitWorkingCopy workingCopy)

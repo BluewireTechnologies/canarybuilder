@@ -85,12 +85,13 @@
     <Compile Include="Logging\PlainTextJobLogger.cs" />
     <Compile Include="Logging\ConsoleLogWriter.cs" />
     <Compile Include="Logging\IPlainTextLogWriter.cs" />
+    <Compile Include="Merge\CommandLineWorkingCopyVerifier.cs" />
+    <Compile Include="Merge\InvalidWorkingCopyStateException.cs" />
     <Compile Include="Merge\IWorkingCopyVerifier.cs" />
     <Compile Include="Merge\JobRunnerException.cs" />
     <Compile Include="Merge\MergeJob.cs" />
     <Compile Include="Merge\MergeJobDefinition.cs" />
     <Compile Include="Merge\MergeCandidate.cs" />
-    <Compile Include="Merge\NoWorkingCopyVerifier.cs" />
     <Compile Include="Merge\OutputRefAlreadyExistsException.cs" />
     <Compile Include="Merge\UncleanWorkingCopyException.cs" />
     <Compile Include="Parsers\JobScriptSyntaxErrorException.cs" />

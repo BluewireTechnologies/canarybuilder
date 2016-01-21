@@ -11,7 +11,7 @@ namespace CanaryBuilder.Logging
         void Warn(Exception exception);
         void Error(string message, Exception exception = null);
         void Error(Exception exception);
-
+        
         IDisposable EnterScope(string message);
     }
 }

@@ -164,5 +164,118 @@ namespace CanaryBuilder.UnitTests.Merge
             }
         }
 
+        [TestFixture]
+        public class VerifyWith
+        {
+            [Test]
+            public void AppliesToInitialState()
+            {
+                var definition = parser.Parse(new StringReader(@"
+                    start at: master
+                    verify with: TestBuild
+                "));
+                parser.Validate(definition);
+
+                var verifier = AssertVerifierOfType<CommandLineWorkingCopyVerifier>(definition.Verifier);
+                Assert.That(verifier.CommandLine.ProgramPath, Is.EqualTo("TestBuild"));
+            }
+
+            [Test]
+            public void DoesNotApplyToMerges()
+            {
+                var definition = parser.Parse(new StringReader(@"
+                    start at: master
+                    verify with: TestBuild
+                    merge: something/something
+                "));
+                parser.Validate(definition);
+
+                Assert.That(definition.Merges.Single().Verifier, Is.Null);
+            }
+
+            [Test]
+            public void QuotedProgramPathCanContainWhitespace()
+            {
+                var definition = parser.Parse(new StringReader(@"
+                    start at: master
+                    verify with ""C:\Program Files\TestBuild""
+                    merge: something/something
+                "));
+                parser.Validate(definition);
+
+                var verifier = AssertVerifierOfType<CommandLineWorkingCopyVerifier>(definition.Verifier);
+                Assert.That(verifier.CommandLine.ProgramPath, Is.EqualTo(@"C:\Program Files\TestBuild"));
+            }
+
+            [Test]
+            public void QuotedArgumentsCanContainWhitespace()
+            {
+                var definition = parser.Parse(new StringReader(@"
+                    start at: master
+                    verify with ""C:\Program Files\TestBuild"" ""file name""
+                    merge: something/something
+                "));
+                parser.Validate(definition);
+
+                var verifier = AssertVerifierOfType<CommandLineWorkingCopyVerifier>(definition.Verifier);
+                Assert.That(verifier.CommandLine.GetQuotedArguments(), Is.EqualTo(@"""file name"""));
+            }
+        }
+
+
+        [TestFixture]
+        public class VerifyMergesWith
+        {
+            [Test]
+            public void AppliesToSubsequentMergeDirectives()
+            {
+                var definition = parser.Parse(new StringReader(@"
+                    start at: master
+                    merge: something/first
+                    verify merges with: TestBuild
+                    merge: something/second
+                "));
+                parser.Validate(definition);
+
+                Assert.That(definition.Merges.ElementAt(0).Verifier, Is.Null);
+
+                var verifier = AssertVerifierOfType<CommandLineWorkingCopyVerifier>(definition.Merges.ElementAt(1).Verifier);
+                Assert.That(verifier.CommandLine.ProgramPath, Is.EqualTo("TestBuild"));
+            }
+
+            [Test]
+            public void QuotedProgramPathCanContainWhitespace()
+            {
+                var definition = parser.Parse(new StringReader(@"
+                    start at: master
+                    verify merges with ""C:\Program Files\TestBuild""
+                    merge: something/something
+                "));
+                parser.Validate(definition);
+
+                var verifier = AssertVerifierOfType<CommandLineWorkingCopyVerifier>(definition.Merges.Single().Verifier);
+                Assert.That(verifier.CommandLine.ProgramPath, Is.EqualTo(@"C:\Program Files\TestBuild"));
+            }
+
+            [Test]
+            public void QuotedArgumentsCanContainWhitespace()
+            {
+                var definition = parser.Parse(new StringReader(@"
+                    start at: master
+                    verify merges with ""C:\Program Files\TestBuild"" ""file name""
+                    merge: something/something
+                "));
+                parser.Validate(definition);
+
+                var verifier = AssertVerifierOfType<CommandLineWorkingCopyVerifier>(definition.Merges.Single().Verifier);
+                Assert.That(verifier.CommandLine.GetQuotedArguments(), Is.EqualTo(@"""file name"""));
+            }
+        }
+
+        private static T AssertVerifierOfType<T>(IWorkingCopyVerifier verifier) where T : IWorkingCopyVerifier
+        {
+            Assert.That(verifier, Is.InstanceOf<T>());
+            return (T)verifier;
+        }
     }
 }

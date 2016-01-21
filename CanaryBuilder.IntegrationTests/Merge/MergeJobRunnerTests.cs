@@ -72,6 +72,44 @@ namespace CanaryBuilder.IntegrationTests.Merge
         }
 
         [Test]
+        public async Task FailsIfBaseVerifierReportsFailure()
+        {
+            var failingVerifier = new Mock<IWorkingCopyVerifier>();
+            failingVerifier.Setup(v => v.Verify(workingCopy, It.IsAny<IJobLogger>())).Throws(new InvalidWorkingCopyStateException("Failed"));
+            
+            var jobDefinition = new MergeJobDefinition
+            {
+                Base = new Ref("master"),
+                Verifier = failingVerifier.Object,
+                FinalTag = new Ref("output-tag")
+            };
+
+            try
+            {
+                await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
+                Assert.Fail();
+            }
+            catch (InvalidWorkingCopyStateException)
+            {
+            }
+        }
+        
+        [Test]
+        public async Task ContinuesIfBaseVerifierReportsSuccess()
+        {
+            var succeedingVerifier = new Mock<IWorkingCopyVerifier>();
+
+            var jobDefinition = new MergeJobDefinition
+            {
+                Base = new Ref("master"),
+                Verifier = succeedingVerifier.Object,
+                FinalTag = new Ref("output-tag")
+            };
+            
+            await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
+        }
+
+        [Test]
         public async Task JobWithNoMerges_Yields_FinalBranchSameAsBase()
         {
             var jobDefinition = new MergeJobDefinition
@@ -153,6 +191,31 @@ namespace CanaryBuilder.IntegrationTests.Merge
             Assert.That(await session.AreRefsEquivalent(workingCopy, new Ref("master"), jobDefinition.FinalBranch), Is.True);
         }
 
+
+        [Test]
+        public async Task SuccessfulMergeWithFailedVerification_IsSkipped()
+        {
+            var failingVerifier = new Mock<IWorkingCopyVerifier>();
+            failingVerifier.Setup(v => v.Verify(workingCopy, It.IsAny<IJobLogger>())).Throws(new InvalidWorkingCopyStateException("Failed"));
+
+            await session.CreateBranchAndCheckout(workingCopy, "input-branch");
+            await session.Commit(workingCopy, "Branch comit", CommitOptions.AllowEmptyCommit);
+            
+            var jobDefinition = new MergeJobDefinition
+            {
+                Base = new Ref("master"),
+                Merges = {
+                    new MergeCandidate(new Ref("input-branch")) { Verifier = failingVerifier.Object }
+                },
+                FinalBranch = new Ref("test-branch")
+            };
+
+            await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
+
+            Assert.That(await session.RefExists(workingCopy, jobDefinition.FinalBranch));
+            Assert.That(await session.AreRefsEquivalent(workingCopy, new Ref("master"), jobDefinition.FinalBranch), Is.True);
+        }
+        
         [Test]
         public async Task MergeIsNotFastForward()
         {
