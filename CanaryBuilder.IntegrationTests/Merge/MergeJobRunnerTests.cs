@@ -57,13 +57,13 @@ namespace CanaryBuilder.IntegrationTests.Merge
         [Test]
         public async Task FailsIfBaseVerifierReportsFailure()
         {
-            var failingVerifier = new Mock<IWorkingCopyVerifier>();
-            failingVerifier.Setup(v => v.Verify(workingCopy, It.IsAny<IJobLogger>())).Throws(new InvalidWorkingCopyStateException("Failed"));
+            var failingVerifier = Mock.Of<IWorkingCopyVerifier>(v =>
+                v.Verify(workingCopy, It.IsAny<IJobLogger>()) == Task.FromException(new InvalidWorkingCopyStateException("Failed")));
             
             var jobDefinition = new MergeJobDefinition
             {
                 Base = new Ref("master"),
-                Verifier = failingVerifier.Object,
+                Verifier = failingVerifier,
                 FinalTag = new Ref("output-tag")
             };
             
@@ -73,12 +73,13 @@ namespace CanaryBuilder.IntegrationTests.Merge
         [Test]
         public async Task ContinuesIfBaseVerifierReportsSuccess()
         {
-            var succeedingVerifier = new Mock<IWorkingCopyVerifier>();
+            var succeedingVerifier = Mock.Of<IWorkingCopyVerifier>(v =>
+                v.Verify(workingCopy, It.IsAny<IJobLogger>()) == Task.CompletedTask);
 
             var jobDefinition = new MergeJobDefinition
             {
                 Base = new Ref("master"),
-                Verifier = succeedingVerifier.Object,
+                Verifier = succeedingVerifier,
                 FinalTag = new Ref("output-tag")
             };
             
@@ -171,8 +172,8 @@ namespace CanaryBuilder.IntegrationTests.Merge
         [Test]
         public async Task SuccessfulMergeWithFailedVerification_IsSkipped()
         {
-            var failingVerifier = new Mock<IWorkingCopyVerifier>();
-            failingVerifier.Setup(v => v.Verify(workingCopy, It.IsAny<IJobLogger>())).Throws(new InvalidWorkingCopyStateException("Failed"));
+            var failingVerifier = Mock.Of<IWorkingCopyVerifier>(v =>
+                v.Verify(workingCopy, It.IsAny<IJobLogger>()) == Task.FromException(new InvalidWorkingCopyStateException("Failed")));
 
             await session.CreateBranchAndCheckout(workingCopy, "input-branch");
             await session.Commit(workingCopy, "Branch comit", CommitOptions.AllowEmptyCommit);
@@ -181,7 +182,7 @@ namespace CanaryBuilder.IntegrationTests.Merge
             {
                 Base = new Ref("master"),
                 Merges = {
-                    new MergeCandidate(new Ref("input-branch")) { Verifier = failingVerifier.Object }
+                    new MergeCandidate(new Ref("input-branch")) { Verifier = failingVerifier }
                 },
                 FinalBranch = new Ref("test-branch")
             };
