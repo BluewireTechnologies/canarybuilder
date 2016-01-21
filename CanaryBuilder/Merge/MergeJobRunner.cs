@@ -34,7 +34,7 @@ namespace CanaryBuilder.Merge
                 // Checkout base ref.
                 await session.CheckoutCompletelyClean(workingCopy, job.Base);
                 // Run verifier against it.
-                VerifyBase(workingCopy, job, logger);
+                await VerifyBase(workingCopy, job, logger);
                 logger.Info($"Using temporary branch {temporaryBranch}");
                 // Create temporary branch from base ref and checkout.
                 await session.CreateBranchAndCheckout(workingCopy, temporaryBranch);
@@ -75,12 +75,12 @@ namespace CanaryBuilder.Merge
             }
         }
 
-        private static void VerifyBase(GitWorkingCopy workingCopy, MergeJobDefinition job, IJobLogger logger)
+        private static async Task VerifyBase(GitWorkingCopy workingCopy, MergeJobDefinition job, IJobLogger logger)
         {
             if (job.Verifier == null) return;
             using (logger.EnterScope("Verifying working copy"))
             {
-                job.Verifier.Verify(workingCopy, logger);
+                await job.Verifier.Verify(workingCopy, logger);
             }
         }
 
@@ -119,7 +119,7 @@ namespace CanaryBuilder.Merge
             {
                 logger.Info($"Verifying merge of {candidate.Ref}");
                 // * Apply verifier. If fails, undo merge and continue with next.
-                VerifyMerge(workingCopy, candidate, logger);
+                await VerifyMerge(workingCopy, candidate, logger);
             }
             catch(Exception ex)
             {
@@ -131,12 +131,12 @@ namespace CanaryBuilder.Merge
             return true;
         }
 
-        private void VerifyMerge(GitWorkingCopy workingCopy, MergeCandidate candidate, IJobLogger logger)
+        private static async Task VerifyMerge(GitWorkingCopy workingCopy, MergeCandidate candidate, IJobLogger logger)
         {
             if (candidate.Verifier == null) return;
             using (logger.EnterScope("Verifying working copy"))
             {
-                candidate.Verifier.Verify(workingCopy, logger);
+                await candidate.Verifier.Verify(workingCopy, logger);
             }
         }
 
