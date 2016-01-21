@@ -192,7 +192,36 @@ namespace CanaryBuilder.IntegrationTests.Merge
             Assert.That(await session.RefExists(workingCopy, jobDefinition.FinalBranch));
             Assert.That(await session.AreRefsEquivalent(workingCopy, new Ref("master"), jobDefinition.FinalBranch), Is.True);
         }
-        
+
+        [Test]
+        public async Task SuccessfulMergeWithDirtyWorkingCopyAfterSuccessfulVerification_IsSkipped()
+        {
+            var failingVerifier = new Mock<IWorkingCopyVerifier>();
+            failingVerifier.Setup(v => v.Verify(workingCopy, It.IsAny<IJobLogger>()))
+                .Callback(() =>
+                {
+                    File.WriteAllText(workingCopy.Path("temp.txt"), "Leave working copy dirty.");
+                })
+                .Returns(Task.CompletedTask);
+
+            await session.CreateBranchAndCheckout(workingCopy, "input-branch");
+            await session.Commit(workingCopy, "Branch comit", CommitOptions.AllowEmptyCommit);
+
+            var jobDefinition = new MergeJobDefinition
+            {
+                Base = new Ref("master"),
+                Merges = {
+                    new MergeCandidate(new Ref("input-branch")) { Verifier = failingVerifier.Object }
+                },
+                FinalBranch = new Ref("test-branch")
+            };
+
+            await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
+
+            Assert.That(await session.RefExists(workingCopy, jobDefinition.FinalBranch));
+            Assert.That(await session.AreRefsEquivalent(workingCopy, new Ref("master"), jobDefinition.FinalBranch), Is.True);
+        }
+
         [Test]
         public async Task MergeIsNotFastForward()
         {

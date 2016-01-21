@@ -45,8 +45,6 @@ namespace CanaryBuilder.Merge
                 foreach (var merge in job.Merges)
                 {
                     if (await TryMerge(session, workingCopy, merge, logger)) successful++;
-
-                    await AssertCleanWorkingCopy(session, workingCopy);
                 }
                 // Tag, if requested.
                 if (job.FinalTag != null)
@@ -100,6 +98,7 @@ namespace CanaryBuilder.Merge
                 // * Try merge. If fails, abort this one and continue with next.
                 await session.Merge(workingCopy, new MergeOptions { FastForward = MergeFastForward.Never }, candidate.Ref);
                 logger.Info($"Cleanly merged {candidate.Ref}");
+                await AssertCleanWorkingCopy(session, workingCopy); // Sanity check only.
             }
             catch(Exception ex)
             {
@@ -120,6 +119,8 @@ namespace CanaryBuilder.Merge
                 logger.Info($"Verifying merge of {candidate.Ref}");
                 // * Apply verifier. If fails, undo merge and continue with next.
                 await VerifyMerge(workingCopy, candidate, logger);
+
+                await AssertCleanWorkingCopy(session, workingCopy);
             }
             catch(Exception ex)
             {
