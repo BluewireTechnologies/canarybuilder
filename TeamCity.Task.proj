@@ -48,7 +48,7 @@
         <OutputFile Include="Driver\Generate-NightlyCanaryBranch.ps1" />
     </ItemGroup>
     
-	<Target DependsOnTargets="ValidateParameters;PrepareOutputDirectory" Name="Build">
+	<Target Name="Build">
 		<MSBuild Projects="@(OctopackProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration);RunOctoPack=true;@(ApplicationProjectsProperties)" />
         <MSBuild Projects="@(OutputProject)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration)">
           <Output TaskParameter="TargetOutputs" ItemName="OutputBinaries" />
@@ -58,7 +58,7 @@
 	<Target Name="BuildAndTest" DependsOnTargets="Build;RunNUnitTests">
 	</Target>
 	
-	<Target Name="BuildAndPackage" DependsOnTargets="BuildAndTest">
+	<Target Name="BuildAndPackage" DependsOnTargets="PrepareOutputDirectory;BuildAndTest">
 		<ItemGroup>
             <OctopackPackages Include="%(OctopackProjects.RelativeDir)obj\octopacked\%(Filename).*.nupkg" />
 		</ItemGroup>
@@ -66,10 +66,6 @@
 		<Copy SourceFiles="@(OctopackPackages)" DestinationFolder="$(OutputDirectory)" />
         <Copy SourceFiles="@(OutputBinaries)" DestinationFiles="@(OutputBinaries->'$(OutputDirectory)\%(FileName)%(Extension)')" />
         <Copy SourceFiles="@(OutputFile)" DestinationFiles="@(OutputFile->'$(OutputDirectory)\%(FileName)%(Extension)')" />
-	</Target>
-	
-	<Target Name="PrepareOutputDirectory" DependsOnTargets="ValidateParameters">
-		<MakeDir Directories="$(OutputDirectory)" />
 	</Target>
 	
 	<Target Name="ValidateParameters">		
