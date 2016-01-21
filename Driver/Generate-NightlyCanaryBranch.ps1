@@ -86,6 +86,12 @@ $(${branches} |% { "merge: $_" } | Out-String)
     "Pushing target branch";
     Run-Git push -f "${downstream}" "${createBranch}";
     
+    if($tagPrefix)
+    {
+        "Pushing target tag";
+        Run-Git push -f "${downstream}" "${tagPrefix}${datestamp}";
+    }
+    
     Configure-TeamCityOutputProperties;
     
 } catch {
