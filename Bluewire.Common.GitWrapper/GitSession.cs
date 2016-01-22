@@ -80,14 +80,14 @@ namespace Bluewire.Common.GitWrapper
         {
             if (branch == null) throw new ArgumentNullException(nameof(branch));
 
-            return await ExactRefExists(workingCopyOrRepo, new Ref($"refs/heads/{branch}"));
+            return await ExactRefExists(workingCopyOrRepo, RefHelper.PutInHierarchy("heads", branch));
         }
 
         public async Task<bool> TagExists(IGitFilesystemContext workingCopyOrRepo, Ref tag)
         {
             if (tag == null) throw new ArgumentNullException(nameof(tag));
 
-            return await ExactRefExists(workingCopyOrRepo, new Ref($"refs/tags/{tag}"));
+            return await ExactRefExists(workingCopyOrRepo, RefHelper.PutInHierarchy("tags", tag));
         }
 
         public async Task<bool> AreRefsEquivalent(IGitFilesystemContext workingCopyOrRepo, Ref a, Ref b)
@@ -231,6 +231,26 @@ namespace Bluewire.Common.GitWrapper
         public async Task DeleteTag(IGitFilesystemContext workingCopyOrRepo, Ref tag)
         {
             await RunSimpleCommand(workingCopyOrRepo, "tag", "--delete", tag);
+        }
+
+        public async Task<TagDetails> ReadTagDetails(IGitFilesystemContext workingCopyOrRepo, Ref tag)
+        {
+            if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
+
+            var parser = new GitTagDetailsParser();
+            var process = workingCopyOrRepo.Invoke(new CommandLine(Git.GetExecutableFilePath(), "cat-file", "tag", tag));
+            using (logger?.LogInvocation(process))
+            {
+                await GitHelpers.ExpectSuccess(process);
+                // Not expecting large amounts of data, so just buffer it all:
+                var lines = await process.StdOut.ReadAllLinesAsync();
+                var details = parser.Parse(lines);
+                if (parser.Errors.Any())
+                {
+                    throw new UnexpectedGitOutputFormatException(process.CommandLine, parser.Errors.ToArray());
+                }
+                return details;
+            }
         }
 
         public async Task<Ref> CreateBranchAndCheckout(GitWorkingCopy workingCopy, string branchName, Ref start = null)
