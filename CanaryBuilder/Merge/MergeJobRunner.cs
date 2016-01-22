@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
@@ -38,19 +40,41 @@ namespace CanaryBuilder.Merge
                 logger.Info($"Using temporary branch {temporaryBranch}");
                 // Create temporary branch from base ref and checkout.
                 await session.CreateBranchAndCheckout(workingCopy, temporaryBranch);
-
-                var successful = 0;
+                
+                var succeeded = new List<Ref>();
+                var failed = new List<Ref>();
 
                 // Iterate through merges:
                 foreach (var merge in job.Merges)
                 {
-                    if (await TryMerge(session, workingCopy, merge, logger)) successful++;
+                    if (await TryMerge(session, workingCopy, merge, logger))
+                    {
+                        succeeded.Add(merge.Ref);
+                    }
+                    else
+                    {
+                        failed.Add(merge.Ref);
+                    }
                 }
+
+                logger.Info($"{succeeded.Count} merged of {succeeded.Count + failed.Count}, based on {job.Base}");
+                foreach (var merge in job.Merges)
+                {
+                    if (succeeded.Contains(merge.Ref))
+                    {
+                        logger.Info($" +++  {merge.Ref}");
+                    }
+                    else
+                    {
+                        logger.Warn($" ---  {merge.Ref}");
+                    }
+                }
+
                 // Tag, if requested.
                 if (job.FinalTag != null)
                 {
                     logger.Info($"Tagging the result as {job.FinalTag}");
-                    await session.CreateAnnotatedTag(workingCopy, job.FinalTag, temporaryBranch, $"CanaryBuilder: {successful} merged of {job.Merges.Count}");
+                    await session.CreateAnnotatedTag(workingCopy, job.FinalTag, temporaryBranch, FormatTagMessage(succeeded, failed));
                 }
                 // Create final branch if requested.
                 if (job.FinalBranch != null)
@@ -71,6 +95,19 @@ namespace CanaryBuilder.Merge
             {
                 await session.DeleteBranch(workingCopy, temporaryBranch, true);
             }
+        }
+
+        private string FormatTagMessage(List<Ref> succeeded, List<Ref> failed)
+        {
+            if (!succeeded.Any()) return "CanaryBuilder: no merges";
+
+            return $@"CanaryBuilder: {succeeded.Count} merged of {succeeded.Count + failed.Count}
+
+Branches incorporated:
+{String.Concat(succeeded.Select(s => $"* {s}{Environment.NewLine}").ToArray())}
+Branches rejected:
+{String.Concat(failed.Select(s => $"* {s}{Environment.NewLine}").ToArray())}
+";
         }
 
         private static async Task VerifyBase(GitWorkingCopy workingCopy, MergeJobDefinition job, IJobLogger logger)
