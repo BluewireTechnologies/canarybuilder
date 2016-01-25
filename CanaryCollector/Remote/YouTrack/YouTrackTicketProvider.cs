@@ -30,7 +30,7 @@ namespace CanaryCollector.Remote.YouTrack
         {
             var issueManagement = new IssueManagement(youtrackConnection);
 
-            return issueManagement.GetIssuesBySearch($"tag: {{{tagName}}}").Select(ReadTicket).ToArray();
+            return issueManagement.GetIssuesBySearch($"tag: {{{tagName}}} #{{Unresolved}}").Select(ReadTicket).ToArray();
         }
 
         private static IssueTicket ReadTicket(Issue issue)
