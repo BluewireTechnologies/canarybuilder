@@ -59,9 +59,19 @@ function Configure-TeamCityOutputProperties()
 Try {
     "Fetching all branches from remotes";
     Run-Git fetch;
-    "Cleaning old target branch";
-    # Clean up the previous build, if necessary.
-    Run-Git branch -D "${createBranch}" 2> $null;
+    
+    $existingTargetBranch = Run-Git rev-parse "${createBranch}";
+    if($existingTargetBranch)
+    {
+        "Previous ${createBranch}: ${existingTargetBranch}";
+        "Cleaning old target branch";
+        # Clean up the previous build, if necessary.
+        Run-Git branch -D "${createBranch}";
+    }
+    else
+    {
+        "No previous ${createBranch} found.";
+    }
     
     "Collecting candidate branches";
     $branches = @( Run-CanaryCollector );
