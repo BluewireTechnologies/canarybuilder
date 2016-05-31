@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
@@ -15,11 +14,14 @@ namespace Bluewire.Common.GitWrapper
     {
         public Git Git { get; }
         private readonly IConsoleInvocationLogger logger;
+        public GitCommandHelper CommandHelper { get; }
 
         public GitSession(Git git, IConsoleInvocationLogger logger = null)
         {
             this.Git = git;
             this.logger = logger;
+
+            CommandHelper = new GitCommandHelper(git, logger);
         }
 
         public async Task<Ref> GetCurrentBranch(GitWorkingCopy workingCopy)
@@ -140,7 +142,7 @@ namespace Bluewire.Common.GitWrapper
             if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
             if (!File.Exists(workingCopy.Path(relativePath))) throw new FileNotFoundException($"File does not exist: {relativePath}", workingCopy.Path(relativePath));
 
-            await RunSimpleCommand(workingCopy, "add", relativePath);
+            await CommandHelper.RunSimpleCommand(workingCopy, "add", relativePath);
         }
 
         public async Task<GitStatusEntry[]> Status(GitWorkingCopy workingCopy)
@@ -196,7 +198,7 @@ namespace Bluewire.Common.GitWrapper
         public async Task<Ref> CreateBranch(IGitFilesystemContext workingCopyOrRepo, string branchName, Ref start = null)
         {
             var branch = new Ref(branchName);
-            await RunSimpleCommand(workingCopyOrRepo, "branch", branch, start ?? Ref.Head);
+            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, "branch", branch, start ?? Ref.Head);
             return branch;
         }
 
@@ -227,7 +229,7 @@ namespace Bluewire.Common.GitWrapper
             if (message == null) throw new ArgumentNullException(nameof(message));
 
             var tag = new Ref(tagName);
-            await RunSimpleCommand(workingCopyOrRepo, "tag", tag,
+            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, "tag", tag,
                 force ? "--force" : null,
                 "--message", message,
                 tagLocation);
@@ -241,7 +243,7 @@ namespace Bluewire.Common.GitWrapper
             if (message == null) throw new ArgumentNullException(nameof(message));
 
             var tag = new Ref(tagName);
-            await RunSimpleCommand(workingCopyOrRepo, "tag", "--annotate", tag,
+            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, "tag", "--annotate", tag,
                 force ? "--force" : null,
                 "--message", message,
                 tagLocation);
@@ -251,7 +253,7 @@ namespace Bluewire.Common.GitWrapper
 
         public async Task DeleteTag(IGitFilesystemContext workingCopyOrRepo, Ref tag)
         {
-            await RunSimpleCommand(workingCopyOrRepo, "tag", "--delete", tag);
+            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, "tag", "--delete", tag);
         }
 
         public async Task<TagDetails> ReadTagDetails(IGitFilesystemContext workingCopyOrRepo, Ref tag)
@@ -277,38 +279,38 @@ namespace Bluewire.Common.GitWrapper
         public async Task<Ref> CreateBranchAndCheckout(GitWorkingCopy workingCopy, string branchName, Ref start = null)
         {
             var branch = new Ref(branchName);
-            await RunSimpleCommand(workingCopy, "checkout", "-b", branch, start ?? Ref.Head);
+            await CommandHelper.RunSimpleCommand(workingCopy, "checkout", "-b", branch, start ?? Ref.Head);
             return branch;
         }
 
         public async Task DeleteBranch(IGitFilesystemContext workingCopyOrRepo, Ref branch, bool force = false)
         {
             // I'm currently running Git v1.9.5, which doesn't understand 'branch --delete --force'
-            await RunSimpleCommand(workingCopyOrRepo, "branch", force ? "-D" : "--delete", branch);
+            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, "branch", force ? "-D" : "--delete", branch);
         }
 
         public async Task Commit(GitWorkingCopy workingCopy, string message, CommitOptions options = 0)
         {
-            await RunSimpleCommand(workingCopy, "commit",
+            await CommandHelper.RunSimpleCommand(workingCopy, "commit",
                 options.HasFlag(CommitOptions.AllowEmptyCommit) ? "--allow-empty" : null,
                  "--message", message);
         }
 
         public async Task Checkout(GitWorkingCopy workingCopy, Ref @ref)
         {
-            await RunSimpleCommand(workingCopy, "checkout", @ref);
+            await CommandHelper.RunSimpleCommand(workingCopy, "checkout", @ref);
         }
 
         public async Task CheckoutCompletelyClean(GitWorkingCopy workingCopy, Ref @ref = null)
         {
-            await RunSimpleCommand(workingCopy, "checkout", "--force", @ref);
-            await RunSimpleCommand(workingCopy, "clean", "--force", "-xd");
+            await CommandHelper.RunSimpleCommand(workingCopy, "checkout", "--force", @ref);
+            await CommandHelper.RunSimpleCommand(workingCopy, "clean", "--force", "-xd");
         }
 
         public async Task ResetCompletelyClean(GitWorkingCopy workingCopy, Ref @ref = null)
         {
-            await RunSimpleCommand(workingCopy, "reset", "--hard", @ref);
-            await RunSimpleCommand(workingCopy, "clean", "--force", "-xd");
+            await CommandHelper.RunSimpleCommand(workingCopy, "reset", "--hard", @ref);
+            await CommandHelper.RunSimpleCommand(workingCopy, "clean", "--force", "-xd");
         }
 
         // TODO: Better API for 'git reset'
@@ -316,7 +318,7 @@ namespace Bluewire.Common.GitWrapper
         {
             var option = "--" + how.ToString().ToLower();
 
-            await RunSimpleCommand(workingCopy, "reset", option, @ref);
+            await CommandHelper.RunSimpleCommand(workingCopy, "reset", option, @ref);
         }
 
         public Task Merge(GitWorkingCopy workingCopy, params Ref[] @refs)
@@ -326,7 +328,7 @@ namespace Bluewire.Common.GitWrapper
 
         public async Task Merge(GitWorkingCopy workingCopy, MergeOptions options, params Ref[] @refs)
         {
-            await RunSimpleCommand(workingCopy, "merge", c =>
+            await CommandHelper.RunSimpleCommand(workingCopy, "merge", c =>
             {
                 if (options.FastForward == MergeFastForward.Never) c.Add("--no-ff");
                 else if (options.FastForward == MergeFastForward.Only) c.Add("--ff-only");
@@ -337,33 +339,7 @@ namespace Bluewire.Common.GitWrapper
 
         public async Task AbortMerge(GitWorkingCopy workingCopy)
         {
-            await RunSimpleCommand(workingCopy, "merge", "--abort");
-        }
-
-        /// <summary>
-        /// Helper method. Runs a command which is expected to simply succeed or fail. Output is ignored.
-        /// </summary>
-        private Task RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, string gitCommand, params string[] arguments)
-        {
-            return RunSimpleCommand(workingCopyOrRepo, gitCommand, c => c.Add(arguments));
-        }
-
-        /// <summary>
-        /// Helper method. Runs a command which is expected to simply succeed or fail. Output is ignored.
-        /// </summary>
-        private async Task RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, string gitCommand, Action<CommandLine> prepareCommand)
-        {
-            if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
-
-            var cmd = new CommandLine(Git.GetExecutableFilePath(), gitCommand);
-            prepareCommand(cmd);
-            var process = workingCopyOrRepo.Invoke(cmd);
-            using (logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
-
-                await GitHelpers.ExpectSuccess(process);
-            }
+            await CommandHelper.RunSimpleCommand(workingCopy, "merge", "--abort");
         }
     }
 }

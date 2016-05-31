@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Git.cs" />
+    <Compile Include="GitCommandHelper.cs" />
     <Compile Include="GitException.cs" />
     <Compile Include="GitFinder.cs" />
     <Compile Include="GitHelpers.cs" />
