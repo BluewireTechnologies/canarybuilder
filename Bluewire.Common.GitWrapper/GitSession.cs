@@ -151,25 +151,7 @@ namespace Bluewire.Common.GitWrapper
 
             var parser = new GitStatusParser();
             var process = new CommandLine(Git.GetExecutableFilePath(), "status", "--porcelain").RunFrom(workingCopy.Root);
-            using (logger?.LogInvocation(process))
-            {
-                var statusEntries = process.StdOut.Select(l => parser.ParseOrNull(l)).ToArray().ToTask();
-                process.StdOut.StopBuffering();
-                await GitHelpers.ExpectSuccess(process);
-                WaitForCompletion(statusEntries);
-                if (parser.Errors.Any())
-                {
-                    throw new UnexpectedGitOutputFormatException(process.CommandLine, parser.Errors.ToArray());
-                }
-                return await statusEntries;
-            }
-        }
-
-        private static void WaitForCompletion(Task t)
-        {
-            if (t.IsCompleted) return;
-            var asyncResult = (IAsyncResult)t;
-            asyncResult.AsyncWaitHandle.WaitOne();
+            return await CommandHelper.ParseLineOutput(process, parser);
         }
 
         public async Task<Ref[]> ListBranches(IGitFilesystemContext workingCopyOrRepo, ListBranchesOptions options = default(ListBranchesOptions))
