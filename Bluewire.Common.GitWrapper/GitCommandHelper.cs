@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
+using System.Threading;
 using System.Threading.Tasks;
 using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.GitWrapper.Model;
@@ -63,7 +64,7 @@ namespace Bluewire.Common.GitWrapper
                 var parsedList = process.StdOut.Select(l => parser.ParseOrNull(l)).ToArray().ToTask();
                 process.StdOut.StopBuffering();
                 await GitHelpers.ExpectSuccess(process);
-                WaitForCompletion(parsedList);
+                await WaitForCompletion(parsedList);
                 if (parser.Errors.Any())
                 {
                     throw new UnexpectedGitOutputFormatException(process.CommandLine, parser.Errors.ToArray());
@@ -72,11 +73,16 @@ namespace Bluewire.Common.GitWrapper
             }
         }
 
-        public static void WaitForCompletion(Task t)
+        /// <summary>
+        /// Waits only for the task to complete, ignoring the manner in which it completes.
+        /// Does not rethrow exceptions, etc as t.Wait() would.
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public static async Task WaitForCompletion(Task t)
         {
             if (t.IsCompleted) return;
-            var asyncResult = (IAsyncResult)t;
-            asyncResult.AsyncWaitHandle.WaitOne();
+            await t.ContinueWith(c => { }).ConfigureAwait(false);
         }
     }
 }
