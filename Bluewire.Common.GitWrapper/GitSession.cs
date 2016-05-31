@@ -200,6 +200,27 @@ namespace Bluewire.Common.GitWrapper
             return branch;
         }
 
+        public async Task<Ref[]> ListTags(IGitFilesystemContext workingCopyOrRepo, ListTagsOptions options = default(ListTagsOptions))
+        {
+            if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
+
+            var cmd = new CommandLine(Git.GetExecutableFilePath(), "tag", "--list");
+            if (options.Contains != null) cmd.Add("--contains", options.Contains);
+            if (!String.IsNullOrWhiteSpace(options.Pattern)) cmd.Add(options.Pattern);
+
+            var process = workingCopyOrRepo.Invoke(cmd);
+            using (logger?.LogInvocation(process))
+            {
+                var tagNames = process.StdOut
+                    .Where(l => !String.IsNullOrWhiteSpace(l))
+                    .Select(l => new Ref(l))
+                    .ToArray().ToTask();
+
+                await GitHelpers.ExpectSuccess(process);
+                return await tagNames;
+            }
+        }
+
         public async Task<Ref> CreateTag(IGitFilesystemContext workingCopyOrRepo, string tagName, Ref tagLocation, string message, bool force = false)
         {
             if (tagLocation == null) throw new ArgumentNullException(nameof(tagLocation));
