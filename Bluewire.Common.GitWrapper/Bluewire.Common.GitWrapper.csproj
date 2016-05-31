@@ -85,6 +85,8 @@
     <Compile Include="Model\WorkTreeState.cs" />
     <Compile Include="Parsing\GitTagDetailsParser.cs" />
     <Compile Include="Parsing\GitStatusParser.cs" />
+    <Compile Include="Parsing\RefNameColumnLineParser.cs" />
+    <Compile Include="Parsing\StrictISO8601.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Model\ResetType.cs" />
     <Compile Include="UnexpectedGitOutputFormatDetails.cs" />

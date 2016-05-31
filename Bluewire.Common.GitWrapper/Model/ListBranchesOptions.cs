@@ -4,5 +4,6 @@
     {
         public bool Remote { get; set; }
         public Ref UnmergedWith { get; set; }
+        public Ref MergedWith { get; set; }
     }
 }

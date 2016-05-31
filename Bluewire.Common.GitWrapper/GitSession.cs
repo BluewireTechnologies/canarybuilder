@@ -137,6 +137,42 @@ namespace Bluewire.Common.GitWrapper
             return workingCopy;
         }
 
+        /// <summary>
+        /// Clone a repository to the specified directory.
+        /// </summary>
+        /// <param name="remote">Uri of the repository to be cloned</param>
+        /// <param name="containingPath">Parent directory of the new repository</param>
+        /// <param name="repoName">Name of the repository</param>
+        /// <returns></returns>
+        public async Task<GitWorkingCopy> Clone(Uri remote, string containingPath, string repoName)
+        {
+            if (remote == null) throw new ArgumentNullException(nameof(remote));
+            if (containingPath == null) throw new ArgumentNullException(nameof(containingPath));
+            if (repoName == null) throw new ArgumentNullException(nameof(repoName));
+            if (repoName.Intersect(Path.GetInvalidFileNameChars()).Any()) throw new ArgumentException($"Repository name contains invalid characters: '{repoName}'", nameof(repoName));
+            Directory.CreateDirectory(containingPath);
+
+            var process = new CommandLine(Git.GetExecutableFilePath(), "clone", remote.ToString(), repoName).RunFrom(containingPath);
+            using (logger?.LogInvocation(process))
+            {
+                process.StdOut.StopBuffering();
+
+                await GitHelpers.ExpectSuccess(process);
+            }
+
+            var workingCopy = new GitWorkingCopy(Path.Combine(containingPath, repoName));
+            workingCopy.CheckExistence();
+            return workingCopy;
+        }
+
+        /// <summary>
+        /// Fetch into the repository from a named remote.
+        /// </summary>
+        public async Task Fetch(IGitFilesystemContext workingCopyOrRepo, string remoteName = null)
+        {
+            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, "fetch", remoteName);
+        }
+
         public async Task AddFile(GitWorkingCopy workingCopy, string relativePath)
         {
             if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
@@ -161,6 +197,7 @@ namespace Bluewire.Common.GitWrapper
             var cmd = new CommandLine(Git.GetExecutableFilePath(), "branch", "--list");
             if (options.Remote) cmd.Add("--remotes");
             if (options.UnmergedWith != null) cmd.Add("--no-merged", options.UnmergedWith);
+            if (options.MergedWith != null) cmd.Add("--merged", options.MergedWith);
 
             var process = workingCopyOrRepo.Invoke(cmd);
             using (logger?.LogInvocation(process))
