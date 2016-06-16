@@ -31,6 +31,7 @@ function Run-Git()
     pushd "${workingCopy}"
     Try {
         git @args
+        if(!$?) { throw "Exit code: $LASTEXITCODE"; }
     } finally {
         popd
     }
