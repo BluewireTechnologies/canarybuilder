@@ -61,16 +61,16 @@ Try {
     "Fetching all branches from remotes";
     Run-Git fetch;
     
-    $existingTargetBranch = Run-Git rev-parse "${createBranch}";
-    if($existingTargetBranch)
-    {
-        "Previous ${createBranch}: ${existingTargetBranch}";
-        "Cleaning old target branch";
-        # Clean up the previous build, if necessary.
-        Run-Git branch -D "${createBranch}";
-    }
-    else
-    {
+    Try {
+        $existingTargetBranch = Run-Git rev-parse "${createBranch}";
+        if($existingTargetBranch)
+        {
+            "Previous ${createBranch}: ${existingTargetBranch}";
+            "Cleaning old target branch";
+            # Clean up the previous build, if necessary.
+            Run-Git branch -D "${createBranch}";
+        }
+    } catch {
         "No previous ${createBranch} found.";
     }
     
