@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Model\RefHelperTests.cs" />
+    <Compile Include="Parsing\GitDiffReaderTests.cs" />
     <Compile Include="Parsing\GitStatusParserTests.cs" />
     <Compile Include="Parsing\GitTagDetailsParserTests.cs" />
     <Compile Include="Parsing\StrictISO8601Tests.cs" />

@@ -74,6 +74,7 @@
     <Compile Include="IGitAsyncOutputParser.cs" />
     <Compile Include="GitLineOutputParser.cs" />
     <Compile Include="Model\Difference.cs" />
+    <Compile Include="Model\DiffOptions.cs" />
     <Compile Include="Model\IGitFilesystemContext.cs" />
     <Compile Include="Model\IRefRange.cs" />
     <Compile Include="Model\ListBranchesOptions.cs" />
@@ -98,6 +99,14 @@
     <Compile Include="Async\AsyncEnumeratorAdapter.cs" />
     <Compile Include="Async\IAsyncEnumerator.cs" />
     <Compile Include="Parsing\GitLogParser.cs" />
+    <Compile Include="Parsing\Diff\GitDiffLineReader.cs" />
+    <Compile Include="Parsing\Diff\DiffHelpers.cs" />
+    <Compile Include="Parsing\Diff\DiffLineFormatter.cs" />
+    <Compile Include="Parsing\Diff\FormattedDiffNumbering.cs" />
+    <Compile Include="Parsing\GitDiffParser.cs" />
+    <Compile Include="Parsing\Diff\GitDiffReader.cs" />
+    <Compile Include="Parsing\Diff\LineAction.cs" />
+    <Compile Include="Parsing\Diff\LineType.cs" />
     <Compile Include="Parsing\GitTagDetailsParser.cs" />
     <Compile Include="Parsing\GitStatusParser.cs" />
     <Compile Include="Parsing\Log\GitLogReader.cs" />

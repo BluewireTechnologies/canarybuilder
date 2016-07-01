@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -443,6 +444,20 @@ namespace Bluewire.Common.GitWrapper
             }
 
             return await CommandHelper.RunCommand(workingCopyOrRepo, cmd, parser);
+        }
+
+        public async Task<FileDiff[]> Diff(GitWorkingCopy workingCopy, DiffOptions options)
+        {
+            if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
+
+            var parser = new GitDiffParser();
+            
+            var cmd = new CommandLine(Git.GetExecutableFilePath(), "diff");
+            if(options.Cached) cmd.Add("--cached");
+            cmd.Add(options.From ?? Ref.Head);
+            if(options.To != null) cmd.Add(options.To);
+
+            return await CommandHelper.RunCommand(workingCopy, cmd, parser);
         }
     }
 }
