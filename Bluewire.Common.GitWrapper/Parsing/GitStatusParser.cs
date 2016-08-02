@@ -13,7 +13,7 @@ namespace Bluewire.Common.GitWrapper.Parsing
     /// <remarks>
     /// Instances of this class are not threadsafe.
     /// </remarks>
-    public class GitStatusParser
+    public class GitStatusParser : IGitLineOutputParser<GitStatusEntry>
     {
         private readonly List<UnexpectedGitOutputFormatDetails> errors = new List<UnexpectedGitOutputFormatDetails>();
         private readonly ThreadLocal<List<char>> reusableBuffer = new ThreadLocal<List<char>>(() => new List<char>(50));
