@@ -129,6 +129,7 @@ Branches rejected:
         /// <returns></returns>
         private async Task<bool> TryMerge(GitSession session, GitWorkingCopy workingCopy, MergeCandidate candidate, IJobLogger logger)
         {
+            var startingRef = await session.ResolveRef(workingCopy, Ref.Head);
             logger.Info($"Attempting to merge {candidate.Ref}");
             try
             {
@@ -148,6 +149,7 @@ Branches rejected:
                 {
                     logger.Warn($"Unable to merge {candidate.Ref}.");
                 }
+                await session.ResetCompletelyClean(workingCopy, startingRef);
                 return false;
             }
 
@@ -162,7 +164,7 @@ Branches rejected:
             catch(Exception ex)
             {
                 logger.Warn($"Post-merge verification of {candidate.Ref} failed. It will be rolled back.", ex);
-                await session.ResetCompletelyClean(workingCopy, Ref.Head.Parent());
+                await session.ResetCompletelyClean(workingCopy, startingRef);
                 return false;
             }
             logger.Info($"Successfully incorporated {candidate.Ref}");
