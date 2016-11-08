@@ -1,84 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="BuildAndTest" ToolsVersion="12.0">
-	
-	<!--
-		
-	TeamCity Build for CanaryBuilder and related packages.
-	
-	Inputs:
-	  * Version:		  build number to use for package version info
-	  * OutputDirectory:  location for final build output
-	  
-	Outputs:
-	  * Everything in OutputDirectory
-	 
-	-->
+    
+    <!--
+        
+    TeamCity Build for CanaryBuilder and related packages.
+    
+    Inputs:
+      * Version:          build number to use for package version info
+      * OutputDirectory:  location for final build output
+      
+    Outputs:
+      * Everything in OutputDirectory
+     
+    -->
     
     <Import Project="Common.props" />
     <Import Project="Common.targets" />
     
-	<PropertyGroup>
-		<Configuration>Release</Configuration>
-		<WorkingDirectory>$(MSBuildProjectDirectory)</WorkingDirectory>
-		<TemporaryDirectory>$(WorkingDirectory)\packaging-temp</TemporaryDirectory>
-	</PropertyGroup>
-	
-	<ItemDefinitionGroup>
-		<OctopackProjects></OctopackProjects>
+    <PropertyGroup>
+        <Configuration>Release</Configuration>
+        <WorkingDirectory>$(MSBuildProjectDirectory)</WorkingDirectory>
+        <TemporaryDirectory>$(WorkingDirectory)\packaging-temp</TemporaryDirectory>
+    </PropertyGroup>
+
+    <Import Project="Build.props" />
+    
+    <ItemDefinitionGroup>
+        <OctopackProjects></OctopackProjects>
         <OutputBinaries></OutputBinaries>
-	</ItemDefinitionGroup>
+    </ItemDefinitionGroup>
     
-    <ItemGroup>
-        <ApplicationProjectsProperties Include="OctopusPackageVersion=$(BuildNumber)" />
-        <ApplicationProjectsProperties Include="OctoPackPackageVersion=$(BuildNumber)" />
-    </ItemGroup>
-    
-    <ItemGroup>
-        <NUnitProject Include="Bluewire.Conventions.UnitTests\Bluewire.Conventions.UnitTests.csproj" />
-        <NUnitProject Include="Bluewire.Common.GitWrapper.UnitTests\Bluewire.Common.GitWrapper.UnitTests.csproj" />
-        <NUnitProject Include="Bluewire.Common.GitWrapper.IntegrationTests\Bluewire.Common.GitWrapper.IntegrationTests.csproj" />
-        <NUnitProject Include="CanaryBuilder.UnitTests\CanaryBuilder.UnitTests.csproj" />
-        <NUnitProject Include="CanaryBuilder.IntegrationTests\CanaryBuilder.IntegrationTests.csproj" />
-        <NUnitProject Include="CanaryCollector.UnitTests\CanaryCollector.UnitTests.csproj" />
-    </ItemGroup>
-    
-    <ItemGroup>
-        <OutputProject Include="CanaryBuilder\CanaryBuilder.csproj" />
-        <OutputProject Include="CanaryCollector\CanaryCollector.csproj" />
-        <OutputFile Include="Driver\Generate-NightlyCanaryBranch.ps1" />
-    </ItemGroup>
-    
-	<Target Name="Build">
-		<MSBuild Projects="@(OctopackProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration);RunOctoPack=true;@(ApplicationProjectsProperties)" />
-        <MSBuild Projects="@(OutputProject)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration)">
+    <Target Name="Build">
+        <MSBuild Projects="@(NugetProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration)" />
+        <MSBuild Projects="@(OutputProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration)">
           <Output TaskParameter="TargetOutputs" ItemName="OutputBinaries" />
         </MSBuild>
-	</Target>
-	
-	<Target Name="BuildAndTest" DependsOnTargets="Build;RunNUnitTests">
-	</Target>
-	
-	<Target Name="BuildAndPackage" DependsOnTargets="PrepareOutputDirectory;BuildAndTest">
-		<ItemGroup>
-            <OctopackPackages Include="%(OctopackProjects.RelativeDir)obj\octopacked\%(Filename).*.nupkg" />
-		</ItemGroup>
-		
-		<Copy SourceFiles="@(OctopackPackages)" DestinationFolder="$(OutputDirectory)" />
+    </Target>
+    
+    <Target Name="BuildAndTest" DependsOnTargets="Build;RunNUnitTests">
+    </Target>
+    
+    <Target Name="BuildAndPackage" DependsOnTargets="PrepareOutputDirectory;BuildAndTest">
+        <MSBuild Projects="@(NugetProjects)" Targets="BuildPackage" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="RunNuGetPack=true;Configuration=$(Configuration);NugetPackageTargetDir=$(OutputDirectory)"/>
         <Copy SourceFiles="@(OutputBinaries)" DestinationFiles="@(OutputBinaries->'$(OutputDirectory)\%(FileName)%(Extension)')" />
-        <Copy SourceFiles="@(OutputFile)" DestinationFiles="@(OutputFile->'$(OutputDirectory)\%(FileName)%(Extension)')" />
-	</Target>
-	
-	<Target Name="ValidateParameters">		
-		<Warning Text="Version was not specified" Condition="'$(Version)' == ''" />
-		<Error Text="OutputDirectory was not specified" Condition="'$(OutputDirectory)' == ''" />
-		
-		<!-- Make paths absolute -->
-		<CombinePath BasePath="$(MSBuildProjectDirectory)" Paths="$(OutputDirectory)">
-			<Output TaskParameter="CombinedPaths" PropertyName="OutputDirectory" />
-		</CombinePath>
-	</Target>
-	
-	<Target Name="PrepareOutputDirectory" DependsOnTargets="ValidateParameters">
-		<MakeDir Directories="$(OutputDirectory)" />
-	</Target>
+        <Copy SourceFiles="@(OutputFiles)" DestinationFiles="@(OutputFiles->'$(OutputDirectory)\%(FileName)%(Extension)')" />
+    </Target>
+    
+    <Target Name="ValidateParameters">      
+        <Warning Text="Version was not specified" Condition="'$(Version)' == ''" />
+        <Error Text="OutputDirectory was not specified" Condition="'$(OutputDirectory)' == ''" />
+        
+        <!-- Make paths absolute -->
+        <CombinePath BasePath="$(MSBuildProjectDirectory)" Paths="$(OutputDirectory)">
+            <Output TaskParameter="CombinedPaths" PropertyName="OutputDirectory" />
+        </CombinePath>
+    </Target>
+    
+    <Target Name="PrepareOutputDirectory" DependsOnTargets="ValidateParameters">
+        <MakeDir Directories="$(OutputDirectory)" />
+    </Target>
 </Project>

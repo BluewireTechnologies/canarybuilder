@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <ItemGroup>
+        <!-- Full list of NuGet package projects -->
+        <!--<NugetProjects Include="" />-->
+        
+        <!-- Full list of NUnit test projects -->
+        <NUnitProjects Include="Bluewire.Conventions.UnitTests\Bluewire.Conventions.UnitTests.csproj" />
+        <NUnitProjects Include="Bluewire.Common.GitWrapper.UnitTests\Bluewire.Common.GitWrapper.UnitTests.csproj" />
+        <NUnitProjects Include="Bluewire.Common.GitWrapper.IntegrationTests\Bluewire.Common.GitWrapper.IntegrationTests.csproj" />
+        <NUnitProjects Include="CanaryBuilder.UnitTests\CanaryBuilder.UnitTests.csproj" />
+        <NUnitProjects Include="CanaryBuilder.IntegrationTests\CanaryBuilder.IntegrationTests.csproj" />
+        <NUnitProjects Include="CanaryCollector.UnitTests\CanaryCollector.UnitTests.csproj" />
+        
+        <OutputProjects Include="CanaryBuilder\CanaryBuilder.csproj" />
+        <OutputProjects Include="CanaryCollector\CanaryCollector.csproj" />
+        <OutputFiles Include="Driver\Generate-NightlyCanaryBranch.ps1" />
+    </ItemGroup>
+</Project>
