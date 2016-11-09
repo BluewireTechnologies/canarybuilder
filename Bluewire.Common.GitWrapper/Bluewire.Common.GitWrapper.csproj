@@ -72,6 +72,7 @@
     <Compile Include="GitSession.cs" />
     <Compile Include="GitWorkingCopy.cs" />
     <Compile Include="IGitLineOutputParser.cs" />
+    <Compile Include="Model\Difference.cs" />
     <Compile Include="Model\IGitFilesystemContext.cs" />
     <Compile Include="Model\ListBranchesOptions.cs" />
     <Compile Include="Model\ListTagsOptions.cs" />
@@ -83,6 +84,7 @@
     <Compile Include="Model\Ref.cs" />
     <Compile Include="Model\RefExtensions.cs" />
     <Compile Include="Model\RefHelper.cs" />
+    <Compile Include="Model\SymmetricDifference.cs" />
     <Compile Include="Model\TagDetails.cs" />
     <Compile Include="Model\WorkTreeState.cs" />
     <Compile Include="Async\ConstantTasks.cs" />
