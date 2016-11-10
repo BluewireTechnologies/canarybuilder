@@ -61,6 +61,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Async\AsyncEnumeratorExtensions.cs" />
+    <Compile Include="Async\TaskHelpers.cs" />
     <Compile Include="Git.cs" />
     <Compile Include="GitCommandHelper.cs" />
     <Compile Include="GitException.cs" />
@@ -83,6 +85,10 @@
     <Compile Include="Model\RefHelper.cs" />
     <Compile Include="Model\TagDetails.cs" />
     <Compile Include="Model\WorkTreeState.cs" />
+    <Compile Include="Async\ConstantTasks.cs" />
+    <Compile Include="Async\AsyncBufferedEnumerator.cs" />
+    <Compile Include="Async\AsyncEnumeratorAdapter.cs" />
+    <Compile Include="Async\IAsyncEnumerator.cs" />
     <Compile Include="Parsing\GitTagDetailsParser.cs" />
     <Compile Include="Parsing\GitStatusParser.cs" />
     <Compile Include="Parsing\RefNameColumnLineParser.cs" />
@@ -96,6 +102,7 @@
     <None Include="packages.config" />
     <None Include="README.md" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

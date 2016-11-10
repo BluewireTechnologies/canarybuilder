@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
-using System.Threading;
 using System.Threading.Tasks;
 using Bluewire.Common.Console.Client.Shell;
+using Bluewire.Common.GitWrapper.Async;
 using Bluewire.Common.GitWrapper.Model;
 
 namespace Bluewire.Common.GitWrapper
@@ -46,6 +46,39 @@ namespace Bluewire.Common.GitWrapper
                 process.StdOut.StopBuffering();
 
                 await GitHelpers.ExpectSuccess(process);
+            }
+        }
+
+        /// <summary>
+        /// Helper method. Runs a command which is expected to produce output which can be consumed asynchronously.
+        /// </summary>
+        public async Task<T> RunCommand<T>(IGitFilesystemContext workingCopyOrRepo, CommandLine command, Func<IAsyncEnumerator<string>, Task<T>> parseLines)
+        {
+            var process = workingCopyOrRepo.Invoke(command);
+            using (Logger?.LogInvocation(process))
+            {
+                using (var stdoutEnumerator = process.StdOut.GetAsyncEnumerator())
+                {
+                    process.StdOut.StopBuffering();
+                    var result = parseLines(stdoutEnumerator);
+                    await GitHelpers.ExpectSuccess(process);
+                    return await result;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Helper method. Runs a command which is expected to produce output which can be parsed easily as a series of lines.
+        /// </summary>
+        public async Task<T[]> RunCommand<T>(IGitFilesystemContext workingCopyOrRepo, CommandLine command, Func<IObservable<string>, IObservable<T>> pipeline)
+        {
+            var process = workingCopyOrRepo.Invoke(command);
+            using (Logger?.LogInvocation(process))
+            {
+                var result = pipeline(process.StdOut).ToArray().ToTask();
+                process.StdOut.StopBuffering();
+                await GitHelpers.ExpectSuccess(process);
+                return await result;
             }
         }
 
