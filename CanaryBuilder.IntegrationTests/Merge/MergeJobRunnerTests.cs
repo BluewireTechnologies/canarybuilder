@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.IntegrationTests;
@@ -36,8 +37,8 @@ namespace CanaryBuilder.IntegrationTests.Merge
                 Base = new Ref("master"),
                 FinalBranch = new Ref("output-branch")
             };
-            
-            await XAssert.ThrowsAsync<OutputRefAlreadyExistsException>(() => sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>()));
+
+            Assert.ThrowsAsync<OutputRefAlreadyExistsException>(() => sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>()));
         }
 
         [Test]
@@ -50,12 +51,11 @@ namespace CanaryBuilder.IntegrationTests.Merge
                 FinalTag = new Ref("output-tag")
             };
 
-
-            await XAssert.ThrowsAsync<OutputRefAlreadyExistsException>(() => sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>()));
+            Assert.ThrowsAsync<OutputRefAlreadyExistsException>(() => sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>()));
         }
 
         [Test]
-        public async Task FailsIfBaseVerifierReportsFailure()
+        public void FailsIfBaseVerifierReportsFailure()
         {
             var failingVerifier = Mock.Of<IWorkingCopyVerifier>(v =>
                 v.Verify(workingCopy, It.IsAny<IJobLogger>()) == Task.FromException(new InvalidWorkingCopyStateException("Failed")));
@@ -66,8 +66,8 @@ namespace CanaryBuilder.IntegrationTests.Merge
                 Verifier = failingVerifier,
                 FinalTag = new Ref("output-tag")
             };
-            
-            await XAssert.ThrowsAsync<InvalidWorkingCopyStateException>(() => sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>()));
+
+            Assert.ThrowsAsync<InvalidWorkingCopyStateException>(() => sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>()));
         }
         
         [Test]
