@@ -2,12 +2,14 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <ItemGroup>
         <!-- Full list of NuGet package projects -->
+        <NugetProjects Include="Bluewire.Tools.GitRepository\Bluewire.Tools.GitRepository.csproj" />
         <NugetProjects Include="Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj" />
         
         <!-- Full list of NUnit test projects -->
         <NUnitProjects Include="Bluewire.Conventions.UnitTests\Bluewire.Conventions.UnitTests.csproj" />
         <NUnitProjects Include="Bluewire.Common.GitWrapper.UnitTests\Bluewire.Common.GitWrapper.UnitTests.csproj" />
         <NUnitProjects Include="Bluewire.Common.GitWrapper.IntegrationTests\Bluewire.Common.GitWrapper.IntegrationTests.csproj" />
+        <NUnitProjects Include="Bluewire.Tools.GitRepository.IntegrationTests\Bluewire.Tools.GitRepository.IntegrationTests.csproj" />
         <NUnitProjects Include="CanaryBuilder.UnitTests\CanaryBuilder.UnitTests.csproj" />
         <NUnitProjects Include="CanaryBuilder.IntegrationTests\CanaryBuilder.IntegrationTests.csproj" />
         <NUnitProjects Include="CanaryCollector.UnitTests\CanaryCollector.UnitTests.csproj" />
