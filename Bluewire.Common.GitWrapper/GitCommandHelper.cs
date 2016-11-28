@@ -49,6 +49,22 @@ namespace Bluewire.Common.GitWrapper
             }
         }
 
+         /// <summary>
+        /// Helper method. Runs a command which is expected to produce a single line of output.
+        /// </summary>
+        public async Task<string> RunSingleLineCommand(IGitFilesystemContext workingCopyOrRepo, string gitCommand, params string[] arguments)
+        {
+            if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
+
+            var cmd = new CommandLine(Git.GetExecutableFilePath(), gitCommand);
+            cmd.Add(arguments);
+            var process = workingCopyOrRepo.Invoke(cmd);
+            using (Logger?.LogInvocation(process))
+            {
+                return await GitHelpers.ExpectOneLine(process);
+            }
+        }
+
         /// <summary>
         /// Helper method. Runs a command which is expected to produce output which can be consumed asynchronously.
         /// </summary>
