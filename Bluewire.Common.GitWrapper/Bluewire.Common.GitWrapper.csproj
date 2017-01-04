@@ -76,6 +76,7 @@
     <Compile Include="Model\Difference.cs" />
     <Compile Include="Model\IGitFilesystemContext.cs" />
     <Compile Include="Model\ListBranchesOptions.cs" />
+    <Compile Include="Model\ListCommitsOptions.cs" />
     <Compile Include="Model\ListTagsOptions.cs" />
     <Compile Include="Model\MergeFastForward.cs" />
     <Compile Include="Model\MergeOptions.cs" />
