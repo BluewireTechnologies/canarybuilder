@@ -80,6 +80,7 @@
     <Compile Include="Default.cs" />
     <Compile Include="GitAddTests.cs" />
     <Compile Include="GitCleanTests.cs" />
+    <Compile Include="GitListCommitsBetweenTests.cs" />
     <Compile Include="GitMergeBaseTests.cs" />
     <Compile Include="GitTagTests.cs" />
     <Compile Include="GitBranchTests.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="GitInitTests.cs" />
     <Compile Include="TestInfrastructure\Attributes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestInfrastructure\RepoStructureBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj">

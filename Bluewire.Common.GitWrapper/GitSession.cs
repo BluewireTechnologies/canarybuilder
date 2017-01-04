@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
@@ -400,6 +401,24 @@ namespace Bluewire.Common.GitWrapper
         {
             var cmd = CommandHelper.CreateCommand("merge-base", "--is-ancestor", maybeAncestor, reference);
             return await CommandHelper.RunTestCommand(workingCopy, cmd);
+        }
+
+        /// <summary>
+        /// List revisions on the first-parent ancestry chain between 'start' and 'end'.
+        /// </summary>
+        /// <remarks>
+        /// * The revisions are listed in reverse order (most recent first) so the first entry will be the resolved SHA1 of 'end'.
+        /// * The 'start' revision is not included.
+        /// </remarks>
+        public async Task<Ref[]> ListCommitsBetween(IGitFilesystemContext workingCopyOrRepo, Ref start, Ref end, ListCommitsOptions options = default(ListCommitsOptions))
+        {
+            if (start == null) throw new ArgumentNullException(nameof(start));
+            if (end == null) throw new ArgumentNullException(nameof(end));
+
+            var cmd = CommandHelper.CreateCommand("rev-list", new Difference(start, end));
+            if (options.FirstParentOnly) cmd.Add("--first-parent");
+            if (options.AncestryPathOnly) cmd.Add("--ancestry-path");
+            return await CommandHelper.RunCommand(workingCopyOrRepo, cmd, ls => ls.Select(l => new Ref(l)));
         }
     }
 }
