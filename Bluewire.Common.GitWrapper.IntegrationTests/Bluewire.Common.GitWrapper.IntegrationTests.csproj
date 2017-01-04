@@ -80,6 +80,7 @@
     <Compile Include="Default.cs" />
     <Compile Include="GitAddTests.cs" />
     <Compile Include="GitCleanTests.cs" />
+    <Compile Include="GitMergeBaseTests.cs" />
     <Compile Include="GitTagTests.cs" />
     <Compile Include="GitBranchTests.cs" />
     <Compile Include="GitDetectionTests.cs" />

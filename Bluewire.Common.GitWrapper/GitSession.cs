@@ -382,5 +382,22 @@ namespace Bluewire.Common.GitWrapper
             var cmd = CommandHelper.CreateCommand("merge", "--abort");
             await CommandHelper.RunSimpleCommand(workingCopy, cmd);
         }
+
+        public async Task<Ref> MergeBase(IGitFilesystemContext workingCopy, Ref mergeTarget, params Ref[] mergeSources)
+        {
+            var cmd = CommandHelper.CreateCommand("merge-base");
+            cmd.Add(mergeTarget);
+            cmd.AddList(mergeSources.Select(r => r.ToString()));
+
+            var mergeBase = await CommandHelper.RunSingleLineCommand(workingCopy, cmd);
+
+            return String.IsNullOrWhiteSpace(mergeBase) ? null : new Ref(mergeBase);
+        }
+
+        public async Task<bool> IsAncestor(IGitFilesystemContext workingCopy, Ref maybeAncestor, Ref reference)
+        {
+            var cmd = CommandHelper.CreateCommand("merge-base", "--is-ancestor", maybeAncestor, reference);
+            return await CommandHelper.RunTestCommand(workingCopy, cmd);
+        }
     }
 }
