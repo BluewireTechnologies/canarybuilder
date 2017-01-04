@@ -347,13 +347,13 @@ namespace Bluewire.Common.GitWrapper
 
         public async Task Merge(GitWorkingCopy workingCopy, MergeOptions options, params Ref[] @refs)
         {
-            await CommandHelper.RunSimpleCommand(workingCopy, "merge", c =>
-            {
-                if (options.FastForward == MergeFastForward.Never) c.Add("--no-ff");
-                else if (options.FastForward == MergeFastForward.Only) c.Add("--ff-only");
+            var cmd = CommandHelper.CreateCommand("merge");
+            if (options.FastForward == MergeFastForward.Never) cmd.Add("--no-ff");
+            else if (options.FastForward == MergeFastForward.Only) cmd.Add("--ff-only");
 
-                c.AddList(@refs.Select(r => r.ToString()));
-            });
+            cmd.AddList(@refs.Select(r => r.ToString()));
+
+            await CommandHelper.RunSimpleCommand(workingCopy, cmd);
         }
 
         public async Task AbortMerge(GitWorkingCopy workingCopy)

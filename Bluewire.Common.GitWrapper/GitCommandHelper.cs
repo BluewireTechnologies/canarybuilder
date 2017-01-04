@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
+using System.Threading;
 using System.Threading.Tasks;
 using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.GitWrapper.Async;
@@ -24,23 +25,61 @@ namespace Bluewire.Common.GitWrapper
         }
 
         /// <summary>
-        /// Helper method. Runs a command which is expected to simply succeed or fail. Output is ignored.
+        /// Creates a Git command line invocation of the specified command and arguments.
         /// </summary>
-        public Task RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, string gitCommand, params string[] arguments)
+        public CommandLine CreateCommand(string gitCommand, params string[] arguments)
         {
-            return RunSimpleCommand(workingCopyOrRepo, gitCommand, c => c.Add(arguments));
+            var cmd = new CommandLine(Git.GetExecutableFilePath(), gitCommand);
+            cmd.Add(arguments);
+            return cmd;
+        }
+
+        /// <summary>
+        /// Helper method. Runs a command which is expected to return true or false via exit code. Output is ignored.
+        /// </summary>
+        public async Task<bool> RunTestCommand(IGitFilesystemContext workingCopyOrRepo, CommandLine command)
+        {
+            if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
+
+            var process = workingCopyOrRepo.Invoke(command);
+            using (var log = Logger?.LogInvocation(process))
+            {
+                process.StdOut.StopBuffering();
+                log?.IgnoreExitCode();
+
+                var exitCode = await process.Completed;
+                return exitCode == 0;
+            }
         }
 
         /// <summary>
         /// Helper method. Runs a command which is expected to simply succeed or fail. Output is ignored.
         /// </summary>
+        public Task RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, string gitCommand, params string[] arguments)
+        {
+            var cmd = CreateCommand(gitCommand, arguments);
+            return RunSimpleCommand(workingCopyOrRepo, cmd);
+        }
+
+        /// <summary>
+        /// Helper method. Runs a command which is expected to simply succeed or fail. Output is ignored.
+        /// </summary>
+        [Obsolete("Use 'RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, CommandLine command)' instead.")]
         public async Task RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, string gitCommand, Action<CommandLine> prepareCommand)
+        {
+            var cmd = CreateCommand(gitCommand);
+            prepareCommand(cmd);
+            await RunSimpleCommand(workingCopyOrRepo, cmd);
+        }
+
+        /// <summary>
+        /// Helper method. Runs a command which is expected to simply succeed or fail. Output is ignored.
+        /// </summary>
+        public async Task RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, CommandLine command)
         {
             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
 
-            var cmd = new CommandLine(Git.GetExecutableFilePath(), gitCommand);
-            prepareCommand(cmd);
-            var process = workingCopyOrRepo.Invoke(cmd);
+            var process = workingCopyOrRepo.Invoke(command);
             using (Logger?.LogInvocation(process))
             {
                 process.StdOut.StopBuffering();
@@ -54,11 +93,18 @@ namespace Bluewire.Common.GitWrapper
         /// </summary>
         public async Task<string> RunSingleLineCommand(IGitFilesystemContext workingCopyOrRepo, string gitCommand, params string[] arguments)
         {
+            var cmd = CreateCommand(gitCommand, arguments);
+            return await RunSingleLineCommand(workingCopyOrRepo, cmd);
+        }
+
+         /// <summary>
+        /// Helper method. Runs a command which is expected to produce a single line of output.
+        /// </summary>
+        public async Task<string> RunSingleLineCommand(IGitFilesystemContext workingCopyOrRepo, CommandLine command)
+        {
             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
 
-            var cmd = new CommandLine(Git.GetExecutableFilePath(), gitCommand);
-            cmd.Add(arguments);
-            var process = workingCopyOrRepo.Invoke(cmd);
+            var process = workingCopyOrRepo.Invoke(command);
             using (Logger?.LogInvocation(process))
             {
                 return await GitHelpers.ExpectOneLine(process);
@@ -119,6 +165,33 @@ namespace Bluewire.Common.GitWrapper
                     throw new UnexpectedGitOutputFormatException(process.CommandLine, parser.Errors.ToArray());
                 }
                 return await parsedList;
+            }
+        }
+
+        /// <summary>
+        /// Helper method. Given a running process, parses its STDOUT stream line-by-line using the specified
+        /// asynchronous parser instance.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="process"></param>
+        /// <param name="parser"></param>
+        /// <returns></returns>
+        public async Task<T> ParseOutput<T>(IConsoleProcess process, IGitAsyncOutputParser<T> parser, CancellationToken token)
+        {
+            using (Logger?.LogInvocation(process))
+            {
+                using (var stdoutEnumerator = process.StdOut.GetAsyncEnumerator())
+                {
+                    process.StdOut.StopBuffering();
+                    var result = parser.Parse(stdoutEnumerator, token);
+                    await GitHelpers.ExpectSuccess(process);
+                    await WaitForCompletion(result);
+                    if (parser.Errors.Any())
+                    {
+                        throw new UnexpectedGitOutputFormatException(process.CommandLine, parser.Errors.ToArray());
+                    }
+                    return await result;
+                }
             }
         }
 
