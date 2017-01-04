@@ -13,6 +13,7 @@ namespace Bluewire.Common.GitWrapper.Async
     /// <typeparam name="T"></typeparam>
     public class AsyncBufferedEnumerator<T> : IAsyncEnumerator<T>
     {
+        private bool disposed;
         private readonly CancellationTokenSource shutdown = new CancellationTokenSource();
         private readonly AutoResetEvent queued = new AutoResetEvent(false);
         private readonly BlockingCollection<T> queue;
@@ -56,8 +57,14 @@ namespace Bluewire.Common.GitWrapper.Async
 
         public void Dispose()
         {
-            shutdown.Cancel();
-            shutdown.Dispose();
+            if (disposed) return;
+            lock (shutdown)
+            {
+                if (disposed) return;
+                shutdown.Cancel();
+                shutdown.Dispose();
+                disposed = true;
+            }
         }
     }
 }

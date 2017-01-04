@@ -205,7 +205,7 @@ namespace Bluewire.Common.GitWrapper
                 var branchNames = process.StdOut
                     .Where(l => !String.IsNullOrWhiteSpace(l))
                     .Select(l => l.Substring(2))
-                    .Where(l => !l.StartsWith("(detach") && !l.Contains(" -> "))
+                    .Where(l => !l.StartsWith("(detach") && !l.Contains(" -> ") && !l.StartsWith("(HEAD detached "))
                     .Select(l => new Ref(l))
                     .ToArray().ToTask();
 
