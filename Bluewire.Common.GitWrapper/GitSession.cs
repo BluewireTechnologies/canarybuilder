@@ -205,6 +205,7 @@ namespace Bluewire.Common.GitWrapper
             if (options.Remote) cmd.Add("--remotes");
             if (options.UnmergedWith != null) cmd.Add("--no-merged", options.UnmergedWith);
             if (options.MergedWith != null) cmd.Add("--merged", options.MergedWith);
+            if (options.Contains != null) cmd.Add("--contains", options.Contains);
 
             var process = workingCopyOrRepo.Invoke(cmd);
             using (logger?.LogInvocation(process))
