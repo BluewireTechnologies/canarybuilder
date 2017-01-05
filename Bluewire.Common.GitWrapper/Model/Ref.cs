@@ -12,7 +12,7 @@ namespace Bluewire.Common.GitWrapper.Model
     /// about repository structure and cannot tell if two different ref strings point to the
     /// same object.
     /// </remarks>
-    public class Ref
+    public class Ref : IRefRange
     {
         private readonly string refName;
 
