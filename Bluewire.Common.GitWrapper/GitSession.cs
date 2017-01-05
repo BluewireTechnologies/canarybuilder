@@ -4,10 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
+using System.Threading;
 using System.Threading.Tasks;
 using Bluewire.Common.Console.Client.Shell;
+using Bluewire.Common.GitWrapper.Async;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Common.GitWrapper.Parsing;
+using Bluewire.Common.GitWrapper.Parsing.Log;
 
 namespace Bluewire.Common.GitWrapper
 {
@@ -418,6 +421,27 @@ namespace Bluewire.Common.GitWrapper
             if (options.FirstParentOnly) cmd.Add("--first-parent");
             if (options.AncestryPathOnly) cmd.Add("--ancestry-path");
             return await CommandHelper.RunCommand(workingCopyOrRepo, cmd, ls => ls.Select(l => new Ref(l)));
+        }
+
+        public async Task<LogEntry[]> ReadLog(IGitFilesystemContext workingCopyOrRepo, LogOptions options, params IRefRange[] refRanges)
+        {
+            var parser = new GitLogParser();
+            var cmd = CommandHelper.CreateCommand("log");
+            if (options.MatchMessage != null) cmd.Add("--grep", options.MatchMessage.ToString());
+            if (options.ShowMerges == LogShowMerges.Never) cmd.Add("--no-merges");
+            else if (options.ShowMerges == LogShowMerges.Only) cmd.Add("--merges");
+
+            if (options.IncludeAllRefs)
+            {
+                if(refRanges.Length > 0) throw new ArgumentException($"IncludeAllRefs was specified, but so were {refRanges.Length} ref ranges.");
+                cmd.Add("--all");
+            }
+            else
+            {
+                cmd.AddList(refRanges.Select(r => r.ToString()));
+            }
+
+            return await CommandHelper.RunCommand(workingCopyOrRepo, cmd, parser);
         }
     }
 }

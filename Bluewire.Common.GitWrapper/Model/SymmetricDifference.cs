@@ -8,7 +8,7 @@ namespace Bluewire.Common.GitWrapper.Model
     /// * left...right,
     /// * left right --not $(git-merge-base --all left right)
     /// </summary>
-    public class SymmetricDifference
+    public class SymmetricDifference : IRefRange
     {
         private readonly Ref left;
         private readonly Ref right;

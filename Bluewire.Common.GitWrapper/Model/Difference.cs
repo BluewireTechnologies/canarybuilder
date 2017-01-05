@@ -8,7 +8,7 @@ namespace Bluewire.Common.GitWrapper.Model
     /// * exclude..include,
     /// * ^exclude include
     /// </summary>
-    public class Difference
+    public class Difference : IRefRange
     {
         private readonly Ref exclude;
         private readonly Ref include;

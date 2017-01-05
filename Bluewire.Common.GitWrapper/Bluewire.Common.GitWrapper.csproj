@@ -75,9 +75,13 @@
     <Compile Include="GitLineOutputParser.cs" />
     <Compile Include="Model\Difference.cs" />
     <Compile Include="Model\IGitFilesystemContext.cs" />
+    <Compile Include="Model\IRefRange.cs" />
     <Compile Include="Model\ListBranchesOptions.cs" />
     <Compile Include="Model\ListCommitsOptions.cs" />
     <Compile Include="Model\ListTagsOptions.cs" />
+    <Compile Include="Model\LogEntry.cs" />
+    <Compile Include="Model\LogOptions.cs" />
+    <Compile Include="Model\LogShowMerges.cs" />
     <Compile Include="Model\MergeFastForward.cs" />
     <Compile Include="Model\MergeOptions.cs" />
     <Compile Include="Model\CommitOptions.cs" />
@@ -93,8 +97,11 @@
     <Compile Include="Async\AsyncBufferedEnumerator.cs" />
     <Compile Include="Async\AsyncEnumeratorAdapter.cs" />
     <Compile Include="Async\IAsyncEnumerator.cs" />
+    <Compile Include="Parsing\GitLogParser.cs" />
     <Compile Include="Parsing\GitTagDetailsParser.cs" />
     <Compile Include="Parsing\GitStatusParser.cs" />
+    <Compile Include="Parsing\Log\GitLogReader.cs" />
+    <Compile Include="Parsing\Log\LineType.cs" />
     <Compile Include="Parsing\RefNameColumnLineParser.cs" />
     <Compile Include="Parsing\StrictISO8601.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
