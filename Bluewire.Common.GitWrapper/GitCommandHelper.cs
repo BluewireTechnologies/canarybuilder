@@ -55,15 +55,6 @@ namespace Bluewire.Common.GitWrapper
         /// <summary>
         /// Helper method. Runs a command which is expected to simply succeed or fail. Output is ignored.
         /// </summary>
-        public Task RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, string gitCommand, params string[] arguments)
-        {
-            var cmd = CreateCommand(gitCommand, arguments);
-            return RunSimpleCommand(workingCopyOrRepo, cmd);
-        }
-
-        /// <summary>
-        /// Helper method. Runs a command which is expected to simply succeed or fail. Output is ignored.
-        /// </summary>
         public async Task RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, CommandLine command)
         {
             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
@@ -75,15 +66,6 @@ namespace Bluewire.Common.GitWrapper
 
                 await GitHelpers.ExpectSuccess(process);
             }
-        }
-
-         /// <summary>
-        /// Helper method. Runs a command which is expected to produce a single line of output.
-        /// </summary>
-        public async Task<string> RunSingleLineCommand(IGitFilesystemContext workingCopyOrRepo, string gitCommand, params string[] arguments)
-        {
-            var cmd = CreateCommand(gitCommand, arguments);
-            return await RunSingleLineCommand(workingCopyOrRepo, cmd);
         }
 
          /// <summary>
