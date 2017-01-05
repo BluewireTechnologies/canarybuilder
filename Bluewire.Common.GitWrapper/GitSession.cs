@@ -26,7 +26,8 @@ namespace Bluewire.Common.GitWrapper
 
         public async Task<Ref> GetCurrentBranch(GitWorkingCopy workingCopy)
         {
-            var process = new CommandLine(Git.GetExecutableFilePath(), "rev-parse", "--abbrev-ref", "HEAD").RunFrom(workingCopy.Root);
+            var cmd = CommandHelper.CreateCommand("rev-parse", "--abbrev-ref", "HEAD");
+            var process = cmd.RunFrom(workingCopy.Root);
             using (logger?.LogMinorInvocation(process))
             {
                 var currentBranchName = await GitHelpers.ExpectOneLine(process);
@@ -42,7 +43,8 @@ namespace Bluewire.Common.GitWrapper
         {
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
-            var process = workingCopyOrRepo.Invoke(new CommandLine(Git.GetExecutableFilePath(), "rev-list", "--max-count=1", @ref));
+            var cmd = CommandHelper.CreateCommand("rev-list", "--max-count=1", @ref);
+            var process = workingCopyOrRepo.Invoke(cmd);
             using (logger?.LogMinorInvocation(process))
             {
                 var refHash = await GitHelpers.ExpectOneLine(process);
@@ -54,7 +56,8 @@ namespace Bluewire.Common.GitWrapper
         {
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
-            var process = workingCopyOrRepo.Invoke(new CommandLine(Git.GetExecutableFilePath(), "show-ref", "--quiet", @ref));
+            var cmd = CommandHelper.CreateCommand("show-ref", "--quiet", @ref);
+            var process = workingCopyOrRepo.Invoke(cmd);
             using (var log = logger?.LogMinorInvocation(process))
             {
                 log?.IgnoreExitCode();
@@ -68,7 +71,8 @@ namespace Bluewire.Common.GitWrapper
         {
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
-            var process = workingCopyOrRepo.Invoke(new CommandLine(Git.GetExecutableFilePath(), "show-ref", "--verify", "--quiet", @ref));
+            var cmd = CommandHelper.CreateCommand("show-ref", "--verify", "--quiet", @ref);
+            var process = workingCopyOrRepo.Invoke(cmd);
             using (var log = logger?.LogMinorInvocation(process))
             {
                 log?.IgnoreExitCode();
@@ -101,7 +105,8 @@ namespace Bluewire.Common.GitWrapper
 
         public async Task<bool> IsClean(GitWorkingCopy workingCopy)
         {
-            var process = new CommandLine(Git.GetExecutableFilePath(), "status", "--porcelain").RunFrom(workingCopy.Root);
+            var cmd = CommandHelper.CreateCommand("status", "--porcelain");
+            var process = cmd.RunFrom(workingCopy.Root);
             using (logger?.LogMinorInvocation(process))
             {
                 var isEmpty = process.StdOut.IsEmpty().ToTask();
@@ -124,7 +129,7 @@ namespace Bluewire.Common.GitWrapper
             if (repoName.Intersect(Path.GetInvalidFileNameChars()).Any()) throw new ArgumentException($"Repository name contains invalid characters: '{repoName}'", nameof(repoName));
             Directory.CreateDirectory(containingPath);
 
-            var process = new CommandLine(Git.GetExecutableFilePath(), "init", repoName).RunFrom(containingPath);
+            var process = CommandHelper.CreateCommand("init", repoName).RunFrom(containingPath);
             using (logger?.LogInvocation(process))
             {
                 process.StdOut.StopBuffering();
@@ -152,7 +157,7 @@ namespace Bluewire.Common.GitWrapper
             if (repoName.Intersect(Path.GetInvalidFileNameChars()).Any()) throw new ArgumentException($"Repository name contains invalid characters: '{repoName}'", nameof(repoName));
             Directory.CreateDirectory(containingPath);
 
-            var process = new CommandLine(Git.GetExecutableFilePath(), "clone", remote.ToString(), repoName).RunFrom(containingPath);
+            var process = CommandHelper.CreateCommand("clone", remote.ToString(), repoName).RunFrom(containingPath);
             using (logger?.LogInvocation(process))
             {
                 process.StdOut.StopBuffering();
@@ -186,15 +191,15 @@ namespace Bluewire.Common.GitWrapper
             if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
 
             var parser = new GitStatusParser();
-            var process = new CommandLine(Git.GetExecutableFilePath(), "status", "--porcelain").RunFrom(workingCopy.Root);
-            return await CommandHelper.ParseOutput(process, parser);
+            var cmd = CommandHelper.CreateCommand("status", "--porcelain");
+            return await CommandHelper.RunCommand(workingCopy, cmd, parser);
         }
 
         public async Task<Ref[]> ListBranches(IGitFilesystemContext workingCopyOrRepo, ListBranchesOptions options = default(ListBranchesOptions))
         {
             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
 
-            var cmd = new CommandLine(Git.GetExecutableFilePath(), "branch", "--list");
+            var cmd = CommandHelper.CreateCommand("branch", "--list");
             if (options.Remote) cmd.Add("--remotes");
             if (options.UnmergedWith != null) cmd.Add("--no-merged", options.UnmergedWith);
             if (options.MergedWith != null) cmd.Add("--merged", options.MergedWith);
@@ -225,7 +230,7 @@ namespace Bluewire.Common.GitWrapper
         {
             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
 
-            var cmd = new CommandLine(Git.GetExecutableFilePath(), "tag", "--list");
+            var cmd = CommandHelper.CreateCommand("tag", "--list");
             if (options.Contains != null) cmd.Add("--contains", options.Contains);
             if (!String.IsNullOrWhiteSpace(options.Pattern)) cmd.Add(options.Pattern);
 
@@ -280,7 +285,8 @@ namespace Bluewire.Common.GitWrapper
             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
 
             var parser = new GitTagDetailsParser();
-            var process = workingCopyOrRepo.Invoke(new CommandLine(Git.GetExecutableFilePath(), "cat-file", "tag", tag));
+            var cmd = CommandHelper.CreateCommand("cat-file", "tag", tag);
+            var process = workingCopyOrRepo.Invoke(cmd);
             using (logger?.LogInvocation(process))
             {
                 await GitHelpers.ExpectSuccess(process);

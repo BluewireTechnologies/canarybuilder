@@ -101,24 +101,6 @@ namespace Bluewire.Common.GitWrapper
         }
 
         /// <summary>
-        /// Helper method. Runs a command which is expected to produce output which can be consumed asynchronously.
-        /// </summary>
-        public async Task<T> RunCommand<T>(IGitFilesystemContext workingCopyOrRepo, CommandLine command, Func<IAsyncEnumerator<string>, Task<T>> parseLines)
-        {
-            var process = workingCopyOrRepo.Invoke(command);
-            using (Logger?.LogInvocation(process))
-            {
-                using (var stdoutEnumerator = process.StdOut.GetAsyncEnumerator())
-                {
-                    process.StdOut.StopBuffering();
-                    var result = parseLines(stdoutEnumerator);
-                    await GitHelpers.ExpectSuccess(process);
-                    return await result;
-                }
-            }
-        }
-
-        /// <summary>
         /// Helper method. Runs a command which is expected to produce output which can be parsed easily as a series of lines.
         /// </summary>
         public async Task<T[]> RunCommand<T>(IGitFilesystemContext workingCopyOrRepo, CommandLine command, Func<IObservable<string>, IObservable<T>> pipeline)
@@ -134,25 +116,34 @@ namespace Bluewire.Common.GitWrapper
         }
 
         /// <summary>
+        /// Helper method. Runs a command which is expected to produce output which can be parsed asynchronously.
+        /// </summary>
+        public async Task<T> RunCommand<T>(IGitFilesystemContext workingCopyOrRepo, CommandLine command, IGitAsyncOutputParser<T> parser, CancellationToken token = default(CancellationToken))
+        {
+            var process = workingCopyOrRepo.Invoke(command);
+            using (Logger?.LogInvocation(process))
+            {
+                return await ParseOutput(process, parser, token);
+            }
+        }
+
+        /// <summary>
         /// Helper method. Given a running process, parses its STDOUT stream line-by-line using the specified
         /// asynchronous parser instance.
         /// </summary>
         public async Task<T> ParseOutput<T>(IConsoleProcess process, IGitAsyncOutputParser<T> parser, CancellationToken token = default(CancellationToken))
         {
-            using (Logger?.LogInvocation(process))
+            using (var stdoutEnumerator = process.StdOut.GetAsyncEnumerator())
             {
-                using (var stdoutEnumerator = process.StdOut.GetAsyncEnumerator())
+                process.StdOut.StopBuffering();
+                var result = parser.Parse(stdoutEnumerator, token);
+                await GitHelpers.ExpectSuccess(process);
+                await WaitForCompletion(result);
+                if (parser.Errors.Any())
                 {
-                    process.StdOut.StopBuffering();
-                    var result = parser.Parse(stdoutEnumerator, token);
-                    await GitHelpers.ExpectSuccess(process);
-                    await WaitForCompletion(result);
-                    if (parser.Errors.Any())
-                    {
-                        throw new UnexpectedGitOutputFormatException(process.CommandLine, parser.Errors.ToArray());
-                    }
-                    return await result;
+                    throw new UnexpectedGitOutputFormatException(process.CommandLine, parser.Errors.ToArray());
                 }
+                return await result;
             }
         }
 

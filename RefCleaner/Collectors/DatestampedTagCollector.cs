@@ -55,9 +55,8 @@ namespace RefCleaner.Collectors
             else
             {
                 var parser = new RefNameColumnLineParser(1);
-                var command = new CommandLine(helper.Git.GetExecutableFilePath(), "ls-remote", "--refs", "--tags", remoteName, pattern);
-                var process = repository.Invoke(command);
-                var qualifiedBranches = await helper.ParseOutput(process, parser);
+                var command = helper.CreateCommand("ls-remote", "--refs", "--tags", remoteName, pattern);
+                var qualifiedBranches = await helper.RunCommand(repository, command, parser);
                 return qualifiedBranches.Select(b => RefHelper.Unqualify("tags", b)).ToArray();
             }
         }

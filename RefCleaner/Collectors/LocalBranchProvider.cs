@@ -32,14 +32,13 @@ namespace RefCleaner.Collectors
             var command = CreateAllBranchesForEachRefCommand();
 
             var parser = new BranchDetailsParser();
-            var process = repository.Invoke(command);
-            var branches = await helper.ParseOutput(process, parser);
+            var branches = await helper.RunCommand(repository, command, parser);
             return branches.Where(r => !Ref.IsBuiltIn(r.Ref)).ToArray();
         }
 
         private CommandLine CreateAllBranchesForEachRefCommand()
         {
-            return new CommandLine(helper.Git.GetExecutableFilePath(), "for-each-ref")
+            return helper.CreateCommand("for-each-ref")
                 .Add("--format", "%(committerdate:iso-strict) %(objectname) %(refname:strip=2)")
                 .Add("refs/heads/");
         }
@@ -49,8 +48,7 @@ namespace RefCleaner.Collectors
             var command = CreateMergedBranchesForEachRefCommand(mergeTarget);
 
             var parser = new RefNameColumnLineParser(0);
-            var process = repository.Invoke(command);
-            var branches = await helper.ParseOutput(process, parser);
+            var branches = await helper.RunCommand(repository, command, parser);
             return branches.Where(r => !Ref.IsBuiltIn(r)).ToArray();
         }
         
@@ -61,7 +59,7 @@ namespace RefCleaner.Collectors
 
         private CommandLine CreateMergedBranchesForEachRefCommand(Ref mergeTarget)
         {
-            return new CommandLine(helper.Git.GetExecutableFilePath(), "for-each-ref")
+            return helper.CreateCommand("for-each-ref")
                 .Add("--merged", mergeTarget)
                 .Add("--format", "%(refname:strip=2)")
                 .Add("refs/heads/");
