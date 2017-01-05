@@ -6,14 +6,14 @@ using Bluewire.Common.GitWrapper.Model;
 
 namespace RefCleaner.Collectors
 {
-    class BranchDetailsParser : IGitLineOutputParser<BranchDetails>
+    class BranchDetailsParser : GitLineOutputParser<BranchDetails>
     {
         private readonly List<UnexpectedGitOutputFormatDetails> errors = new List<UnexpectedGitOutputFormatDetails>();
 
-        public IEnumerable<UnexpectedGitOutputFormatDetails> Errors => errors;
+        public override IEnumerable<UnexpectedGitOutputFormatDetails> Errors => errors;
         private readonly char[] splitOnWhitespace = "\t ".ToCharArray();
 
-        public bool Parse(string line, out BranchDetails entry)
+        public override bool Parse(string line, out BranchDetails entry)
         {
             if (line == null) throw new ArgumentNullException(nameof(line));
             
@@ -52,13 +52,6 @@ namespace RefCleaner.Collectors
                 error.Explanations.Add(ex.Message);
                 return null;
             }
-        }
-
-        public BranchDetails ParseOrNull(string line)
-        {
-            BranchDetails entry;
-            if (Parse(line, out entry)) return entry;
-            return null;
         }
     }
 }

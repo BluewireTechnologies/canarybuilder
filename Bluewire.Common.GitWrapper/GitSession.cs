@@ -187,7 +187,7 @@ namespace Bluewire.Common.GitWrapper
 
             var parser = new GitStatusParser();
             var process = new CommandLine(Git.GetExecutableFilePath(), "status", "--porcelain").RunFrom(workingCopy.Root);
-            return await CommandHelper.ParseLineOutput(process, parser);
+            return await CommandHelper.ParseOutput(process, parser);
         }
 
         public async Task<Ref[]> ListBranches(IGitFilesystemContext workingCopyOrRepo, ListBranchesOptions options = default(ListBranchesOptions))

@@ -5,12 +5,12 @@ using Bluewire.Common.GitWrapper.Model;
 
 namespace Bluewire.Common.GitWrapper.Parsing
 {
-    public class RefNameColumnLineParser : IGitLineOutputParser<Ref>
+    public class RefNameColumnLineParser : GitLineOutputParser<Ref>
     {
         private readonly int columnIndex;
         private readonly List<UnexpectedGitOutputFormatDetails> errors = new List<UnexpectedGitOutputFormatDetails>();
 
-        public IEnumerable<UnexpectedGitOutputFormatDetails> Errors => errors;
+        public override IEnumerable<UnexpectedGitOutputFormatDetails> Errors => errors;
         private readonly char[] splitOnWhitespace = "\t ".ToCharArray();
 
         public RefNameColumnLineParser(int columnIndex)
@@ -18,7 +18,7 @@ namespace Bluewire.Common.GitWrapper.Parsing
             this.columnIndex = columnIndex;
         }
 
-        public bool Parse(string line, out Ref entry)
+        public override bool Parse(string line, out Ref entry)
         {
             if (line == null) throw new ArgumentNullException(nameof(line));
             
@@ -46,13 +46,6 @@ namespace Bluewire.Common.GitWrapper.Parsing
                 error.Explanations.Add(ex.Message);
                 return null;
             }
-        }
-
-        public Ref ParseOrNull(string line)
-        {
-            Ref entry;
-            if(Parse(line, out entry)) return entry;
-            return null;
         }
     }
 }

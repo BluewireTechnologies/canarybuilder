@@ -13,14 +13,14 @@ namespace Bluewire.Common.GitWrapper.Parsing
     /// <remarks>
     /// Instances of this class are not threadsafe.
     /// </remarks>
-    public class GitStatusParser : IGitLineOutputParser<GitStatusEntry>
+    public class GitStatusParser : GitLineOutputParser<GitStatusEntry>
     {
         private readonly List<UnexpectedGitOutputFormatDetails> errors = new List<UnexpectedGitOutputFormatDetails>();
         private readonly ThreadLocal<List<char>> reusableBuffer = new ThreadLocal<List<char>>(() => new List<char>(50));
 
-        public IEnumerable<UnexpectedGitOutputFormatDetails> Errors => errors;
+        public override IEnumerable<UnexpectedGitOutputFormatDetails> Errors => errors;
 
-        public bool Parse(string line, out GitStatusEntry entry)
+        public override bool Parse(string line, out GitStatusEntry entry)
         {
             if (line == null) throw new ArgumentNullException(nameof(line));
             
@@ -47,13 +47,6 @@ namespace Bluewire.Common.GitWrapper.Parsing
             return false;
         }
 
-        public GitStatusEntry ParseOrNull(string line)
-        {
-            GitStatusEntry entry;
-            if(Parse(line, out entry)) return entry;
-            return null;
-        }
-        
         class LineParser
         {
             private readonly string line;

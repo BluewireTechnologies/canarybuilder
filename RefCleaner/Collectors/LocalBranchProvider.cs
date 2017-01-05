@@ -33,7 +33,7 @@ namespace RefCleaner.Collectors
 
             var parser = new BranchDetailsParser();
             var process = repository.Invoke(command);
-            var branches = await helper.ParseLineOutput(process, parser);
+            var branches = await helper.ParseOutput(process, parser);
             return branches.Where(r => !Ref.IsBuiltIn(r.Ref)).ToArray();
         }
 
@@ -50,7 +50,7 @@ namespace RefCleaner.Collectors
 
             var parser = new RefNameColumnLineParser(0);
             var process = repository.Invoke(command);
-            var branches = await helper.ParseLineOutput(process, parser);
+            var branches = await helper.ParseOutput(process, parser);
             return branches.Where(r => !Ref.IsBuiltIn(r)).ToArray();
         }
         

@@ -64,17 +64,6 @@ namespace Bluewire.Common.GitWrapper
         /// <summary>
         /// Helper method. Runs a command which is expected to simply succeed or fail. Output is ignored.
         /// </summary>
-        [Obsolete("Use 'RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, CommandLine command)' instead.")]
-        public async Task RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, string gitCommand, Action<CommandLine> prepareCommand)
-        {
-            var cmd = CreateCommand(gitCommand);
-            prepareCommand(cmd);
-            await RunSimpleCommand(workingCopyOrRepo, cmd);
-        }
-
-        /// <summary>
-        /// Helper method. Runs a command which is expected to simply succeed or fail. Output is ignored.
-        /// </summary>
         public async Task RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, CommandLine command)
         {
             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
@@ -146,37 +135,9 @@ namespace Bluewire.Common.GitWrapper
 
         /// <summary>
         /// Helper method. Given a running process, parses its STDOUT stream line-by-line using the specified
-        /// parser instance.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="process"></param>
-        /// <param name="parser"></param>
-        /// <returns></returns>
-        public async Task<T[]> ParseLineOutput<T>(IConsoleProcess process, IGitLineOutputParser<T> parser)
-        {
-            using (Logger?.LogInvocation(process))
-            {
-                var parsedList = process.StdOut.Select(l => parser.ParseOrNull(l)).ToArray().ToTask();
-                process.StdOut.StopBuffering();
-                await GitHelpers.ExpectSuccess(process);
-                await WaitForCompletion(parsedList);
-                if (parser.Errors.Any())
-                {
-                    throw new UnexpectedGitOutputFormatException(process.CommandLine, parser.Errors.ToArray());
-                }
-                return await parsedList;
-            }
-        }
-
-        /// <summary>
-        /// Helper method. Given a running process, parses its STDOUT stream line-by-line using the specified
         /// asynchronous parser instance.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="process"></param>
-        /// <param name="parser"></param>
-        /// <returns></returns>
-        public async Task<T> ParseOutput<T>(IConsoleProcess process, IGitAsyncOutputParser<T> parser, CancellationToken token)
+        public async Task<T> ParseOutput<T>(IConsoleProcess process, IGitAsyncOutputParser<T> parser, CancellationToken token = default(CancellationToken))
         {
             using (Logger?.LogInvocation(process))
             {

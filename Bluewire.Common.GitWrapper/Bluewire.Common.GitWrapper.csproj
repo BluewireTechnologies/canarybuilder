@@ -71,7 +71,8 @@
     <Compile Include="GitRepository.cs" />
     <Compile Include="GitSession.cs" />
     <Compile Include="GitWorkingCopy.cs" />
-    <Compile Include="IGitLineOutputParser.cs" />
+    <Compile Include="IGitAsyncOutputParser.cs" />
+    <Compile Include="GitLineOutputParser.cs" />
     <Compile Include="Model\Difference.cs" />
     <Compile Include="Model\IGitFilesystemContext.cs" />
     <Compile Include="Model\ListBranchesOptions.cs" />
