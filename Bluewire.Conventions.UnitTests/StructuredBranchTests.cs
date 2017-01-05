@@ -38,8 +38,15 @@ namespace Bluewire.Conventions.UnitTests
             new Case { Raw = "refactor/foo-lets-us-do-some-other-stuff-in-a-much-better-way-20160112-1137", Parsed = new StructuredBranch {  Namespace = "refactor", Name = "foo-lets-us-do-some-other-stuff-in-a-much-better-way", NumericSuffix = "20160112-1137" } }
         };
 
+        /// <summary>
+        /// Additional test cases encountered during development.
+        /// </summary>
+        public static Case[] ExtraCases = {
+            new Case { Raw = "origin/candidate/16.23", Parsed = new StructuredBranch { Namespace = "origin/candidate", Name = "16.23" } }
+        };
+
         [Test]
-        public void CanParse([ValueSource(nameof(Cases))] Case testCase)
+        public void CanParse([ValueSource(nameof(Cases))] [ValueSource(nameof(ExtraCases))] Case testCase)
         {
             var parsed = StructuredBranch.Parse(testCase.Raw);
             Assert.That(parsed.Namespace, Is.EqualTo(testCase.Parsed.Namespace));

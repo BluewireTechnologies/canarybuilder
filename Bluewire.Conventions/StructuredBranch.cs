@@ -122,7 +122,7 @@ namespace Bluewire.Conventions
             
             if (!ValidateBranchName(raw, out exception)) return false;
 
-            var m = rxBranchStructure.Match(raw);
+            var m = Patterns.BranchStructure.Match(raw);
             if (!m.Success)
             {
                 exception = new ArgumentException($"Unable to parse branch name: {raw}");
@@ -137,16 +137,7 @@ namespace Bluewire.Conventions
             return true;
         }
 
-        // Assumes YouTrack ticket identifier format, eg. E-23456
-        private static readonly Regex rxBranchStructure = new Regex(@"
-^
-((?<namespace>\w+(/\w+)*)/)?
-(?<name>\w[-\w]*?)
-(- (?<ticketIdentifier>[A-Z]{1,3}-\d{1,5}))?
-(- (?<numericSuffix> \d{8}(-\d{4})? | \d+ ))?
-(- (?<targetRelease> \d+(.\d+)*))?
-$
-", RegexOptions.IgnorePatternWhitespace | RegexOptions.IgnoreCase);
+        
 
         private static string SquashEmptyToNull(string str)
         {
