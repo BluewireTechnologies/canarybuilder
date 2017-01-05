@@ -17,5 +17,6 @@
         <OutputProjects Include="CanaryBuilder\CanaryBuilder.csproj" />
         <OutputProjects Include="CanaryCollector\CanaryCollector.csproj" />
         <OutputFiles Include="Driver\Generate-NightlyCanaryBranch.ps1" />
+        <OutputProjects Include="Bluewire.Tools.Runner\Bluewire.Tools.Runner.csproj" />
     </ItemGroup>
 </Project>
