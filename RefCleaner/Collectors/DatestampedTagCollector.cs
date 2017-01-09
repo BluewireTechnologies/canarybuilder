@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.GitWrapper;
@@ -54,9 +55,8 @@ namespace RefCleaner.Collectors
             else
             {
                 var parser = new RefNameColumnLineParser(1);
-                var command = new CommandLine(helper.Git.GetExecutableFilePath(), "ls-remote", "--refs", "--tags", remoteName, pattern);
-                var process = repository.Invoke(command);
-                var qualifiedBranches = await helper.ParseLineOutput(process, parser);
+                var command = helper.CreateCommand("ls-remote", "--refs", "--tags", remoteName, pattern);
+                var qualifiedBranches = await helper.RunCommand(repository, command, parser);
                 return qualifiedBranches.Select(b => RefHelper.Unqualify("tags", b)).ToArray();
             }
         }

@@ -12,7 +12,7 @@ namespace Bluewire.Common.GitWrapper.Model
         public static Ref Ancestor(this Ref @ref, int distance)
         {
             if (distance < 1) throw new ArgumentException("Must be a positive value.", nameof(distance));
-            return new Ref(@ref + "^");
+            return new Ref(@ref + new String('^', distance));
         }
     }
 }
