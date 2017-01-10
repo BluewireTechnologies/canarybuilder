@@ -76,22 +76,29 @@ namespace Bluewire.Tools.Runner
         private static void ListTools(TextWriter writer)
         {
             writer.WriteLine("Tools:");
-            foreach (var tool in tools)
+            foreach (var tool in AllTools())
             {
                 tool.Describe(writer);
             }
             writer.WriteLine("Use '--tool <name> --help' for more detailed information.");
         }
 
-        private static readonly IToolRunner[] tools =
+        private static IList<IToolRunner> AllTools()
         {
-            new FindBuild.ToolRunner()
-        };
+            var tools = new List<IToolRunner>
+            {
+                new FindBuild.ToolRunner()
+            };
+
+            var generateScripts = new GenerateScripts.ToolRunner(tools.Select(t => t.Name).ToArray());
+            tools.Add(generateScripts);
+            return tools;
+        }
 
         private static IToolRunner GetToolByName(string name)
         {
             if (String.IsNullOrWhiteSpace(name)) return null;
-            return tools.FirstOrDefault(t => StringComparer.OrdinalIgnoreCase.Equals(t.Name, name.Trim()));
+            return AllTools().FirstOrDefault(t => StringComparer.OrdinalIgnoreCase.Equals(t.Name, name.Trim()));
         }
     }
 }
