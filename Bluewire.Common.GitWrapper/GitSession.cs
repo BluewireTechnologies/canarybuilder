@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
+using System.Threading;
 using System.Threading.Tasks;
 using Bluewire.Common.Console.Client.Shell;
+using Bluewire.Common.GitWrapper.Async;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Common.GitWrapper.Parsing;
+using Bluewire.Common.GitWrapper.Parsing.Log;
 
 namespace Bluewire.Common.GitWrapper
 {
@@ -205,6 +209,8 @@ namespace Bluewire.Common.GitWrapper
             if (options.Remote) cmd.Add("--remotes");
             if (options.UnmergedWith != null) cmd.Add("--no-merged", options.UnmergedWith);
             if (options.MergedWith != null) cmd.Add("--merged", options.MergedWith);
+            if (options.Contains != null) cmd.Add("--contains", options.Contains);
+            if (options.BranchFilter != null) cmd.AddList(options.BranchFilter);
 
             var process = workingCopyOrRepo.Invoke(cmd);
             using (logger?.LogInvocation(process))
@@ -381,6 +387,62 @@ namespace Bluewire.Common.GitWrapper
         {
             var cmd = CommandHelper.CreateCommand("merge", "--abort");
             await CommandHelper.RunSimpleCommand(workingCopy, cmd);
+        }
+
+        public async Task<Ref> MergeBase(IGitFilesystemContext workingCopy, Ref mergeTarget, params Ref[] mergeSources)
+        {
+            var cmd = CommandHelper.CreateCommand("merge-base");
+            cmd.Add(mergeTarget);
+            cmd.AddList(mergeSources.Select(r => r.ToString()));
+
+            var mergeBase = await CommandHelper.RunSingleLineCommand(workingCopy, cmd);
+
+            return String.IsNullOrWhiteSpace(mergeBase) ? null : new Ref(mergeBase);
+        }
+
+        public async Task<bool> IsAncestor(IGitFilesystemContext workingCopy, Ref maybeAncestor, Ref reference)
+        {
+            var cmd = CommandHelper.CreateCommand("merge-base", "--is-ancestor", maybeAncestor, reference);
+            return await CommandHelper.RunTestCommand(workingCopy, cmd);
+        }
+
+        /// <summary>
+        /// List revisions on the first-parent ancestry chain between 'start' and 'end'.
+        /// </summary>
+        /// <remarks>
+        /// * The revisions are listed in reverse order (most recent first) so the first entry will be the resolved SHA1 of 'end'.
+        /// * The 'start' revision is not included.
+        /// </remarks>
+        public async Task<Ref[]> ListCommitsBetween(IGitFilesystemContext workingCopyOrRepo, Ref start, Ref end, ListCommitsOptions options = default(ListCommitsOptions))
+        {
+            if (start == null) throw new ArgumentNullException(nameof(start));
+            if (end == null) throw new ArgumentNullException(nameof(end));
+
+            var cmd = CommandHelper.CreateCommand("rev-list", new Difference(start, end));
+            if (options.FirstParentOnly) cmd.Add("--first-parent");
+            if (options.AncestryPathOnly) cmd.Add("--ancestry-path");
+            return await CommandHelper.RunCommand(workingCopyOrRepo, cmd, ls => ls.Select(l => new Ref(l)));
+        }
+
+        public async Task<LogEntry[]> ReadLog(IGitFilesystemContext workingCopyOrRepo, LogOptions options, params IRefRange[] refRanges)
+        {
+            var parser = new GitLogParser();
+            var cmd = CommandHelper.CreateCommand("log");
+            if (options.MatchMessage != null) cmd.Add("--grep", options.MatchMessage.ToString());
+            if (options.ShowMerges == LogShowMerges.Never) cmd.Add("--no-merges");
+            else if (options.ShowMerges == LogShowMerges.Only) cmd.Add("--merges");
+
+            if (options.IncludeAllRefs)
+            {
+                if(refRanges.Length > 0) throw new ArgumentException($"IncludeAllRefs was specified, but so were {refRanges.Length} ref ranges.");
+                cmd.Add("--all");
+            }
+            else
+            {
+                cmd.AddList(refRanges.Select(r => r.ToString()));
+            }
+
+            return await CommandHelper.RunCommand(workingCopyOrRepo, cmd, parser);
         }
     }
 }
