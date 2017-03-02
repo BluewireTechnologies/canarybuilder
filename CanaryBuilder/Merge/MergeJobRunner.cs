@@ -37,6 +37,9 @@ namespace CanaryBuilder.Merge
                 await session.CheckoutCompletelyClean(workingCopy, job.Base);
                 // Run verifier against it.
                 await VerifyBase(workingCopy, job, logger);
+                // Check that the working copy is still clean.
+                await AssertCleanWorkingCopy(session, workingCopy);
+
                 logger.Info($"Using temporary branch {temporaryBranch}");
                 // Create temporary branch from base ref and checkout.
                 await session.CreateBranchAndCheckout(workingCopy, temporaryBranch);
