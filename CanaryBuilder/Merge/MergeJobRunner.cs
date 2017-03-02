@@ -102,15 +102,21 @@ namespace CanaryBuilder.Merge
 
         private string FormatTagMessage(List<Ref> succeeded, List<Ref> failed)
         {
-            if (!succeeded.Any()) return "CanaryBuilder: no merges";
+            var writer = new StringWriter();
+            writer.Write("CanaryBuilder: ");
+            writer.WriteLine(succeeded.Any() ? $"{succeeded.Count} merged of {succeeded.Count + failed.Count}" : "no merges");
+            writer.WriteLine();
+            writer.WriteLine("Branches incorporated:");
+            writer.WriteLine(ListRefsForMessage(succeeded));
+            writer.WriteLine("Branches rejected:");
+            writer.WriteLine(ListRefsForMessage(failed));
+            return writer.ToString();
+        }
 
-            return $@"CanaryBuilder: {succeeded.Count} merged of {succeeded.Count + failed.Count}
-
-Branches incorporated:
-{String.Concat(succeeded.Select(s => $"* {s}{Environment.NewLine}").ToArray())}
-Branches rejected:
-{String.Concat(failed.Select(s => $"* {s}{Environment.NewLine}").ToArray())}
-";
+        private string ListRefsForMessage(List<Ref> refs)
+        {
+            if (!refs.Any()) return "(none)";
+            return String.Concat(refs.Select(s => $"* {s}{Environment.NewLine}").ToArray());
         }
 
         private static async Task VerifyBase(GitWorkingCopy workingCopy, MergeJobDefinition job, IJobLogger logger)
