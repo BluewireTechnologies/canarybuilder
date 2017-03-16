@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CanaryBuilder", "CanaryBuilder\CanaryBuilder.csproj", "{D6E6BA6E-3981-4ACD-A204-E619BCA672DE}"
 EndProject
@@ -26,6 +26,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefCleaner", "RefCleaner\RefCleaner.csproj", "{A8A322E2-DEDB-4746-AFA7-45F3615C952C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefCleaner.IntegrationTests", "RefCleaner.IntegrationTests\RefCleaner.IntegrationTests.csproj", "{E0882C6A-6F48-481C-BA8E-C69AE44ED279}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Tools.GitRepository", "Bluewire.Tools.GitRepository\Bluewire.Tools.GitRepository.csproj", "{F9238A4E-6EAD-4E8A-84B5-5F7400B1A065}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Tools.GitRepository.IntegrationTests", "Bluewire.Tools.GitRepository.IntegrationTests\Bluewire.Tools.GitRepository.IntegrationTests.csproj", "{701C8FDD-8467-436A-880F-19A08B986A30}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Tools.Runner", "Bluewire.Tools.Runner\Bluewire.Tools.Runner.csproj", "{07FD50C6-7569-49DB-9926-127E2E7F4339}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +87,18 @@ Global
 		{E0882C6A-6F48-481C-BA8E-C69AE44ED279}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E0882C6A-6F48-481C-BA8E-C69AE44ED279}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E0882C6A-6F48-481C-BA8E-C69AE44ED279}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9238A4E-6EAD-4E8A-84B5-5F7400B1A065}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9238A4E-6EAD-4E8A-84B5-5F7400B1A065}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9238A4E-6EAD-4E8A-84B5-5F7400B1A065}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9238A4E-6EAD-4E8A-84B5-5F7400B1A065}.Release|Any CPU.Build.0 = Release|Any CPU
+		{701C8FDD-8467-436A-880F-19A08B986A30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{701C8FDD-8467-436A-880F-19A08B986A30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{701C8FDD-8467-436A-880F-19A08B986A30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{701C8FDD-8467-436A-880F-19A08B986A30}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07FD50C6-7569-49DB-9926-127E2E7F4339}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07FD50C6-7569-49DB-9926-127E2E7F4339}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07FD50C6-7569-49DB-9926-127E2E7F4339}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07FD50C6-7569-49DB-9926-127E2E7F4339}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
