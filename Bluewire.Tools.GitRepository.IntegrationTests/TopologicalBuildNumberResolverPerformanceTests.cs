@@ -36,7 +36,7 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
         [Test]
         public async Task BinarySearch()
         {
-            var sut = new TopologicalBuildNumberResolver(session, new TopologicalBuildNumberCalculator(session))
+            var sut = new TopologicalBuildNumberResolver(session)
             {
                 SearchImplementation = new TopologicalBuildNumberResolver.BinarySearcherImpl()
             };
@@ -49,7 +49,7 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
         [Test]
         public async Task LinearSearch()
         {
-            var sut = new TopologicalBuildNumberResolver(session, new TopologicalBuildNumberCalculator(session))
+            var sut = new TopologicalBuildNumberResolver(session)
             {
                 SearchImplementation = new TopologicalBuildNumberResolver.LinearSearcherImpl()
             };

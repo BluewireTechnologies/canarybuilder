@@ -26,7 +26,7 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
             workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
             await session.Commit(workingCopy, "Initial commit", CommitOptions.AllowEmptyCommit);
 
-            sut = new TopologicalBuildNumberResolver(session, new TopologicalBuildNumberCalculator(session));
+            sut = new TopologicalBuildNumberResolver(session);
             builder = new RepoStructureBuilder(session, workingCopy);
             startTag = await session.CreateTag(workingCopy, "start", Ref.Head, "");
             start = await session.ResolveRef(workingCopy, startTag);
