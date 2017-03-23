@@ -44,6 +44,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BranchSemanticsTests.cs" />
+    <Compile Include="SemanticVersionTests.cs" />
     <Compile Include="StructuredBranchTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
