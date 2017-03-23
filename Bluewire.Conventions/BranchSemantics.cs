@@ -30,5 +30,25 @@ namespace Bluewire.Conventions
         {
             return types.Distinct().Select(t => t.BranchFilter).Where(b => !String.IsNullOrWhiteSpace(b)).Select(b => $"*/{b}").ToArray();
         }
+
+
+        // Assumes we always create a tag when we start a new version
+        public string GetVersionZeroBranchName(SemanticVersion semVer)
+        {
+            return string.Format("{0}.{1}", semVer.Major, semVer.Minor);
+        }
+
+        // Assumes sementics defined in BranchType.cs
+        public string GetVersionLatestBranchName(SemanticVersion semVer)
+        {
+            switch (semVer.SemanticTag)
+            {
+                case "beta": return "master";
+                case "rc": return string.Format("candidate/{0}.{1}", semVer.Major, semVer.Minor);
+                case "release": return string.Format("release/{0}.{1}", semVer.Major, semVer.Minor);
+                case "canary": return null;
+                default: throw new InvalidOperationException("Unknown semantic tag value");
+            }
+        }
     }
 }
