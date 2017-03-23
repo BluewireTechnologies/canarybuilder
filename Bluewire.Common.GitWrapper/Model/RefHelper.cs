@@ -35,6 +35,12 @@ namespace Bluewire.Common.GitWrapper.Model
             return new Ref($"refs/{hierarchyName}/{@ref}");
         }
 
+        public static Ref GetRemoteRef(Ref @ref, string remoteHierarchy = "origin")
+        {
+            if (IsInHierarchy(remoteHierarchy, @ref)) return @ref;
+            return new Ref($"{remoteHierarchy}/{@ref}");
+        }
+
         /// <summary>
         /// If the ref is in the specified hierarchy, remove the 'refs/X' part.
         /// If the ref is not in the specified hierarchy, throws an ArgumentException because

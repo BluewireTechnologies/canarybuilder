@@ -90,10 +90,15 @@
     <Compile Include="FindBuild\RepositoryStructureInspector.cs" />
     <Compile Include="FindBuild\ResolveBuildVersionsFromCommit.cs" />
     <Compile Include="FindBuild\ToolRunner.cs" />
+    <Compile Include="FindCommits\IBuildVersionResolutionJob.cs" />
+    <Compile Include="FindCommits\ResolveCommitFromSemanticVersion.cs" />
+    <Compile Include="FindCommits\ToolRunner.cs" />
     <Compile Include="GenerateScripts\ToolRunner.cs" />
     <Compile Include="IToolRunner.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Shared\Build.cs" />
+    <Compile Include="Shared\BuildUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
