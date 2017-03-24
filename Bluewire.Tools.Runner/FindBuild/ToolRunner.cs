@@ -38,7 +38,9 @@ namespace Bluewire.Tools.Runner.FindBuild
             var options = CreateOptions(arguments);
             var sessionArgs = new SessionArguments<Arguments>(arguments, options);
             sessionArgs.Application += parentArgs;
-            return new ConsoleSession<Arguments>(sessionArgs).Run(args, async a => await new Impl(a).Run());
+            var consoleSession = new ConsoleSession<Arguments>(sessionArgs);
+            consoleSession.ListParameterUsage = "<identifier>";
+            return consoleSession.Run(args, async a => await new Impl(a).Run());
         }
 
         class Impl
