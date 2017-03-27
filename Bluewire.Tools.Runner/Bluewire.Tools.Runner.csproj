@@ -90,6 +90,9 @@
     <Compile Include="FindBuild\RepositoryStructureInspector.cs" />
     <Compile Include="FindBuild\ResolveBuildVersionsFromCommit.cs" />
     <Compile Include="FindBuild\ToolRunner.cs" />
+    <Compile Include="FindTickets\ITicketsResolutionJob.cs" />
+    <Compile Include="FindTickets\ResolveTicketsFromSemanticVersions.cs" />
+    <Compile Include="FindTickets\ToolRunner.cs" />
     <Compile Include="FindCommits\IBuildVersionResolutionJob.cs" />
     <Compile Include="FindCommits\ResolveCommitFromSemanticVersion.cs" />
     <Compile Include="FindCommits\ToolRunner.cs" />
