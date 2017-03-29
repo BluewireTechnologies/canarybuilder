@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Bluewire.Common.Console;
 using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
+using Bluewire.Conventions;
 
 namespace Bluewire.Tools.Runner.FindBuild
 {
@@ -17,7 +18,7 @@ namespace Bluewire.Tools.Runner.FindBuild
             this.ticketIdentifier = ticketIdentifier;
         }
 
-        public async Task<string[]> ResolveBuildVersions(GitSession session, Common.GitWrapper.GitRepository repository)
+        public async Task<SemanticVersion[]> ResolveBuildVersions(GitSession session, Common.GitWrapper.GitRepository repository)
         {
             var hashes = await ResolveToHashes(session, repository);
 
@@ -39,7 +40,7 @@ namespace Bluewire.Tools.Runner.FindBuild
             var resolver = new TargetBranchResolver(session, repository);
             var finder = new BuildVersionFinder(session, repository);
 
-            var buildVersions = new List<string>();
+            var buildVersions = new List<SemanticVersion>();
             foreach (var hash in basemostHashes)
             {
                 var targetBranches = await resolver.IdentifyTargetBranchesOfCommit(hash);
