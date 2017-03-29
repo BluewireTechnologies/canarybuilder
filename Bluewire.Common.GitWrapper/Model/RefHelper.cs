@@ -30,9 +30,27 @@ namespace Bluewire.Common.GitWrapper.Model
 
         public static Ref PutInHierarchy(string hierarchyName, Ref @ref)
         {
-            if (IsInHierarchy(hierarchyName, @ref)) return @ref;
-            if (@ref.ToString().StartsWith("refs/")) throw new ArgumentException($"Ref '{@ref}' is already qualified. Cannot prefix with 'refs/{hierarchyName}/'.");
+            if (IsInHierarchy(hierarchyName, @ref)) return EnsureFullyQualifed(hierarchyName, @ref);
+            if (IsFullyQualifed(@ref)) throw new ArgumentException($"Ref '{@ref}' is already qualified. Cannot prefix with 'refs/{hierarchyName}/'.");
             return new Ref($"refs/{hierarchyName}/{@ref}");
+        }
+
+        public static bool IsFullyQualifed(Ref @ref)
+        {
+            return @ref.ToString().StartsWith("refs/");
+        }
+
+        private static Ref EnsureFullyQualifed(string hierarchyName, Ref @ref)
+        {
+            if (IsFullyQualifed(@ref)) return @ref;
+            if (IsInHierarchy(hierarchyName, @ref)) return new Ref($"refs/{@ref}");
+            throw new ArgumentException($"Ref '{@ref}' is not in the specified hierarchy: {hierarchyName}.");
+        }
+
+        public static Ref GetRemoteRef(Ref @ref, string remoteHierarchy = "origin")
+        {
+            if (IsInHierarchy(remoteHierarchy, @ref)) return @ref;
+            return new Ref($"{remoteHierarchy}/{@ref}");
         }
 
         /// <summary>

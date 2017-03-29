@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Bluewire.Common.Console;
 using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
+using Bluewire.Conventions;
 
 namespace Bluewire.Tools.Runner.FindBuild
 {
@@ -16,7 +17,7 @@ namespace Bluewire.Tools.Runner.FindBuild
             this.pullRequestNumber = pullRequestNumber;
         }
 
-        public async Task<string[]> ResolveBuildVersions(GitSession session, Common.GitWrapper.GitRepository repository)
+        public async Task<SemanticVersion[]> ResolveBuildVersions(GitSession session, Common.GitWrapper.GitRepository repository)
         {
             var hash = await ResolveToSingleCommit(session, repository);
 

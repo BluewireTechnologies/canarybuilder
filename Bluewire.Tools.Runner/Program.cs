@@ -87,7 +87,9 @@ namespace Bluewire.Tools.Runner
         {
             var tools = new List<IToolRunner>
             {
-                new FindBuild.ToolRunner()
+                new FindBuild.ToolRunner(),
+                new FindCommits.ToolRunner(),
+                new FindTickets.ToolRunner()
             };
 
             var generateScripts = new GenerateScripts.ToolRunner(tools.Select(t => t.Name).ToArray());

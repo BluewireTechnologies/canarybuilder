@@ -18,10 +18,10 @@ namespace Bluewire.Tools.GitRepository
 
         public ISearcher SearchImplementation { get; set; } = new BinarySearcherImpl();
 
-        public TopologicalBuildNumberResolver(GitSession session, TopologicalBuildNumberCalculator calculator)
+        public TopologicalBuildNumberResolver(GitSession session, TopologicalBuildNumberCalculator calculator = null)
         {
             this.session = session;
-            this.calculator = calculator;
+            this.calculator = calculator ?? new TopologicalBuildNumberCalculator(session);
         }
 
         public async Task<Ref> FindCommit(IGitFilesystemContext workingCopyOrRepo, Ref startRef, Ref endRef, int buildNumber)

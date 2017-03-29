@@ -9,6 +9,7 @@ using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
 using Bluewire.Tools.GitRepository;
+using Bluewire.Tools.Runner.Shared;
 
 namespace Bluewire.Tools.Runner.FindBuild
 {
@@ -25,14 +26,14 @@ namespace Bluewire.Tools.Runner.FindBuild
             this.repository = repository;
         }
 
-        public async Task<string[]> GetBuildVersionsFromCommit(Ref commitHash, StructuredBranch[] targetBranches)
+        public async Task<SemanticVersion[]> GetBuildVersionsFromCommit(Ref commitHash, StructuredBranch[] targetBranches)
         {
             try
             {
                 var inspector = new RepositoryStructureInspector(gitSession);
                 var integrationPoints = await inspector.QueryIntegrationPoints(repository, commitHash, targetBranches);
 
-                var buildNumbers = new List<string>();
+                var buildNumbers = new List<SemanticVersion>();
                 foreach (var group in integrationPoints.GroupBy(i => i.IntegrationPoint, i => i.TargetBranch))
                 {
                     var branch = GetPreferredBranch(group);
@@ -63,7 +64,7 @@ namespace Bluewire.Tools.Runner.FindBuild
             }
         }
 
-        private async Task<string> GetBuildNumberFromIntegrationPoint(Ref mergeCommit, StructuredBranch branch)
+        private async Task<SemanticVersion> GetBuildNumberFromIntegrationPoint(Ref mergeCommit, StructuredBranch branch)
         {
             var inspector = new RepositoryStructureInspector(gitSession);
 
@@ -78,21 +79,7 @@ namespace Bluewire.Tools.Runner.FindBuild
             if (buildNumber == null) throw new ErrorWithReturnCodeException(4,  "Could not determine build number for the commit. Is the graph properly connected?");
 
             var branchType = new BranchSemantics().GetBranchType(branch);
-            return CreateBuildVersion(versionNumber, buildNumber.Value, branchType);
-        }
-
-        private static string CreateBuildVersion(string versionNumber, int buildNumber, BranchType branchType)
-        {
-            var versionBuilder = new StringBuilder(64);
-            versionBuilder.Append(versionNumber);
-            versionBuilder.Append(".");
-            versionBuilder.Append(buildNumber);
-            if (!String.IsNullOrEmpty(branchType.SemanticTag))
-            {
-                versionBuilder.Append("-");
-                versionBuilder.Append(branchType.SemanticTag);
-            }
-            return versionBuilder.ToString();
+            return new SemanticVersion(versionNumber, buildNumber.Value, branchType);
         }
     }
 }

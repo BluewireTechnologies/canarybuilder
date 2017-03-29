@@ -7,27 +7,27 @@ using Bluewire.Common.Console;
 using Bluewire.Common.Console.Logging;
 using Bluewire.Common.Console.ThirdParty;
 using Bluewire.Common.GitWrapper;
-using Bluewire.Conventions;
 using log4net.Core;
+using Bluewire.Tools.Runner.Shared;
+using Bluewire.Tools.Runner.FindBuild;
+using Bluewire.Conventions;
 
-namespace Bluewire.Tools.Runner.FindBuild
+namespace Bluewire.Tools.Runner.FindCommits
 {
     public class ToolRunner : IToolRunner
     {
-        public string Name => "find-build";
+        public string Name => "find-commits";
 
         public void Describe(TextWriter writer)
         {
-            writer.WriteLine($"  {Name}: Determine build versions containing a given commit or pull request.");
+            writer.WriteLine($"  {Name}: Find the commit hash(es) for the specified semantic version (release, build number and optional semantic tag).");
         }
 
         private static OptionSet CreateOptions(Arguments arguments)
         {
             return new OptionSet
             {
-                {"p=|pull-request=", "Resolve a pull request's merge commit to a build version.", o => arguments.Request(RequestType.PullRequest, o) },
-                {"c=|commit=|sha1=", "Resolve a commit hash to a build version.", o => arguments.Request(RequestType.Commit, o) },
-                {"t=|ticket=", "Resolve a ticket identifier to a build version.", o => arguments.Request(RequestType.TicketIdentifier, o) },
+                {"s=|semver=", "Resolve a commit hash for a semantic version (<major>.<minor>.<build>[-semtag]). Omit the semtag if you want all semantic version tags to be searched.", o => arguments.Request(RequestType.SemanticVersion, o) },
                 {"repo=|repository=", "Specify the repository to use. Default: current directory.", o => arguments.WorkingCopyOrRepo = o}
             };
         }
@@ -39,7 +39,7 @@ namespace Bluewire.Tools.Runner.FindBuild
             var sessionArgs = new SessionArguments<Arguments>(arguments, options);
             sessionArgs.Application += parentArgs;
             var consoleSession = new ConsoleSession<Arguments>(sessionArgs);
-            consoleSession.ListParameterUsage = "<identifier>";
+            consoleSession.ListParameterUsage = "<semantic version>";
             return consoleSession.Run(args, async a => await new Impl(a).Run());
         }
 
@@ -66,11 +66,39 @@ namespace Bluewire.Tools.Runner.FindBuild
 
                 var gitRepository = GetGitRepository(arguments.WorkingCopyOrRepo);
 
-                var buildNumbers = await job.ResolveBuildVersions(gitSession, gitRepository);
+                var builds = await job.ResolveCommits(gitSession, gitRepository);
 
-                foreach (var buildNumber in buildNumbers) Console.Out.WriteLine(buildNumber);
+                if (builds.Length == 0)
+                {
+                    Console.Error.WriteLine("No commits found for that build. Try running 'git fetch' to update your repo.");
+                    return 1;
+                }
+                else
+                {
+                    var originalBuilds = await FindOriginalBuildNumbers(builds, gitSession, gitRepository);
+                    var selectedBuilds = BuildUtils.DeduplicateAndPrioritiseResult(originalBuilds);
+                    foreach (var build in selectedBuilds)
+                    {
+                        Console.WriteLine(build);
+                    }
+                 }
 
                 return 0;
+            }
+
+            private async static Task<Build[]> FindOriginalBuildNumbers(Build[] builds, GitSession session, Common.GitWrapper.GitRepository repository)
+            {
+                List<Build> originalBuilds = new List<Build>();
+
+                // The actual build number to be rendered to the user needs to be calculated because otherwise builds
+                // that were originally built as beta will be marked as rc or release if those branches have since been created.
+                foreach (var build in builds)
+                {
+                    var originalBuildVersions = await new ResolveBuildVersionsFromCommit(build.Commit).ResolveBuildVersions(session, repository);
+                    originalBuilds.Add(new Build() { SemanticVersion = SemanticVersion.FindEarliestSemanticTag(originalBuildVersions), Commit = build.Commit});
+                }
+
+                return originalBuilds.ToArray();
             }
 
             private static void TryInferArgumentsFromList(Arguments arguments)
@@ -88,44 +116,19 @@ namespace Bluewire.Tools.Runner.FindBuild
                 }
 
                 var unqualifiedArgument = arguments.ArgumentList.First().Trim();
-
-                if (unqualifiedArgument.StartsWith("#"))
-                {
-                    arguments.Request(RequestType.PullRequest, unqualifiedArgument);
-                }
-                else if (Patterns.TicketIdentifierOnly.IsMatch(unqualifiedArgument))
-                {
-                    arguments.Request(RequestType.TicketIdentifier, unqualifiedArgument);
-                }
-                else
-                {
-                    arguments.Request(RequestType.Commit, unqualifiedArgument);
-                }
+                
+                arguments.Request(RequestType.SemanticVersion, unqualifiedArgument);
             }
 
             private static IBuildVersionResolutionJob CreateJob(Arguments arguments)
             {
                 switch (arguments.RequestType)
                 {
-                    case RequestType.Commit:
-                        Log.Console.Debug($"Resolving build versions from commit {arguments.Identifier}");
-                        return new ResolveBuildVersionsFromCommit(arguments.Identifier);
-
-                    case RequestType.TicketIdentifier:
-                        var trimmedTicketNumber = arguments.Identifier.Trim();
-                        if (!Patterns.TicketIdentifierOnly.IsMatch(trimmedTicketNumber)) throw new ErrorWithReturnCodeException(3, $"Ticket identifier {trimmedTicketNumber} did not match the expected format.");
-
-                        Log.Console.Debug($"Resolving build versions from ticket identifier {trimmedTicketNumber}");
-                        return new ResolveBuildVersionsFromTicketIdentifier(trimmedTicketNumber);
-
-                    case RequestType.PullRequest:
-                        int prNumber;
-                        if (!int.TryParse(arguments.Identifier.Trim().TrimStart('#'), out prNumber)) throw new ErrorWithReturnCodeException(3, $"Could not parse PR number {arguments.Identifier}.");
-
-                        Log.Console.Debug($"Resolving build versions from GitHub PR #{prNumber}");
-                        return new ResolveBuildVersionsFromGitHubPullRequest(prNumber);
+                    case RequestType.SemanticVersion:
+                        Log.Console.Debug($"Resolving commit from semantic version {arguments.Identifier}");
+                        return new ResolveCommitFromSemanticVersion(arguments.Identifier);
                 }
-                throw new InvalidArgumentsException("One of --commit, --pull-request or --ticket must be specified.");
+                throw new InvalidArgumentsException("Semantic version (--semver) must be specified.");
             }
 
             private static Common.GitWrapper.GitRepository GetGitRepository(string path)
@@ -161,7 +164,6 @@ namespace Bluewire.Tools.Runner.FindBuild
 
             public void Request(RequestType type, string identifier)
             {
-                if (RequestType != RequestType.None) throw new InvalidArgumentsException("Only one of --commit, --pull-request or --ticket may be specified.");
                 RequestType = type;
                 Identifier = identifier;
             }
@@ -173,9 +175,7 @@ namespace Bluewire.Tools.Runner.FindBuild
         public enum RequestType
         {
             None,
-            PullRequest,
-            Commit,
-            TicketIdentifier
+            SemanticVersion
         }
     }
 }
