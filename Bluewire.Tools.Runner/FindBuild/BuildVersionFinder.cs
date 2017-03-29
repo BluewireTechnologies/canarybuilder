@@ -16,9 +16,9 @@ namespace Bluewire.Tools.Runner.FindBuild
     public class BuildVersionFinder
     {
         private readonly GitSession gitSession;
-        private readonly Common.GitWrapper.GitRepository repository;
+        private readonly IGitFilesystemContext repository;
 
-        public BuildVersionFinder(GitSession gitSession, Common.GitWrapper.GitRepository repository)
+        public BuildVersionFinder(GitSession gitSession, IGitFilesystemContext repository)
         {
             if (gitSession == null) throw new ArgumentNullException(nameof(gitSession));
             if (repository == null) throw new ArgumentNullException(nameof(repository));
@@ -52,18 +52,6 @@ namespace Bluewire.Tools.Runner.FindBuild
             return targetBranches.OrderByDescending(new BranchTypeScorer().Score).First();
         }
 
-        class BranchTypeScorer
-        {
-            public int Score(StructuredBranch branch)
-            {
-                var type = new BranchSemantics().GetBranchType(branch);
-                if (BranchType.Master.Equals(type)) return 5;
-                if (BranchType.Release.Equals(type)) return 3;
-                if (BranchType.ReleaseCandidate.Equals(type)) return 1;
-                return 0;
-            }
-        }
-
         private async Task<SemanticVersion> GetBuildNumberFromIntegrationPoint(Ref mergeCommit, StructuredBranch branch)
         {
             var inspector = new RepositoryStructureInspector(gitSession);
@@ -80,6 +68,23 @@ namespace Bluewire.Tools.Runner.FindBuild
 
             var branchType = new BranchSemantics().GetBranchType(branch);
             return new SemanticVersion(versionNumber, buildNumber.Value, branchType);
+        }
+
+        public async Task<SemanticVersion> GetBuildNumberForAssumedBranch(Ref commit, StructuredBranch branch)
+        {
+            return await GetBuildNumberFromIntegrationPoint(commit, branch);
+        }
+    }
+
+    class BranchTypeScorer
+    {
+        public int Score(StructuredBranch branch)
+        {
+            var type = new BranchSemantics().GetBranchType(branch);
+            if (BranchType.Master.Equals(type)) return 5;
+            if (BranchType.Release.Equals(type)) return 3;
+            if (BranchType.ReleaseCandidate.Equals(type)) return 1;
+            return 0;
         }
     }
 }

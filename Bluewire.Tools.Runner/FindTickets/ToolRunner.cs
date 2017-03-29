@@ -65,7 +65,7 @@ namespace Bluewire.Tools.Runner.FindTickets
                 var gitSession = new GitSession(git, new ConsoleInvocationLogger());
                 var gitRepository = GetGitRepository(arguments.WorkingCopyOrRepo);
 
-                var startCommitJob = new FindCommits.ResolveCommitFromSemanticVersion(arguments.StartSemanticVersion);
+                var startCommitJob = new FindCommits.ResolveCommitsFromSemanticVersion(arguments.StartSemanticVersion);
                 var startBuilds = await startCommitJob.ResolveCommits(gitSession, gitRepository);
                 if (startBuilds.Length > 1)
                 {
@@ -82,7 +82,7 @@ namespace Bluewire.Tools.Runner.FindTickets
 
                 if (!string.IsNullOrEmpty(arguments.EndSemanticVersion))
                 {
-                    var endCommitJob = new FindCommits.ResolveCommitFromSemanticVersion(arguments.EndSemanticVersion);
+                    var endCommitJob = new FindCommits.ResolveCommitsFromSemanticVersion(arguments.EndSemanticVersion);
                     var endBuilds = await endCommitJob.ResolveCommits(gitSession, gitRepository);
                     if (endBuilds.Length > 1)
                     {

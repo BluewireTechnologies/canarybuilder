@@ -8,9 +8,6 @@ using Bluewire.Common.Console.Logging;
 using Bluewire.Common.Console.ThirdParty;
 using Bluewire.Common.GitWrapper;
 using log4net.Core;
-using Bluewire.Tools.Runner.Shared;
-using Bluewire.Tools.Runner.FindBuild;
-using Bluewire.Conventions;
 
 namespace Bluewire.Tools.Runner.FindCommits
 {
@@ -73,43 +70,13 @@ namespace Bluewire.Tools.Runner.FindCommits
                     Console.Error.WriteLine("No commits found for that build. Try running 'git fetch' to update your repo.");
                     return 1;
                 }
-                else
+
+                foreach (var build in builds)
                 {
-                    var originalBuilds = await FindOriginalBuildNumbers(builds, gitSession, gitRepository);
-                    var selectedBuilds = Build.DeduplicateAndPrioritiseResult(originalBuilds);
-                    foreach (var build in selectedBuilds)
-                    {
-                        Console.WriteLine(build);
-                    }
-                 }
+                    Console.WriteLine(build);
+                }
 
                 return 0;
-            }
-
-            private async static Task RenderOriginalBuildNumbers(Build[] builds, GitSession session, Common.GitWrapper.GitRepository repository)
-            {
-                // The actual build number to be rendered to the user needs to be calculated because otherwise builds
-                // that were originally built as beta will be marked as rc or release if those branches have since been created.
-                foreach (var build in builds)
-                {
-                    var originalBuildVersions = await new ResolveBuildVersionsFromCommit(build.Commit).ResolveBuildVersions(session, repository);
-                    Console.WriteLine($"{build.Commit} {SemanticVersion.FindEarliestSemanticTag(originalBuildVersions)}");
-                }
-            }
-
-            private async static Task<Build[]> FindOriginalBuildNumbers(Build[] builds, GitSession session, Common.GitWrapper.GitRepository repository)
-            {
-                List<Build> originalBuilds = new List<Build>();
-
-                // The actual build number to be rendered to the user needs to be calculated because otherwise builds
-                // that were originally built as beta will be marked as rc or release if those branches have since been created.
-                foreach (var build in builds)
-                {
-                    var originalBuildVersions = await new ResolveBuildVersionsFromCommit(build.Commit).ResolveBuildVersions(session, repository);
-                    originalBuilds.Add(new Build() { SemanticVersion = SemanticVersion.FindEarliestSemanticTag(originalBuildVersions), Commit = build.Commit});
-                }
-
-                return originalBuilds.ToArray();
             }
 
             private static void TryInferArgumentsFromList(Arguments arguments)
@@ -137,7 +104,7 @@ namespace Bluewire.Tools.Runner.FindCommits
                 {
                     case RequestType.SemanticVersion:
                         Log.Console.Debug($"Resolving commit from semantic version {arguments.Identifier}");
-                        return new ResolveCommitFromSemanticVersion(arguments.Identifier);
+                        return new ResolveCommitsFromSemanticVersion(arguments.Identifier);
                 }
                 throw new InvalidArgumentsException("Semantic version (--semver) must be specified.");
             }

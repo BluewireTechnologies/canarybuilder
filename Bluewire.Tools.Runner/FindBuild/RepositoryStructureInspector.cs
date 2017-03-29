@@ -20,7 +20,7 @@ namespace Bluewire.Tools.Runner.FindBuild
             this.gitSession = gitSession;
         }
 
-        public async Task<string> GetActiveVersionNumber(Common.GitWrapper.GitRepository repository, Ref commit)
+        public async Task<string> GetActiveVersionNumber(IGitFilesystemContext repository, Ref commit)
         {
             try
             {
@@ -36,7 +36,7 @@ namespace Bluewire.Tools.Runner.FindBuild
             }
         }
 
-        private async Task<string> GetActiveVersionNumberUsingMarkerFile(Common.GitWrapper.GitRepository repository, Ref commit)
+        private async Task<string> GetActiveVersionNumberUsingMarkerFile(IGitFilesystemContext repository, Ref commit)
         {
             var cmd = gitSession.CommandHelper.CreateCommand("show", $"{commit}:.current-version");
             var line = await gitSession.CommandHelper.RunSingleLineCommand(repository, cmd);
@@ -45,7 +45,7 @@ namespace Bluewire.Tools.Runner.FindBuild
             throw new RepositoryStructureException($"Unable to determine the active version number for the commit. The .current-version could not be parsed: {versionNumber}");
         }
 
-        private async Task<string> GetActiveVersionNumberFromTagSearch(Common.GitWrapper.GitRepository repository, Ref commit)
+        private async Task<string> GetActiveVersionNumberFromTagSearch(IGitFilesystemContext repository, Ref commit)
         {
             var cmd = gitSession.CommandHelper.CreateCommand("describe", "--first-parent", commit);
             var line = await gitSession.CommandHelper.RunSingleLineCommand(repository, cmd);
@@ -57,7 +57,7 @@ namespace Bluewire.Tools.Runner.FindBuild
             throw new RepositoryStructureException($"Unable to determine the active version number for the commit. The commit description could not be parsed: {line}");
         }
 
-        public async Task<TagDetails> ResolveBaseTagForVersion(Common.GitWrapper.GitRepository repository, string versionNumber)
+        public async Task<TagDetails> ResolveBaseTagForVersion(IGitFilesystemContext repository, string versionNumber)
         {
             try
             {
@@ -69,13 +69,13 @@ namespace Bluewire.Tools.Runner.FindBuild
             }
         }
 
-        public async Task<TagDetails> ResolveBaseTagForCommit(Common.GitWrapper.GitRepository repository, Ref commit)
+        public async Task<TagDetails> ResolveBaseTagForCommit(IGitFilesystemContext repository, Ref commit)
         {
             var versionNumber = await GetActiveVersionNumber(repository, commit);
             return await ResolveBaseTagForVersion(repository, versionNumber);
         }
 
-        public async Task<IntegrationQueryResult[]> QueryIntegrationPoints(Common.GitWrapper.GitRepository repository, Ref subject, StructuredBranch[] targetBranches)
+        public async Task<IntegrationQueryResult[]> QueryIntegrationPoints(IGitFilesystemContext repository, Ref subject, StructuredBranch[] targetBranches)
         {
             var baseTag = await ResolveBaseTagForCommit(repository, subject);
 

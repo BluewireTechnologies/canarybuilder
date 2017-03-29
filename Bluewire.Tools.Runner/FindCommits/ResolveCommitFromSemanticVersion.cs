@@ -5,98 +5,88 @@ using Bluewire.Conventions;
 using Bluewire.Tools.GitRepository;
 using System.Collections.Generic;
 using Bluewire.Tools.Runner.Shared;
-using System;
+using System.Linq;
+using Bluewire.Tools.Runner.FindBuild;
 
 namespace Bluewire.Tools.Runner.FindCommits
 {
-    public class ResolveCommitFromSemanticVersion : IBuildVersionResolutionJob
+    public class ResolveCommitsFromSemanticVersion : IBuildVersionResolutionJob
     {
         private readonly SemanticVersion semVer;
 
-        public ResolveCommitFromSemanticVersion(string semVer)
+        public ResolveCommitsFromSemanticVersion(string semVer)
         {
             this.semVer = SemanticVersion.FromString(semVer);
         }
         
         public async Task<Build[]> ResolveCommits(GitSession session, Common.GitWrapper.GitRepository repository)
         {
+            var candidateVersions = semVer.IsComplete ? new [] { semVer } : SemanticVersion.KnownSemanticTags.Select(t => new SemanticVersion(semVer.Major, semVer.Minor, semVer.Build, t));
 
-            // We expect only BuildNumberOutOfRangeException and BuildNumberNotFoundException exceptions.
-            // The caller of this method could notify the user that no builds were found but doesn't need the specifics.
+            var branchSemantics = new BranchSemantics();
+            var startTagName = RefHelper.PutInHierarchy("tags", new Ref(branchSemantics.GetVersionZeroBranchName(semVer)));
 
-            if (semVer.IsComplete)
+            var candidateTargetBranches = GetTargetBranches(branchSemantics, candidateVersions);
+            var resolvedCommits = await ResolveToCommits(session, repository, startTagName, candidateTargetBranches.ToArray(), semVer.Build);
+            var builds = new List<Build>();
+            var buildVersionFinder = new BuildVersionFinder(session, repository);
+            foreach (var group in resolvedCommits.GroupBy(i => i.Commit, i => i.TargetBranch))
             {
-                try
-                {
-                    var commit = await FindRemoteCommit(session, repository, semVer);
-                    if (commit != null)
-                    {
-                        return new Build[1] { new Build() { Commit = commit, SemanticVersion = semVer } };
-                    }
-                }
-                catch (BuildNumberOutOfRangeException) { }
-                catch (BuildNumberNotFoundException) { }
-                return new Build[0];
+                var branch = GetPreferredBranch(group);
+                var actualVersion = await buildVersionFinder.GetBuildNumberForAssumedBranch(group.Key, branch);
+
+                if (actualVersion.Minor != semVer.Minor) continue;
+                if (actualVersion.Major != semVer.Major) continue;
+
+                builds.Add(new Build { Commit = group.Key, SemanticVersion = actualVersion });
             }
-
-            var refs = new List<Build>(4);
-
-            foreach (string semTag in SemanticVersion.KnownSemanticTags)
-            {
-                var implicitSemVer = new SemanticVersion(semVer.Major, semVer.Minor, semVer.Build, semTag);
-                try
-                {
-                    var commit = await FindRemoteCommit(session, repository, implicitSemVer);
-                    if (commit != null)
-                    {
-                        refs.Add(new Build() { Commit = commit, SemanticVersion = implicitSemVer });
-                    }
-                }
-                catch (BuildNumberOutOfRangeException) { }
-                catch (BuildNumberNotFoundException) { }
-            }
-
-            if (refs.Count == 0) return new Build[0];
-
-            return Build.DeduplicateAndPrioritiseResult(refs.ToArray());
+            return builds.ToArray();
         }
 
-        private async Task<Ref> FindRemoteCommit(GitSession session, IGitFilesystemContext repository, SemanticVersion semVer)
+        class BuildNumberResolutionResult
         {
+            public Ref Commit { get; set; }
+            public StructuredBranch TargetBranch { get; set; }
+        }
+
+        private static StructuredBranch GetPreferredBranch(IEnumerable<StructuredBranch> targetBranches)
+        {
+            return targetBranches.OrderByDescending(new BranchTypeScorer().Score).First();
+        }
+
+        private IEnumerable<StructuredBranch> GetTargetBranches(BranchSemantics semantics, IEnumerable<SemanticVersion> versions)
+        {
+            foreach(var version in versions)
+            {
+                StructuredBranch branch;
+                if (StructuredBranch.TryParse(semantics.GetVersionLatestBranchName(version), out branch)) yield return branch;
+            }
+        }
+
+        private async Task<List<BuildNumberResolutionResult>> ResolveToCommits(GitSession session, IGitFilesystemContext repository, Ref start, StructuredBranch[] targetBranches, int buildNumber)
+        {
+            var results = new List<BuildNumberResolutionResult>();
             var resolver = new TopologicalBuildNumberResolver(session);
-            var branchSemantics = new BranchSemantics();
 
-            var startBranchName = new Ref(branchSemantics.GetVersionZeroBranchName(semVer));
-            var endLocalBranchName = branchSemantics.GetVersionLatestBranchName(semVer);
-            if (string.IsNullOrEmpty(endLocalBranchName) || string.IsNullOrEmpty(startBranchName)) return null;
+            var startRef = RefHelper.GetRemoteRef(start);
+            if (!await session.RefExists(repository, startRef)) return results;
 
-            var startRef = new Ref(startBranchName);
-            Ref endRef;
-
-            if (endLocalBranchName == "master")
+            foreach (var branch in targetBranches)
             {
-                var maintTag = new Ref($"tags/maint/{semVer.Major}.{semVer.Minor}");
-                if (await session.TagExists(repository, maintTag))
+                var endRef = RefHelper.GetRemoteRef(new Ref(branch.ToString()));
+
+                // It's less likely that the end ref will exist
+                if (!await session.RefExists(repository, endRef)) continue;
+
+                try
                 {
-                    endRef = RefHelper.GetRemoteRef(new Ref(maintTag));
-                } else
-                {
-                    endRef = RefHelper.GetRemoteRef(new Ref(endLocalBranchName));
+                    var commit = await resolver.FindCommit(repository, startRef, endRef, buildNumber);
+                    results.Add(new BuildNumberResolutionResult { Commit = commit, TargetBranch = branch });
                 }
-            } else
-            {
-                endRef = RefHelper.GetRemoteRef(new Ref(endLocalBranchName));
+                catch (BuildNumberOutOfRangeException) { }
+                catch (BuildNumberNotFoundException) { }
             }
-
-            // It's less likely that the end ref will exist
-            if (await session.RefExists(repository, endRef) &&
-                await session.RefExists(repository, startRef))
-            {
-                return await resolver.FindCommit(repository, startRef, endRef, semVer.Build);
-            } else
-            {
-                return null;
-            }
+            return results;
         }
     }
 }

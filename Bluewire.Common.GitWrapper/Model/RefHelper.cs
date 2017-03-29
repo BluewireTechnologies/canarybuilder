@@ -37,6 +37,7 @@ namespace Bluewire.Common.GitWrapper.Model
 
         public static Ref GetRemoteRef(Ref @ref, string RemoteHierarchy = "origin")
         {
+            if (IsInTagsHierarchy(@ref)) return @ref;
             if (IsInHierarchy(RemoteHierarchy, @ref)) return @ref;
             return new Ref($"{RemoteHierarchy}/{@ref}");
         }
