@@ -1,10 +1,11 @@
 ﻿using System.Threading.Tasks;
 using Bluewire.Common.GitWrapper;
+using Bluewire.Conventions;
 
 namespace Bluewire.Tools.Runner.FindBuild
 {
     public interface IBuildVersionResolutionJob
     {
-        Task<string[]> ResolveBuildVersions(GitSession session, Common.GitWrapper.GitRepository repository);
+        Task<SemanticVersion[]> ResolveBuildVersions(GitSession session, Common.GitWrapper.GitRepository repository);
     }
 }
