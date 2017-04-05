@@ -8,8 +8,8 @@ using Bluewire.Common.Console.Logging;
 using Bluewire.Common.Console.ThirdParty;
 using Bluewire.Common.GitWrapper;
 using log4net.Core;
-using Bluewire.Tools.Runner.Shared;
-using Bluewire.Tools.Runner.FindBuild;
+using Bluewire.Tools.Builds.Shared;
+using Bluewire.Tools.Builds.FindBuild;
 using Bluewire.Conventions;
 
 namespace Bluewire.Tools.Runner.FindCommits
@@ -120,13 +120,13 @@ namespace Bluewire.Tools.Runner.FindCommits
                 arguments.Request(RequestType.SemanticVersion, unqualifiedArgument);
             }
 
-            private static IBuildVersionResolutionJob CreateJob(Arguments arguments)
+            private static Builds.FindCommits.IBuildVersionResolutionJob CreateJob(Arguments arguments)
             {
                 switch (arguments.RequestType)
                 {
                     case RequestType.SemanticVersion:
                         Log.Console.Debug($"Resolving commit from semantic version {arguments.Identifier}");
-                        return new ResolveCommitFromSemanticVersion(arguments.Identifier);
+                        return new Builds.FindCommits.ResolveCommitFromSemanticVersion(arguments.Identifier);
                 }
                 throw new InvalidArgumentsException("Semantic version (--semver) must be specified.");
             }

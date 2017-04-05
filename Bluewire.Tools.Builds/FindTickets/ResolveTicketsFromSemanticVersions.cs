@@ -1,15 +1,15 @@
 ﻿using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
-using Bluewire.Tools.Runner.Shared;
+using Bluewire.Tools.Builds.Shared;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Linq;
 using System;
 
-namespace Bluewire.Tools.Runner.FindTickets
+namespace Bluewire.Tools.Builds.FindTickets
 {
-    internal class ResolveTicketsBetweenRefs : ITicketsResolutionJob
+    public class ResolveTicketsBetweenRefs : ITicketsResolutionJob
     {
         private Ref startRef;
         private Ref endRef;

@@ -9,9 +9,9 @@ using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
 using Bluewire.Tools.GitRepository;
-using Bluewire.Tools.Runner.Shared;
+using Bluewire.Tools.Builds.Shared;
 
-namespace Bluewire.Tools.Runner.FindBuild
+namespace Bluewire.Tools.Builds.FindBuild
 {
     public class BuildVersionFinder
     {

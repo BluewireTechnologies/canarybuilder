@@ -1,7 +1,7 @@
 ﻿using Bluewire.Common.GitWrapper;
 using System.Threading.Tasks;
 
-namespace Bluewire.Tools.Runner.FindTickets
+namespace Bluewire.Tools.Builds.FindTickets
 {
     public interface ITicketsResolutionJob
     {

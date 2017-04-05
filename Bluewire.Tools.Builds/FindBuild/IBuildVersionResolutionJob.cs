@@ -2,7 +2,7 @@
 using Bluewire.Common.GitWrapper;
 using Bluewire.Conventions;
 
-namespace Bluewire.Tools.Runner.FindBuild
+namespace Bluewire.Tools.Builds.FindBuild
 {
     public interface IBuildVersionResolutionJob
     {

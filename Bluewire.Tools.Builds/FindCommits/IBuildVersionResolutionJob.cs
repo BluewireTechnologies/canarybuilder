@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Bluewire.Common.GitWrapper;
-using Bluewire.Tools.Runner.Shared;
+using Bluewire.Tools.Builds.Shared;
 
-namespace Bluewire.Tools.Runner.FindCommits
+namespace Bluewire.Tools.Builds.FindCommits
 {
     public interface IBuildVersionResolutionJob
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Bluewire.Tools.Runner.Shared
+namespace Bluewire.Tools.Builds.Shared
 {
     public class BuildUtils
     {

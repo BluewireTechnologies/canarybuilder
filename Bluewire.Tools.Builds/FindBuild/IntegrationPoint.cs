@@ -1,7 +1,7 @@
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
 
-namespace Bluewire.Tools.Runner.FindBuild
+namespace Bluewire.Tools.Builds.FindBuild
 {
     public struct IntegrationQueryResult
     {
