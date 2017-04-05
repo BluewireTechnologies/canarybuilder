@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Tools.GitRepositor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Tools.GitRepository.IntegrationTests", "Bluewire.Tools.GitRepository.IntegrationTests\Bluewire.Tools.GitRepository.IntegrationTests.csproj", "{701C8FDD-8467-436A-880F-19A08B986A30}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Tools.Builds", "Bluewire.Tools.Builds\Bluewire.Tools.Builds.csproj", "{0AF75344-AC58-442B-A096-54DEB7ABC8F4}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Tools.Runner", "Bluewire.Tools.Runner\Bluewire.Tools.Runner.csproj", "{07FD50C6-7569-49DB-9926-127E2E7F4339}"
 EndProject
 Global
@@ -99,6 +101,10 @@ Global
 		{07FD50C6-7569-49DB-9926-127E2E7F4339}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07FD50C6-7569-49DB-9926-127E2E7F4339}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07FD50C6-7569-49DB-9926-127E2E7F4339}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AF75344-AC58-442B-A096-54DEB7ABC8F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AF75344-AC58-442B-A096-54DEB7ABC8F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AF75344-AC58-442B-A096-54DEB7ABC8F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AF75344-AC58-442B-A096-54DEB7ABC8F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

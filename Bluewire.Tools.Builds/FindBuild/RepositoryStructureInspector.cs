@@ -8,7 +8,7 @@ using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
 using Bluewire.Tools.GitRepository;
 
-namespace Bluewire.Tools.Runner.FindBuild
+namespace Bluewire.Tools.Builds.FindBuild
 {
     public class RepositoryStructureInspector
     {

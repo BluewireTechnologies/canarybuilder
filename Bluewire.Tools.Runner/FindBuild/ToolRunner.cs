@@ -9,6 +9,7 @@ using Bluewire.Common.Console.ThirdParty;
 using Bluewire.Common.GitWrapper;
 using Bluewire.Conventions;
 using log4net.Core;
+using Bluewire.Tools.Builds.FindBuild;
 
 namespace Bluewire.Tools.Runner.FindBuild
 {

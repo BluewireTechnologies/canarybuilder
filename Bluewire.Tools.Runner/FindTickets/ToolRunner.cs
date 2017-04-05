@@ -10,7 +10,7 @@ using Bluewire.Common.GitWrapper;
 using log4net.Core;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
-using Bluewire.Tools.Runner.Shared;
+using Bluewire.Tools.Builds.Shared;
 
 namespace Bluewire.Tools.Runner.FindTickets
 {
@@ -65,7 +65,7 @@ namespace Bluewire.Tools.Runner.FindTickets
                 var gitSession = new GitSession(git, new ConsoleInvocationLogger());
                 var gitRepository = GetGitRepository(arguments.WorkingCopyOrRepo);
 
-                var startCommitJob = new FindCommits.ResolveCommitFromSemanticVersion(arguments.StartSemanticVersion);
+                var startCommitJob = new Builds.FindCommits.ResolveCommitFromSemanticVersion(arguments.StartSemanticVersion);
                 var startBuilds = await startCommitJob.ResolveCommits(gitSession, gitRepository);
                 if (startBuilds.Length > 1)
                 {
@@ -82,7 +82,7 @@ namespace Bluewire.Tools.Runner.FindTickets
 
                 if (!string.IsNullOrEmpty(arguments.EndSemanticVersion))
                 {
-                    var endCommitJob = new FindCommits.ResolveCommitFromSemanticVersion(arguments.EndSemanticVersion);
+                    var endCommitJob = new Builds.FindCommits.ResolveCommitFromSemanticVersion(arguments.EndSemanticVersion);
                     var endBuilds = await endCommitJob.ResolveCommits(gitSession, gitRepository);
                     if (endBuilds.Length > 1)
                     {
@@ -103,7 +103,7 @@ namespace Bluewire.Tools.Runner.FindTickets
                 }
 
                 Log.Console.Debug($"Finding tickets between semantic version {startBuild.SemanticVersion} and {endBuild.SemanticVersion?.ToString() ?? endBuild.Commit}");
-                var job = new ResolveTicketsBetweenRefs(startBuild.Commit, endBuild.Commit);
+                var job = new Builds.FindTickets.ResolveTicketsBetweenRefs(startBuild.Commit, endBuild.Commit);
                 var tickets = await job.ResolveTickets(gitSession, gitRepository);                
                 RenderTickets(tickets);
                 return 0;

@@ -1,7 +1,7 @@
 ﻿using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
 
-namespace Bluewire.Tools.Runner.Shared
+namespace Bluewire.Tools.Builds.Shared
 {
     public struct Build
     {

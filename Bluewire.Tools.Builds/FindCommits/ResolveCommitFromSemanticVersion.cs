@@ -4,10 +4,10 @@ using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
 using Bluewire.Tools.GitRepository;
 using System.Collections.Generic;
-using Bluewire.Tools.Runner.Shared;
+using Bluewire.Tools.Builds.Shared;
 using System;
 
-namespace Bluewire.Tools.Runner.FindCommits
+namespace Bluewire.Tools.Builds.FindCommits
 {
     public class ResolveCommitFromSemanticVersion : IBuildVersionResolutionJob
     {
