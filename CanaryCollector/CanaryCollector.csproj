@@ -36,6 +36,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Atlassian.Jira, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Atlassian.SDK.9.2.4\lib\Atlassian.Jira.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Bluewire.Common.Console, Version=9.1.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Bluewire.Common.Console.9.1.1\lib\net45\Bluewire.Common.Console.dll</HintPath>
       <Private>True</Private>
@@ -54,6 +58,14 @@
     </Reference>
     <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="RestSharp, Version=105.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RestSharp.105.2.3\lib\net46\RestSharp.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -96,6 +108,8 @@
     <Compile Include="Collectors\ITicketProviderFactory.cs" />
     <Compile Include="Collectors\TaggedTicketBranchCollector.cs" />
     <Compile Include="Collectors\TicketAndBranchAssociator.cs" />
+    <Compile Include="Remote\Jira\JiraTicketProvider.cs" />
+    <Compile Include="Remote\Jira\JiraTicketProviderFactory.cs" />
     <Compile Include="Remote\YouTrack\YouTrackTicketProviderFactory.cs" />
     <Compile Include="Remote\YouTrack\YouTrackTicketProvider.cs" />
     <Compile Include="Model\TicketLinkedBranch.cs" />

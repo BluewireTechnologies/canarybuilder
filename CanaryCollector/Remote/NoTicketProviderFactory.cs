@@ -7,7 +7,7 @@ namespace CanaryCollector.Remote
     {
         public ITicketProvider Create(string dependentParameter)
         {
-            throw new InvalidArgumentsException($"The --youtrack parameter must be specified in order to use {dependentParameter}.");
+            throw new InvalidArgumentsException($"The --youtrack or --jira parameter must be specified in order to use {dependentParameter}.");
         }
     }
 }
