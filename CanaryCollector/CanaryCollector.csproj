@@ -93,8 +93,10 @@
     <Compile Include="Collectors\GitBranchProvider.cs" />
     <Compile Include="Collectors\IBranchProvider.cs" />
     <Compile Include="Collectors\ITicketProvider.cs" />
+    <Compile Include="Collectors\ITicketProviderFactory.cs" />
     <Compile Include="Collectors\TaggedTicketBranchCollector.cs" />
     <Compile Include="Collectors\TicketAndBranchAssociator.cs" />
+    <Compile Include="Remote\YouTrack\YouTrackTicketProviderFactory.cs" />
     <Compile Include="Remote\YouTrack\YouTrackTicketProvider.cs" />
     <Compile Include="Model\TicketLinkedBranch.cs" />
     <Compile Include="Remote\YouTrack\YouTrack.cs" />
@@ -106,6 +108,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Remote\YouTrack\YouTrackConnectionSettings.cs" />
+    <Compile Include="Remote\NoTicketProviderFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

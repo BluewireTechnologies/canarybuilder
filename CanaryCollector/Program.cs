@@ -9,7 +9,10 @@ using Bluewire.Common.Console;
 using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.Console.Logging;
 using Bluewire.Common.Console.ThirdParty;
+using CanaryCollector.Collectors;
 using CanaryCollector.Model;
+using CanaryCollector.Remote;
+using CanaryCollector.Remote.YouTrack;
 using log4net.Core;
 
 namespace CanaryCollector
@@ -44,7 +47,7 @@ namespace CanaryCollector
 
         private async Task<int> Run()
         {
-            var factory = new BranchCollectorFactory(arguments.YoutrackUri, arguments.RepositoryPath, Log.Console.IsDebugEnabled ? new ConsoleInvocationLogger() : null);
+            var factory = new BranchCollectorFactory(GetTicketProviderFactory(), arguments.RepositoryPath, Log.Console.IsDebugEnabled ? new ConsoleInvocationLogger() : null);
 
             var collectors = new List<IBranchCollector>();
             collectors.AddRange(factory.CreateUriCollectors(arguments.IncludeUris));
@@ -64,6 +67,12 @@ namespace CanaryCollector
             }
             
             return 0;
+        }
+
+        private ITicketProviderFactory GetTicketProviderFactory()
+        {
+            if (arguments.YoutrackUri != null) return new YouTrackTicketProviderFactory(arguments.YoutrackUri);
+            return new NoTicketProviderFactory();
         }
 
         private IEnumerable<Branch> DeduplicateBranchesByName(IEnumerable<Branch> branches)
