@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using CanaryCollector.Model;
 
 namespace CanaryCollector.Collectors
 {
     public interface ITicketProvider
     {
-        IEnumerable<IssueTicket> GetTicketsPendingReview();
-        IEnumerable<IssueTicket> GetTicketsWithTag(string tagName);
+        Task<IssueTicket[]> GetTicketsPendingReview();
+        Task<IssueTicket[]> GetTicketsWithTag(string tagName);
     }
 }

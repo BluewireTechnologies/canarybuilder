@@ -23,11 +23,11 @@ namespace CanaryCollector.Collectors
 
         public async Task<IEnumerable<Branch>> CollectBranches()
         {
-            var pendingIssues = ticketProvider.GetTicketsWithTag(tagName);
+            var pendingIssuesTask = ticketProvider.GetTicketsWithTag(tagName);
 
-            var availableBranches = await branchProvider.GetUnmergedBranches("master");
+            var availableBranchesTask = branchProvider.GetUnmergedBranches("master");
 
-            return new TicketAndBranchAssociator().Apply(pendingIssues, availableBranches)
+            return new TicketAndBranchAssociator().Apply(await pendingIssuesTask, await availableBranchesTask)
                 .OrderBy(a => a.Ticket.Type).ThenBy(a => a.Branch.Name)
                 .Select(a => a.Branch);
         }    
