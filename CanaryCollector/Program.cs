@@ -9,7 +9,11 @@ using Bluewire.Common.Console;
 using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.Console.Logging;
 using Bluewire.Common.Console.ThirdParty;
+using CanaryCollector.Collectors;
 using CanaryCollector.Model;
+using CanaryCollector.Remote;
+using CanaryCollector.Remote.Jira;
+using CanaryCollector.Remote.YouTrack;
 using log4net.Core;
 
 namespace CanaryCollector
@@ -25,6 +29,7 @@ namespace CanaryCollector
                 { "tag=", "Include tickets with the specified tag.", o => arguments.IncludeTags.Add(o) },
                 { "url=", "Include branches listed by the specified resource. Currently only Google Docs spreadsheets are supported.", (Uri o) => arguments.IncludeUris.Add(o) },
                 { "youtrack=", "Use the specified Youtrack URL as the source of tickets.", (Uri o) => arguments.YoutrackUri = o },
+                { "jira=", "Use the specified Jira URL as the source of tickets.", (Uri o) => arguments.JiraUri = o },
                 { "repo=|repository=", "Use the specified repository as the source of branches.", o => arguments.RepositoryPath = o }
             };
 
@@ -44,7 +49,7 @@ namespace CanaryCollector
 
         private async Task<int> Run()
         {
-            var factory = new BranchCollectorFactory(arguments.YoutrackUri, arguments.RepositoryPath, Log.Console.IsDebugEnabled ? new ConsoleInvocationLogger() : null);
+            var factory = new BranchCollectorFactory(GetTicketProviderFactory(), arguments.RepositoryPath, Log.Console.IsDebugEnabled ? new ConsoleInvocationLogger() : null);
 
             var collectors = new List<IBranchCollector>();
             collectors.AddRange(factory.CreateUriCollectors(arguments.IncludeUris));
@@ -64,6 +69,14 @@ namespace CanaryCollector
             }
             
             return 0;
+        }
+
+        private ITicketProviderFactory GetTicketProviderFactory()
+        {
+            if (arguments.YoutrackUri != null && arguments.JiraUri != null) throw new InvalidArgumentsException("Specify only one of --youtrack, --jira.");
+            if (arguments.YoutrackUri != null) return new YouTrackTicketProviderFactory(arguments.YoutrackUri);
+            if (arguments.JiraUri != null) return new JiraTicketProviderFactory(arguments.JiraUri);
+            return new NoTicketProviderFactory();
         }
 
         private IEnumerable<Branch> DeduplicateBranchesByName(IEnumerable<Branch> branches)
@@ -95,6 +108,7 @@ namespace CanaryCollector
             public bool IncludePending { get; set; }
 
             public Uri YoutrackUri { get; set; }
+            public Uri JiraUri { get; set; }
             public string RepositoryPath { get; set; }
         }
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Threading.Tasks;
 using CanaryCollector.Collectors;
 using CanaryCollector.Model;
 using YouTrackSharp.Infrastructure;
@@ -18,19 +19,19 @@ namespace CanaryCollector.Remote.YouTrack
             this.youtrackConnection = youtrackConnection;
         }
 
-        public IEnumerable<IssueTicket> GetTicketsPendingReview()
+        public Task<IssueTicket[]> GetTicketsPendingReview()
         {
             var issueManagement = new IssueManagement(youtrackConnection);
 
-            return issueManagement.GetIssuesBySearch("State: {Pending Review}").Select(ReadTicket).ToArray();
+            return  Task.FromResult(issueManagement.GetIssuesBySearch("State: {Pending Review}").Select(ReadTicket).ToArray());
 
         }
 
-        public IEnumerable<IssueTicket> GetTicketsWithTag(string tagName)
+        public Task<IssueTicket[]> GetTicketsWithTag(string tagName)
         {
             var issueManagement = new IssueManagement(youtrackConnection);
 
-            return issueManagement.GetIssuesBySearch($"tag: {{{tagName}}} #{{Unresolved}}").Select(ReadTicket).ToArray();
+            return Task.FromResult(issueManagement.GetIssuesBySearch($"tag: {{{tagName}}} #{{Unresolved}}").Select(ReadTicket).ToArray());
         }
 
         private static IssueTicket ReadTicket(Issue issue)
