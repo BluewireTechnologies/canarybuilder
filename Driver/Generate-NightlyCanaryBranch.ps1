@@ -1,6 +1,6 @@
 param(
     [string]$createBranch,
-    [string]$youtrackUri,
+    [string]$jiraUri,
     [string]$teamcityProjectId,
     [string]$downstream,
     [string]$tagPrefix,
@@ -39,7 +39,7 @@ function Run-Git()
 
 function Run-CanaryCollector()
 {
-    ./CanaryCollector.exe --youtrack "${youtrackUri}" --repo "${workingCopy}" --tag Canary --pending -v;
+    ./CanaryCollector.exe --jira "${jiraUri}" --repo "${workingCopy}" --tag Canary --pending -v;
     if(!$?) { throw "CanaryCollector exited with code $LASTEXITCODE"; }
 }
 
