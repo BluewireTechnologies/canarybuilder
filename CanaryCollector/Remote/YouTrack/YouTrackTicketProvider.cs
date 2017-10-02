@@ -19,11 +19,11 @@ namespace CanaryCollector.Remote.YouTrack
             this.youtrackConnection = youtrackConnection;
         }
 
-        public Task<IssueTicket[]> GetTicketsPendingReview()
+        public Task<IssueTicket[]> GetTicketsPendingMerge()
         {
             var issueManagement = new IssueManagement(youtrackConnection);
 
-            return  Task.FromResult(issueManagement.GetIssuesBySearch("State: {Pending Review}").Select(ReadTicket).ToArray());
+            return  Task.FromResult(issueManagement.GetIssuesBySearch("State: {Pending Review},{Test}").Select(ReadTicket).ToArray());
 
         }
 

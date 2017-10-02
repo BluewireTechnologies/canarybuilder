@@ -18,9 +18,9 @@ namespace CanaryCollector.Remote.Jira
             this.jira = jira;
         }
 
-        public Task<IssueTicket[]> GetTicketsPendingReview()
+        public Task<IssueTicket[]> GetTicketsPendingMerge()
         {
-            var issues = jira.Issues.Queryable.Where(t => t.Status == "pending review").Take(500);
+            var issues = jira.Issues.Queryable.Where(t => t.Status == "pending review" || t.Status == "test").Take(500);
             return Task.FromResult(issues.Select(ReadTicket).ToArray());
         }
 

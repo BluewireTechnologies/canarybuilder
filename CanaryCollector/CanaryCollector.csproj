@@ -117,7 +117,7 @@
     <Compile Include="Model\Branch.cs" />
     <Compile Include="IBranchCollector.cs" />
     <Compile Include="Model\IssueTicket.cs" />
-    <Compile Include="Collectors\PendingReviewTicketBranchCollector.cs" />
+    <Compile Include="Collectors\PendingMergeTicketBranchCollector.cs" />
     <Compile Include="Model\IssueTicketType.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
