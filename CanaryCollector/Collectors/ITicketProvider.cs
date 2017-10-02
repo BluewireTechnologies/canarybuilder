@@ -6,7 +6,7 @@ namespace CanaryCollector.Collectors
 {
     public interface ITicketProvider
     {
-        Task<IssueTicket[]> GetTicketsPendingReview();
+        Task<IssueTicket[]> GetTicketsPendingMerge();
         Task<IssueTicket[]> GetTicketsWithTag(string tagName);
     }
 }

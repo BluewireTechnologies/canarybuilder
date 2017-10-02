@@ -39,7 +39,7 @@ namespace CanaryCollector
             var ticketProvider = ticketProviderFactory.Create("--pending");
             var gitRepository = FindAndVerifyRepository("--pending");
 
-            return new PendingReviewTicketBranchCollector(ticketProvider, new GitRemoteBranchProvider(await sharedGitSession.Value, gitRepository));
+            return new PendingMergeTicketBranchCollector(ticketProvider, new GitRemoteBranchProvider(await sharedGitSession.Value, gitRepository));
         }
 
         public async Task<IBranchCollector[]> CreateTagCollectors(ICollection<string> tags)

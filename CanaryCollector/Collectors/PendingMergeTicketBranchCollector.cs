@@ -7,12 +7,12 @@ using CanaryCollector.Model;
 
 namespace CanaryCollector.Collectors
 {
-    public class PendingReviewTicketBranchCollector : IBranchCollector
+    public class PendingMergeTicketBranchCollector : IBranchCollector
     {
         private readonly ITicketProvider ticketProvider;
         private readonly IBranchProvider branchProvider;
 
-        public PendingReviewTicketBranchCollector(ITicketProvider ticketProvider, IBranchProvider branchProvider)
+        public PendingMergeTicketBranchCollector(ITicketProvider ticketProvider, IBranchProvider branchProvider)
         {
             if (ticketProvider == null) throw new ArgumentNullException(nameof(ticketProvider));
             if (branchProvider == null) throw new ArgumentNullException(nameof(branchProvider));
@@ -22,7 +22,7 @@ namespace CanaryCollector.Collectors
 
         public async Task<IEnumerable<Branch>> CollectBranches()
         {
-            var pendingIssuesTask = ticketProvider.GetTicketsPendingReview();
+            var pendingIssuesTask = ticketProvider.GetTicketsPendingMerge();
 
             var availableBranchesTask = branchProvider.GetUnmergedBranches("master");
 
