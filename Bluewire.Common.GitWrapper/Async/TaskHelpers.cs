@@ -8,13 +8,29 @@ namespace Bluewire.Common.GitWrapper.Async
     {
         public static Task AsTask(this WaitHandle waitHandle, CancellationToken token = default(CancellationToken))
         {
-            return AsTask(waitHandle, TimeSpan.FromMilliseconds(Int32.MaxValue), token);
+            // Infinite timeout:
+            return AsTask(waitHandle, -1, token);
         }
 
-        public static async Task AsTask(this WaitHandle waitHandle, TimeSpan limit, CancellationToken token = default(CancellationToken))
+        public static Task AsTask(this WaitHandle waitHandle, TimeSpan limit, CancellationToken token = default(CancellationToken))
         {
-            var tcs = new TaskCompletionSource<object>();
+            return AsTask(waitHandle, (long)limit.TotalMilliseconds, token);
+        }
 
+        private static async Task AsTask(WaitHandle waitHandle, long limitMilliseconds, CancellationToken token = default(CancellationToken))
+        {
+            // Complete immediately if possible.
+            // Simplifies mocking a single-threaded TaskScheduler, since it removes the need to tolerate continuations
+            // being queued from other threads eg. the threadpool.
+            token.ThrowIfCancellationRequested();
+            if (waitHandle.WaitOne(TimeSpan.Zero))
+            {
+                // In case of races when waiting on the CancellationToken's WaitHandle:
+                token.ThrowIfCancellationRequested();
+                return;
+            }
+
+            var tcs = new TaskCompletionSource<object>();
             using (token.Register(() => tcs.TrySetCanceled()))
             {
                 ThreadPool.RegisterWaitForSingleObject(
@@ -25,10 +41,10 @@ namespace Bluewire.Common.GitWrapper.Async
                         else tcs.TrySetResult(null);
                     },
                     null,
-                    limit,
+                    limitMilliseconds,
                     true);
 
-                await tcs.Task;
+                await tcs.Task.ConfigureAwait(false);
             }
         }
     }
