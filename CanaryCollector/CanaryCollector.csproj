@@ -40,8 +40,8 @@
       <HintPath>..\packages\Atlassian.SDK.9.2.4\lib\Atlassian.Jira.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Bluewire.Common.Console, Version=9.1.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Bluewire.Common.Console.9.1.1\lib\net45\Bluewire.Common.Console.dll</HintPath>
+    <Reference Include="Bluewire.Common.Console, Version=10.2.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Bluewire.Common.Console.10.2.1\lib\net45\Bluewire.Common.Console.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Bluewire.Common.Console.Client, Version=9.1.0.0, Culture=neutral, processorArchitecture=MSIL">
