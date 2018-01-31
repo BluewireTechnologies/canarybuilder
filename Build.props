@@ -14,10 +14,12 @@
         <NUnitProjects Include="CanaryBuilder.UnitTests\CanaryBuilder.UnitTests.csproj" />
         <NUnitProjects Include="CanaryBuilder.IntegrationTests\CanaryBuilder.IntegrationTests.csproj" />
         <NUnitProjects Include="CanaryCollector.UnitTests\CanaryCollector.UnitTests.csproj" />
+        <NUnitProjects Include="RefCleaner.IntegrationTests\RefCleaner.IntegrationTests.csproj" />
         
         <OutputProjects Include="CanaryBuilder\CanaryBuilder.csproj" />
         <OutputProjects Include="CanaryCollector\CanaryCollector.csproj" />
         <OutputFiles Include="Driver\Generate-NightlyCanaryBranch.ps1" />
         <OutputProjects Include="Bluewire.Tools.Runner\Bluewire.Tools.Runner.csproj" />
+        <OutputProjects Include="RefCleaner\RefCleaner.csproj" />
     </ItemGroup>
 </Project>
