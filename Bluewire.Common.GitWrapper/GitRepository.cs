@@ -26,7 +26,7 @@ namespace Bluewire.Common.GitWrapper
 
         public Uri GetLocationUri()
         {
-            return new UriBuilder { Scheme = "file", Path = Location }.Uri;
+            return new UriBuilder { Scheme = "file", Host = "", Path = Location }.Uri;
         }
 
         public static GitRepository Find(string path)
