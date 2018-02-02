@@ -83,6 +83,7 @@
     <Compile Include="GitListCommitsBetweenTests.cs" />
     <Compile Include="GitLogTests.cs" />
     <Compile Include="GitMergeBaseTests.cs" />
+    <Compile Include="GitRepositoryTests.cs" />
     <Compile Include="GitTagTests.cs" />
     <Compile Include="GitBranchTests.cs" />
     <Compile Include="GitDetectionTests.cs" />
