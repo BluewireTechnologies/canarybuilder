@@ -46,9 +46,9 @@ line 3
         public void TrailingWhitespaceIsRemoved()
         {
             var lines = new ScriptReader().EnumerateLines(new StringReader(
-@"line 1             
-line 2               
-line 3             
+@"line 1
+line 2
+line 3
 "));
             Assert.That(lines.Select(l => l.Content), Is.EqualTo(new[] {
                 "line 1",
@@ -61,7 +61,7 @@ line 3
         public void TrailingCommentsAreIgnored()
         {
             var lines = new ScriptReader().EnumerateLines(new StringReader(
-@"line 1  # This is 
+@"line 1  # This is
 line 2  # several lines
 line 3# Of comments
 "));

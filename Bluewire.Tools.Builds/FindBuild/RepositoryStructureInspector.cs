@@ -140,7 +140,7 @@ namespace Bluewire.Tools.Builds.FindBuild
         private static StructuredBranch[] ParseRecognisedBranches(BranchType[] types, Ref[] branches, out StructuredBranch? masterBranch)
         {
             masterBranch = null;
-            var parsedBranches = new List<StructuredBranch>(); 
+            var parsedBranches = new List<StructuredBranch>();
             foreach (var branch in branches)
             {
                 StructuredBranch parsed;

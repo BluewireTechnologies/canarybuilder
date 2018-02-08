@@ -6,3 +6,4 @@
         public IssueTicketType Type { get; set; }
     }
 }
+

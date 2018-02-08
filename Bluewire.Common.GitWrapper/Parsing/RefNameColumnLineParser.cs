@@ -21,9 +21,9 @@ namespace Bluewire.Common.GitWrapper.Parsing
         public override bool Parse(string line, out Ref entry)
         {
             if (line == null) throw new ArgumentNullException(nameof(line));
-            
+
             var parts = line.Split(splitOnWhitespace, StringSplitOptions.RemoveEmptyEntries);
-                
+
             var error = new UnexpectedGitOutputFormatDetails { Line = line };
             entry = ValidateRef(parts.ElementAtOrDefault(columnIndex), error);
             if (error.Explanations.Any())
@@ -41,7 +41,7 @@ namespace Bluewire.Common.GitWrapper.Parsing
             {
                 return new Ref(name);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 error.Explanations.Add(ex.Message);
                 return null;

@@ -21,7 +21,7 @@ namespace CanaryBuilder.Logging
             var marker = $"[{markerString}]".PadRight(8, ' ');
             output.WriteLine($"{indent} {marker}  {text}", colour);
         }
-        
+
         public void Info(string message)
         {
             Write(indentLevel, "INFO", message);

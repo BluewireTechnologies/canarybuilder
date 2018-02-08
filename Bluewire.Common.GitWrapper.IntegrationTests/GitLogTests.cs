@@ -63,7 +63,7 @@ with whitespace lines too.
 
             Assert.That(logEntries[0].Ref, Is.EqualTo(secondCommitHash));
             Assert.That(logEntries[0].Message, Is.EqualTo("second commit\r\n"));
-            
+
             Assert.That(logEntries[1].Ref, Is.EqualTo(firstCommitHash));
             Assert.That(logEntries[1].Message, Is.EqualTo("first commit\r\n"));
         }

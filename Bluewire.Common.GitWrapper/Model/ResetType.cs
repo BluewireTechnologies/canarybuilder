@@ -3,7 +3,7 @@
     public enum ResetType
     {
         // Update ref only
-        Soft,  
+        Soft,
         // Reset index
         Mixed,
         // Reset index and working tree
@@ -14,3 +14,4 @@
         Keep
     }
 }
+

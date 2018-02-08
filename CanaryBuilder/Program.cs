@@ -51,7 +51,7 @@ namespace CanaryBuilder
             {
                 if (String.IsNullOrWhiteSpace(arguments.ScriptPath)) throw new InvalidArgumentsException("No script path specified for 'merge' mode.");
                 if (String.IsNullOrWhiteSpace(arguments.WorkingCopy)) throw new InvalidArgumentsException("No working copy specified for 'merge' mode.");
-                
+
                 using (var console = new ConsoleLogWriter())
                 {
                     var logger = new PlainTextJobLogger(console);
@@ -90,14 +90,14 @@ namespace CanaryBuilder
             {
                 get { return logLevels.ElementAtOrDefault(logLevel) ?? Level.All; }
             }
-            
+
             public void Verbose()
             {
                 logLevel++;
             }
 
             public bool ShowDiagnostics { get; set; }
-            
+
             public string Mode => argumentList.ElementAtOrDefault(0);
             public string ScriptPath => argumentList.ElementAtOrDefault(1);
             public string WorkingCopy => argumentList.ElementAtOrDefault(2);

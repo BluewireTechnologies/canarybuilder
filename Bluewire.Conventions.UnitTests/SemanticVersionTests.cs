@@ -15,14 +15,14 @@ namespace Bluewire.Conventions.UnitTests
                 return Raw;
             }
         }
-        
+
         public static Case[] Cases = {
             new Case { Raw = "17.05.123-beta", Parsed = new SemanticVersion("17","05",123,"beta") },
             new Case { Raw = "17.05.123-rc", Parsed = new SemanticVersion("17","05",123,"rc") },
             new Case { Raw = "17.05.123-canary", Parsed = new SemanticVersion("17","05",123,"canary") },
             new Case { Raw = "17.05.123-release", Parsed = new SemanticVersion("17","05",123,"release") }
         };
-        
+
         [Test]
         public void CanParse([ValueSource(nameof(Cases))] Case testCase)
         {
@@ -32,7 +32,7 @@ namespace Bluewire.Conventions.UnitTests
             Assert.That(parsed.Build, Is.EqualTo(testCase.Parsed.Build));
             Assert.That(parsed.SemanticTag, Is.EqualTo(testCase.Parsed.SemanticTag));
         }
-      
+
         [Test]
         public void CanFormat([ValueSource(nameof(Cases))] Case testCase)
         {

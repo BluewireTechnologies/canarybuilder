@@ -17,7 +17,7 @@ namespace Bluewire.Common.GitWrapper
             this.Location = gitDirPath;
             if (!Directory.Exists(Location)) throw new DirectoryNotFoundException($"Repository not found: {gitDirPath}");
         }
-        
+
         public string Path(string relativePath)
         {
             if (relativePath == null) throw new ArgumentNullException(nameof(relativePath));

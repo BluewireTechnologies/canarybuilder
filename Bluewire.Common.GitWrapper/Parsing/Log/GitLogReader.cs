@@ -176,7 +176,7 @@ namespace Bluewire.Common.GitWrapper.Parsing.Log
             {
                 while (await enumerator.MoveNext())
                 {
-                    if(enumerator.Current.Length == 0) continue;
+                    if (enumerator.Current.Length == 0) continue;
                     Current = enumerator.Current;
                     LineType = InterpretLineType(Current);
                     return true;

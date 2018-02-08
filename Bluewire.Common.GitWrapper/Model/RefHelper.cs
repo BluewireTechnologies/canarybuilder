@@ -60,7 +60,7 @@ namespace Bluewire.Common.GitWrapper.Model
         /// </summary>
         public static Ref Unqualify(string hierarchyName, Ref @ref)
         {
-            if(!IsInHierarchy(hierarchyName, @ref)) throw new ArgumentException($"Ref '{@ref}' is not in the '{hierarchyName}' hierarchy.");
+            if (!IsInHierarchy(hierarchyName, @ref)) throw new ArgumentException($"Ref '{@ref}' is not in the '{hierarchyName}' hierarchy.");
             return StripHierarchyPrefixes(@ref, "refs", hierarchyName);
         }
 
@@ -76,16 +76,16 @@ namespace Bluewire.Common.GitWrapper.Model
             var i = 0;
             foreach(var prefix in prefixes)
             {
-                if(parts[i] == prefix)
+                if (parts[i] == prefix)
                 {
                     i++;
                 }
-                else if(i > 0)
+                else if (i > 0)
                 {
                     return @ref;
                 }
             }
-            if(parts.Length <= i) throw new ArgumentException($"Ref '{@ref}' is described entirely by the specified prefixes: {String.Join("/", prefixes)}");
+            if (parts.Length <= i) throw new ArgumentException($"Ref '{@ref}' is described entirely by the specified prefixes: {String.Join("/", prefixes)}");
             return new Ref(String.Join("/", parts.Skip(i)));
         }
     }

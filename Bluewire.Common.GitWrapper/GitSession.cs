@@ -226,7 +226,7 @@ namespace Bluewire.Common.GitWrapper
                 return await branchNames;
             }
         }
-        
+
         public async Task<Ref> CreateBranch(IGitFilesystemContext workingCopyOrRepo, string branchName, Ref start = null)
         {
             var branch = new Ref(branchName);
@@ -434,7 +434,7 @@ namespace Bluewire.Common.GitWrapper
 
             if (options.IncludeAllRefs)
             {
-                if(refRanges.Length > 0) throw new ArgumentException($"IncludeAllRefs was specified, but so were {refRanges.Length} ref ranges.");
+                if (refRanges.Length > 0) throw new ArgumentException($"IncludeAllRefs was specified, but so were {refRanges.Length} ref ranges.");
                 cmd.Add("--all");
             }
             else

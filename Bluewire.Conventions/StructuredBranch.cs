@@ -6,9 +6,9 @@ namespace Bluewire.Conventions
 {
     /// <remarks>
     /// Branch names need to follow a certain format in order to be machine-parseable.
-    /// 
+    ///
     /// [namespace]/[name]-[ticket]-[numeric]-[release]
-    /// 
+    ///
     /// [namespace] may have multiple levels.
     /// [name] may consist of any number of hyphen-separated terms, though more than four is discouraged.
     /// [ticket] is of the form '{type}-{number}', eg. E-23456.
@@ -119,7 +119,7 @@ namespace Bluewire.Conventions
         private static bool TryParseInternal(string raw, out StructuredBranch structured, out Exception exception)
         {
             structured = new StructuredBranch();
-            
+
             if (!ValidateBranchName(raw, out exception)) return false;
 
             var m = Patterns.BranchStructure.Match(raw);
@@ -137,7 +137,7 @@ namespace Bluewire.Conventions
             return true;
         }
 
-        
+
 
         private static string SquashEmptyToNull(string str)
         {

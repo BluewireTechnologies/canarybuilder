@@ -62,12 +62,12 @@ namespace CanaryCollector
             {
                 branches.AddRange(await collector.CollectBranches());
             }
-            
+
             foreach (var branch in DeduplicateBranchesByName(branches))
             {
                 Console.Out.WriteLine(branch.Name);
             }
-            
+
             return 0;
         }
 

@@ -18,7 +18,7 @@ namespace RefCleaner.Collectors
             StructuredBranch structured;
             // If we can't parse the branch name, leave it alone.
             if (!StructuredBranch.TryParse(details.Name, out structured)) return;
-            
+
             var mergeTarget = new Ref(structured.TargetRelease != null ? $"release/{structured.TargetRelease}" : "master");
             if (await branchTester.Exists(mergeTarget))
             {

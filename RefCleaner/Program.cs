@@ -56,12 +56,12 @@ namespace RefCleaner
             {
                 refs.AddRange(await collector.CollectRefs());
             }
-            
+
             foreach (var @ref in refs.Distinct())
             {
                 Console.Out.WriteLine(@ref);
             }
-            
+
             return 0;
         }
 
@@ -76,7 +76,7 @@ namespace RefCleaner
             {
                 logLevel++;
             }
-            
+
             public string RepositoryPath { get; set; }
             public string RemoteName { get; set; }
             public bool Aggressive { get; set; }

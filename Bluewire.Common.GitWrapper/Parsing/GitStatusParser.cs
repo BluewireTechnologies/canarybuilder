@@ -23,7 +23,7 @@ namespace Bluewire.Common.GitWrapper.Parsing
         public override bool Parse(string line, out GitStatusEntry entry)
         {
             if (line == null) throw new ArgumentNullException(nameof(line));
-            
+
             // Two status flags, whitespace, one-character filename: shortest line we expect is 4 characters.
             if (line.Length < 4)
             {
@@ -32,13 +32,13 @@ namespace Bluewire.Common.GitWrapper.Parsing
             }
 
             var lineParser = new LineParser(line, reusableBuffer.Value);
-            
+
             var isSuccess = lineParser.Parse();
-            if(lineParser.Error.Explanations.Any())
+            if (lineParser.Error.Explanations.Any())
             {
                 errors.Add(lineParser.Error);
             }
-            if(isSuccess)
+            if (isSuccess)
             {
                 entry = lineParser.Result;
                 return true;
@@ -73,36 +73,36 @@ namespace Bluewire.Common.GitWrapper.Parsing
                     Result.WorkTreeState = ParseWorkTreeState(iterator.Current);
 
                     iterator.MoveNext();
-                    if(!Char.IsWhiteSpace(iterator.Current)) Error.Explanations.Add("Expected third character to be whitespace.");
+                    if (!Char.IsWhiteSpace(iterator.Current)) Error.Explanations.Add("Expected third character to be whitespace.");
 
                     string path;
-                    if(!ReadMaybeQuotedString(iterator, out path)) return FailImmediately();
+                    if (!ReadMaybeQuotedString(iterator, out path)) return FailImmediately();
                     if (String.IsNullOrEmpty(path)) return FailImmediately("No pathname found after state flags.");
                     Result.Path = path;
 
-                    if(ExpectsSecondPath(Result.IndexState))
+                    if (ExpectsSecondPath(Result.IndexState))
                     {
                         string separator;
-                        if(!DiscardWhitespace(iterator)) return FailImmediately($"Expected second path, for index state '{Result.IndexState}'");
-                        if(!ReadUnquotedString(iterator, out separator)) return FailImmediately();
-                        if(separator != "->") return FailImmediately("Expected '->' between paths.");
+                        if (!DiscardWhitespace(iterator)) return FailImmediately($"Expected second path, for index state '{Result.IndexState}'");
+                        if (!ReadUnquotedString(iterator, out separator)) return FailImmediately();
+                        if (separator != "->") return FailImmediately("Expected '->' between paths.");
 
                         string newPath;
-                        if(!ReadMaybeQuotedString(iterator, out newPath)) return FailImmediately();
+                        if (!ReadMaybeQuotedString(iterator, out newPath)) return FailImmediately();
                         if (String.IsNullOrEmpty(newPath)) return FailImmediately("No pathname found after '->'.");
                         Result.NewPath = newPath;
                     }
                     else
                     {
                         var remainder = ConsumeRemainder(iterator);
-                        if(!String.IsNullOrWhiteSpace(remainder))
+                        if (!String.IsNullOrWhiteSpace(remainder))
                         {
                             return FailImmediately("Expected pathname to be the last thing on the line, but found: {remainder}");
                         }
                     }
 
                     // If any errors were recorded, report failure.
-                    if(Error.Explanations.Any()) return false;
+                    if (Error.Explanations.Any()) return false;
                 }
                 AssertValidResult();
                 return true;
@@ -118,7 +118,7 @@ namespace Bluewire.Common.GitWrapper.Parsing
             private bool ReadMaybeQuotedString(IEnumerator<char> iterator, out string value)
             {
                 // Expect iterator to be on the character before the first one to scan.
-                
+
                 // Skip leading whitespace.
                 if (!DiscardWhitespace(iterator))
                 {
@@ -134,7 +134,7 @@ namespace Bluewire.Common.GitWrapper.Parsing
             {
                 while (iterator.MoveNext())
                 {
-                    if(!Char.IsWhiteSpace(iterator.Current)) return true;
+                    if (!Char.IsWhiteSpace(iterator.Current)) return true;
                 }
                 return false;
             }
@@ -142,7 +142,7 @@ namespace Bluewire.Common.GitWrapper.Parsing
             private string ConsumeRemainder(IEnumerator<char> iterator)
             {
                 buffer.Clear();
-                while(iterator.MoveNext())
+                while (iterator.MoveNext())
                 {
                     buffer.Add(iterator.Current);
                 }
@@ -158,14 +158,14 @@ namespace Bluewire.Common.GitWrapper.Parsing
                 var terminator = iterator.Current;
                 while (iterator.MoveNext())
                 {
-                    if(iterator.Current == terminator)
+                    if (iterator.Current == terminator)
                     {
                         value = StringFromBuffer();
                         return true;
                     }
-                    if(iterator.Current == '\\')
+                    if (iterator.Current == '\\')
                     {
-                        if(!iterator.MoveNext())
+                        if (!iterator.MoveNext())
                         {
                             Error.Explanations.Add($"Incomplete escape sequence after: {new String(buffer.ToArray())}");
                             value = null;
@@ -180,7 +180,7 @@ namespace Bluewire.Common.GitWrapper.Parsing
                 value = null;
                 return false;
             }
-            
+
             private bool ReadUnquotedString(IEnumerator<char> iterator, out string value)
             {
                 buffer.Clear();
@@ -189,9 +189,9 @@ namespace Bluewire.Common.GitWrapper.Parsing
                 while (!Char.IsWhiteSpace(iterator.Current))
                 {
                     buffer.Add(iterator.Current);
-                    if(iterator.Current == '\\')
+                    if (iterator.Current == '\\')
                     {
-                        if(!iterator.MoveNext())
+                        if (!iterator.MoveNext())
                         {
                             Error.Explanations.Add($"Incomplete escape sequence after: {new String(buffer.ToArray())}");
                             value = null;
@@ -199,7 +199,7 @@ namespace Bluewire.Common.GitWrapper.Parsing
                         }
                         buffer.Add(iterator.Current);
                     }
-                    if(!iterator.MoveNext()) break;
+                    if (!iterator.MoveNext()) break;
                 }
                 value = StringFromBuffer();
                 return true;
@@ -220,7 +220,7 @@ namespace Bluewire.Common.GitWrapper.Parsing
             private string StringFromBuffer() => new string(buffer.ToArray());
 
             private static bool IsQuote(char c) => c == '"';
-            
+
 
             private static bool ExpectsSecondPath(IndexState indexState) => indexState == IndexState.Copied || indexState == IndexState.Renamed;
 
@@ -242,7 +242,7 @@ namespace Bluewire.Common.GitWrapper.Parsing
                 return default(IndexState);
             }
 
-        
+
             private WorkTreeState ParseWorkTreeState(char flag)
             {
                 switch (flag)

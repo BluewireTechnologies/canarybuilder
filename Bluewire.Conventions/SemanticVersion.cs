@@ -34,7 +34,7 @@ namespace Bluewire.Conventions
             Build = buildNumber;
             SemanticTag = branchType.SemanticTag;
         }
-        
+
         public static SemanticVersion FromString(string semVer)
         {
             var m = Patterns.SemanticVersionStructure.Match(semVer);
@@ -42,7 +42,7 @@ namespace Bluewire.Conventions
             {
                 throw new ArgumentException($"Unable to parse semantic version: {semVer}");
             }
-            
+
             return new SemanticVersion(m.Groups["major"].Value, m.Groups["minor"].Value, int.Parse(m.Groups["build"].Value), m.Groups["semtag"]?.Value);
         }
 

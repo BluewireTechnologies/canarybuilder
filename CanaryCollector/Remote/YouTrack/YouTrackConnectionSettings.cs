@@ -9,7 +9,7 @@ namespace CanaryCollector.Remote.YouTrack
         public static YouTrackConnectionSettings Parse(Uri uri)
         {
             var userInfoParts = uri.UserInfo.Split(':');
-            
+
             return new YouTrackConnectionSettings
             {
                 Host = uri.Host,
@@ -27,3 +27,4 @@ namespace CanaryCollector.Remote.YouTrack
         public bool UseSSL { get; set; }
     }
 }
+

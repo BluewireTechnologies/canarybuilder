@@ -9,7 +9,7 @@ namespace RefCleaner.Collectors
         public Ref Ref { get; set; }
         public Ref ResolvedRef { get; set; }
         public DateTimeOffset CommitDatestamp { get; set; }
-        
+
         public BranchDisposition Disposition { get; private set; }
 
         public void UpdateDisposition(BranchDisposition disposition)

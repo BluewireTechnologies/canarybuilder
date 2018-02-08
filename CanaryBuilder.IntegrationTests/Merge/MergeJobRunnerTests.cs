@@ -59,7 +59,7 @@ namespace CanaryBuilder.IntegrationTests.Merge
         {
             var failingVerifier = Mock.Of<IWorkingCopyVerifier>(v =>
                 v.Verify(workingCopy, It.IsAny<IJobLogger>()) == Task.FromException(new InvalidWorkingCopyStateException("Failed")));
-            
+
             var jobDefinition = new MergeJobDefinition
             {
                 Base = new Ref("master"),
@@ -69,7 +69,7 @@ namespace CanaryBuilder.IntegrationTests.Merge
 
             Assert.ThrowsAsync<InvalidWorkingCopyStateException>(() => sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>()));
         }
-        
+
         [Test]
         public async Task ContinuesIfBaseVerifierReportsSuccess()
         {
@@ -82,7 +82,7 @@ namespace CanaryBuilder.IntegrationTests.Merge
                 Verifier = succeedingVerifier,
                 FinalTag = new Ref("output-tag")
             };
-            
+
             await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
         }
 
@@ -177,7 +177,7 @@ namespace CanaryBuilder.IntegrationTests.Merge
 
             await session.CreateBranchAndCheckout(workingCopy, "input-branch");
             await session.Commit(workingCopy, "Branch comit", CommitOptions.AllowEmptyCommit);
-            
+
             var jobDefinition = new MergeJobDefinition
             {
                 Base = new Ref("master"),
@@ -238,7 +238,7 @@ namespace CanaryBuilder.IntegrationTests.Merge
             };
 
             await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
-            
+
             Assert.That(await session.AreRefsEquivalent(workingCopy, jobDefinition.FinalBranch, new Ref("input-branch")), Is.False);
         }
         [Test]
@@ -276,7 +276,7 @@ namespace CanaryBuilder.IntegrationTests.Merge
             };
 
             await sut.Run(workingCopy, jobDefinition, Mock.Of<IJobLogger>());
-            
+
             Assert.That(await session.RefExists(workingCopy, jobDefinition.TemporaryBranch), Is.False);
         }
 

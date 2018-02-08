@@ -16,3 +16,4 @@ namespace Bluewire.Common.GitWrapper.Model
         }
     }
 }
+

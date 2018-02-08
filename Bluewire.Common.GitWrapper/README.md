@@ -17,7 +17,7 @@ GitSession is used to run Git commands against GitWorkingCopies and GitRepositor
     var session = new GitSession(git);
 
     var workingCopy = new GitWorkingCopy("@e:\path\to\working\copy");
-    
+
     // Now we have a working copy and a session, let's create a new feature branch from master and start working on it:
     await session.CreateBranchAndCheckout(workingCopy, new Ref("feature/shiny-toy"), new Ref("master")));
     ...

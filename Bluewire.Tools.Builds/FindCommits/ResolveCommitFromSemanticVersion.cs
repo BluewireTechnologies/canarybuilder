@@ -17,7 +17,7 @@ namespace Bluewire.Tools.Builds.FindCommits
         {
             this.semVer = SemanticVersion.FromString(semVer);
         }
-        
+
         public async Task<Build[]> ResolveCommits(GitSession session, Common.GitWrapper.GitRepository repository)
         {
 

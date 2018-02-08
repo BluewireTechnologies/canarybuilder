@@ -10,7 +10,7 @@ namespace RefCleaner.Collectors
         public static DateTimeOffset? TryParseExact(string str, UnexpectedGitOutputFormatDetails error = null)
         {
             DateTimeOffset datestamp;
-            if(!DateTimeOffset.TryParseExact(str, Pattern, null, System.Globalization.DateTimeStyles.None, out datestamp))
+            if (!DateTimeOffset.TryParseExact(str, Pattern, null, System.Globalization.DateTimeStyles.None, out datestamp))
             {
                 error?.Explanations.Add($"Datestamp wasn't recognised as a strict-ISO date: {str}");
                 return null;

@@ -159,7 +159,7 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
 
             await session.Merge(workingCopy, new Ref("branch"));
             var targetMergeCommit = await session.ResolveRef(workingCopy, MasterBranch);
-            
+
             await builder.CreateBranchWithCommits(MasterBranch, "branch-2", 3);
             await builder.AddCommitsToBranch("master", 2);
 

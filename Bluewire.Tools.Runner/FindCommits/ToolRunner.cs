@@ -116,7 +116,7 @@ namespace Bluewire.Tools.Runner.FindCommits
                 }
 
                 var unqualifiedArgument = arguments.ArgumentList.First().Trim();
-                
+
                 arguments.Request(RequestType.SemanticVersion, unqualifiedArgument);
             }
 

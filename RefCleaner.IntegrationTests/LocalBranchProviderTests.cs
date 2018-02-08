@@ -33,10 +33,10 @@ namespace RefCleaner.IntegrationTests
             await session.Fetch(workingCopy);
             await session.CreateBranchAndCheckout(workingCopy, "test-local");
             await session.Commit(workingCopy, "A commit", CommitOptions.AllowEmptyCommit);
-            
+
             var provider = new LocalBranchProvider(session, workingCopy);
             var branches = await provider.GetAllBranches();
-            
+
             Assert.That(branches.Select(b => b.Name).ToArray(), Is.EquivalentTo(new [] { "master", "test-local" }));
         }
 
@@ -53,7 +53,7 @@ namespace RefCleaner.IntegrationTests
 
             var provider = new LocalBranchProvider(session, workingCopy);
             var merged = await provider.GetMergedBranches(new Ref("master"));
-            
+
             Assert.True(merged.Contains(new Ref("test")));
         }
 
@@ -69,7 +69,7 @@ namespace RefCleaner.IntegrationTests
 
             var provider = new LocalBranchProvider(session, workingCopy);
             var merged = await provider.GetMergedBranches(new Ref("master"));
-            
+
             Assert.False(merged.Contains(new Ref("test")));
         }
     }
