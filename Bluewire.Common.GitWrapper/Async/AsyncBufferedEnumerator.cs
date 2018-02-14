@@ -40,10 +40,10 @@ namespace Bluewire.Common.GitWrapper.Async
 
         public async Task<bool> MoveNext(CancellationToken token = default(CancellationToken))
         {
-            while(!queue.IsCompleted)
+            while (!queue.IsCompleted)
             {
                 T item;
-                if(queue.TryTake(out item, -1, token))
+                if (queue.TryTake(out item, -1, token))
                 {
                     Current = item;
                     return true;

@@ -7,3 +7,4 @@ namespace Bluewire.Common.GitWrapper.Model
         Never
     }
 }
+

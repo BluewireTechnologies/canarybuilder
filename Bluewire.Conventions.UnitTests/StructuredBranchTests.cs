@@ -14,7 +14,7 @@ namespace Bluewire.Conventions.UnitTests
         {
             public string Raw { get; set; }
             public StructuredBranch Parsed { get; set; }
-            
+
             public override string ToString()
             {
                 return Raw;
@@ -23,7 +23,7 @@ namespace Bluewire.Conventions.UnitTests
 
         /// <summary>
         /// Test cases defined on the Wiki.
-        /// 
+        ///
         /// wiki:DevelopmentWorkflow/BranchNames
         /// </summary>
         public static Case[] Cases = {

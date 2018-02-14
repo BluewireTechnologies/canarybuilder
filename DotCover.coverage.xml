@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CoverageParams>
+  <Filters>
+    <IncludeFilters>
+      <!-- Modern naming convention: all project names should start with 'Bluewire.' -->
+      <FilterEntry><ModuleMask>Bluewire.*</ModuleMask></FilterEntry>
+      <FilterEntry><ModuleMask>CanaryBuilder*</ModuleMask></FilterEntry>
+      <FilterEntry><ModuleMask>CanaryCollector*</ModuleMask></FilterEntry>
+      <FilterEntry><ModuleMask>RefCleaner*</ModuleMask></FilterEntry>
+    </IncludeFilters>
+    <ExcludeFilters>
+      <!-- Default exclusions -->
+      <FilterEntry><ModuleMask>*Tests</ModuleMask></FilterEntry>
+      <FilterEntry><ModuleMask>*.Contracts</ModuleMask></FilterEntry>
+      <FilterEntry><ModuleMask>*.Contracts.*</ModuleMask></FilterEntry>
+    </ExcludeFilters>
+  </Filters>
+</CoverageParams>

@@ -18,14 +18,14 @@ namespace Bluewire.Conventions.UnitTests
                 return Raw;
             }
         }
-        
+
         public static Case[] Cases = {
             new Case { Raw = "17.05.123-beta", Parsed = new SemanticVersion("17","05",123,"beta"), BranchStart = "17.05", BranchEnd = "master" },
             new Case { Raw = "17.05.123-rc", Parsed = new SemanticVersion("17","05",123,"rc"), BranchStart = "17.05", BranchEnd = "candidate/17.05" },
             new Case { Raw = "17.05.123-canary", Parsed = new SemanticVersion("17","05",123,"canary"), BranchStart = "17.05", BranchEnd = null },
             new Case { Raw = "17.05.123-release", Parsed = new SemanticVersion("17","05",123,"release"), BranchStart = "17.05", BranchEnd = "release/17.05" }
         };
-        
+
         [Test]
         public void CanIdentifyStartOfBranch([ValueSource(nameof(Cases))] Case testCase)
         {

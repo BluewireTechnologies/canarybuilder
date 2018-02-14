@@ -1,23 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <ItemGroup>
+        <SemVerProjects Include="Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj" />
+        <SemVerProjects Include="Bluewire.Conventions\Bluewire.Conventions.csproj" />
+    
         <!-- Full list of NuGet package projects -->
         <NugetProjects Include="Bluewire.Tools.GitRepository\Bluewire.Tools.GitRepository.csproj" />
         <NugetProjects Include="Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj" />
         <NugetProjects Include="Bluewire.Tools.Builds\Bluewire.Tools.Builds.csproj" />
-		
+
         <!-- Full list of NUnit test projects -->
-        <NUnitProjects Include="Bluewire.Conventions.UnitTests\Bluewire.Conventions.UnitTests.csproj" />
-        <NUnitProjects Include="Bluewire.Common.GitWrapper.UnitTests\Bluewire.Common.GitWrapper.UnitTests.csproj" />
-        <NUnitProjects Include="Bluewire.Common.GitWrapper.IntegrationTests\Bluewire.Common.GitWrapper.IntegrationTests.csproj" />
-        <NUnitProjects Include="Bluewire.Tools.GitRepository.IntegrationTests\Bluewire.Tools.GitRepository.IntegrationTests.csproj" />
-        <NUnitProjects Include="CanaryBuilder.UnitTests\CanaryBuilder.UnitTests.csproj" />
-        <NUnitProjects Include="CanaryBuilder.IntegrationTests\CanaryBuilder.IntegrationTests.csproj" />
-        <NUnitProjects Include="CanaryCollector.UnitTests\CanaryCollector.UnitTests.csproj" />
-        
-        <OutputProjects Include="CanaryBuilder\CanaryBuilder.csproj" />
-        <OutputProjects Include="CanaryCollector\CanaryCollector.csproj" />
-        <OutputFiles Include="Driver\Generate-NightlyCanaryBranch.ps1" />
-        <OutputProjects Include="Bluewire.Tools.Runner\Bluewire.Tools.Runner.csproj" />
+        <NUnitProjects Include="**\*Tests.csproj" />
+
+        <OutputBinaryProjects Include="CanaryBuilder\CanaryBuilder.csproj" />
+        <OutputBinaryProjects Include="CanaryCollector\CanaryCollector.csproj" />
+        <OutputBinaries Include="Driver\Generate-NightlyCanaryBranch.ps1" />
+        <OutputBinaryProjects Include="Bluewire.Tools.Runner\Bluewire.Tools.Runner.csproj" />
+        <OutputBinaryProjects Include="RefCleaner\RefCleaner.csproj" />
     </ItemGroup>
 </Project>

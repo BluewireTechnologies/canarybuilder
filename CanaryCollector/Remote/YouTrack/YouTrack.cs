@@ -17,3 +17,4 @@ namespace CanaryCollector.Remote.YouTrack
         }
     }
 }
+

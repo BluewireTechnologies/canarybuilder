@@ -40,7 +40,7 @@ namespace Bluewire.Tools.GitRepository
 
             var firstParents = new HashSet<Ref>(firstParentChain);
             if (firstParents.Contains(subject)) return subject;
-            
+
             var subjectChain = await session.ListCommitsBetween(workingCopyOrRepo, subject, end, new ListCommitsOptions { AncestryPathOnly = true });
             Debug.Assert(Equals(subjectChain[0], end));
 

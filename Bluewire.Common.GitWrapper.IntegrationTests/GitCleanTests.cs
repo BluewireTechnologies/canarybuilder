@@ -42,7 +42,7 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
             await session.Commit(workingCopy, "Branch commit", CommitOptions.AllowEmptyCommit);
             await session.Checkout(workingCopy, new Ref("master"));
             await session.Merge(workingCopy, branch);
-            
+
             File.WriteAllText(workingCopy.Path("temp.txt"), "Leave working copy dirty.");
 
             Assert.False(await session.IsClean(workingCopy));

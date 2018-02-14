@@ -6,7 +6,7 @@ namespace CanaryBuilder.Logging
     {
         public void WriteLine(string line, ConsoleColor? textColour = null)
         {
-            lock(this) // Serialise output
+            lock (this) // Serialise output
             {
                 SetColour(textColour);
                 Console.Out.WriteLine(line);

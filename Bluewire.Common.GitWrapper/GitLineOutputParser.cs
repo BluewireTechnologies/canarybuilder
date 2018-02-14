@@ -16,7 +16,7 @@ namespace Bluewire.Common.GitWrapper
             while (await lines.MoveNext(token))
             {
                 T entry;
-                if(Parse(lines.Current, out entry)) results.Add(entry);
+                if (Parse(lines.Current, out entry)) results.Add(entry);
             }
             return results.ToArray();
         }

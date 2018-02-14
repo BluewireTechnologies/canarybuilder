@@ -18,7 +18,7 @@
 	
 	<!-- When empty, this will be set at compile time to the [assembly:AssemblyTitle("")] attribute value -->
     <description></description>
-    
+
 	<!-- Set this to false if you don't need to support a license -->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
 

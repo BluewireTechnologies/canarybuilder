@@ -1,0 +1,121 @@
+#!/bin/sh
+
+say() {
+    echo $@ >&2
+}
+
+die() {
+    say $2
+    exit $1
+}
+
+usage() {
+    say $1
+    die 2 "Usage: begin-new-version <new-version> [current-version]"
+}
+
+VERSION_FILE='.current-version'
+
+get_current_version() {
+    test -f $VERSION_FILE && read -r FROM_FILE < $VERSION_FILE
+    SPECIFIED=${1-$FROM_FILE}
+
+    if [ -n "$FROM_FILE" ]; then
+        # User explicitly specified a version which differs from the working copy's own record. DO NOT treat as an override! Resolve this manually!
+        test "$SPECIFIED" == "$FROM_FILE" || die 2 "You specified version $SPECIFIED but the working copy claims that it is currently version $FROM_FILE. This must be manually resolved."
+        echo $FROM_FILE
+        return;
+    fi
+    if [ -n "$SPECIFIED" ]; then
+        echo $SPECIFIED
+        return;
+    fi
+
+    git describe --tags --long --first-parent master | awk -F'-' '{ print $1 }'
+}
+
+is_clean_working_copy() {
+    test -z "$(git status --porcelain)"
+}
+
+ref_exists() {
+    git show-ref --quiet $1
+}
+
+refs_equal() {
+    A=$(git rev-list -1 $1) || return
+    B=$(git rev-list -1 $2) || return
+    test "$A" == "$B"
+}
+
+commits_between() {
+    _START=$1
+    _END=$2
+    git log --pretty=oneline ${_START}...${_END} | awk '{ print $1 }'
+}
+
+# Initial environment checks.
+
+test -f '.current-version' || die 2 "No .current-version file found. Please run this script from the root of the working copy. If this is the first time the script has been run in this working copy, please use 'touch .current-version' first."
+refs_equal HEAD refs/heads/master || die 2 "This script must be run from the tip of the master branch."
+is_clean_working_copy || die 2 "This script must be run with a clean working copy (no changes or untracked files)."
+
+# Read parameters and try to guess the current version number if necessary.
+
+TAG=$1
+MAINTENANCE_VERSION=$(get_current_version $2)
+MAINTENANCE_TAG="maint/$MAINTENANCE_VERSION";
+
+# Check that we have sane inputs.
+
+test -n "$TAG" || usage "Must specify new version number.";
+test -n "$MAINTENANCE_VERSION" || usage "Unable to determine current version number. Please specify it.";
+test "$TAG" != "$MAINTENANCE_VERSION" || usage "New version and current version cannot be the same."
+
+ref_exists $TAG && die 3 "Tag already exists: $TAG"
+ref_exists $MAINTENANCE_TAG && die 3 "Maintenance tag already exists: $MAINTENANCE_TAG"
+
+# Make no changes to anything until the user has confirmed that the version numbers are correct.
+
+echo "This script will now do the following:"
+echo "  * Tag version $MAINTENANCE_VERSION for maintenance."
+echo "  * Begin new version $TAG."
+echo "Is this correct? Type 'yes' to proceed. [n]"
+read -r CONFIRM
+test "X$CONFIRM" == "Xyes" || die 2 "aborted"
+
+#
+# ***** NO DESTRUCTIVE OPERATIONS BEFORE THIS POINT. *****
+#
+
+# Final paranoid checks.
+
+git fetch
+refs_equal HEAD refs/remotes/origin/master || die 2 "Ensure that your local master branch is synchronised with the remote before running this script."
+is_clean_working_copy || die 2 "This script must be run with a clean working copy (no changes or untracked files)."
+
+#
+# Any failure byond this point will require manual intervention to fix. Do not attempt recovery; terminate if any commands fail.
+#
+
+set -e
+
+# Tag for maintenance.
+
+git tag --annotate $MAINTENANCE_TAG --message="Maintenance root for version $MAINTENANCE_VERSION"
+
+# Create first commit of new version by updating the version file.
+
+echo $TAG > $VERSION_FILE
+git add $VERSION_FILE
+git commit --message="Initial commit of version $TAG"
+
+# Create the tag to mark the new version.
+
+git tag --annotate $TAG --message="Start of version $TAG"
+
+# Update the remote.
+
+git push origin $MAINTENANCE_TAG
+git push origin master
+git push origin $TAG

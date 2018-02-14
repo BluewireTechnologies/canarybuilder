@@ -16,9 +16,9 @@ namespace RefCleaner.Collectors
         public override bool Parse(string line, out BranchDetails entry)
         {
             if (line == null) throw new ArgumentNullException(nameof(line));
-            
+
             var parts = line.Split(splitOnWhitespace, StringSplitOptions.RemoveEmptyEntries);
-                
+
             var error = new UnexpectedGitOutputFormatDetails { Line = line };
             var datestamp = StrictISO8601.TryParseExact(parts[0], error);
 

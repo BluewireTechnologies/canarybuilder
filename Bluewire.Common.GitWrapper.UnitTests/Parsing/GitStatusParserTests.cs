@@ -25,7 +25,7 @@ namespace Bluewire.Common.GitWrapper.UnitTests.Parsing
             new Case { Line = "MD \"some/path with whitespace/in/repo\"", Expected = new GitStatusEntry { Path = "some/path with whitespace/in/repo", IndexState = IndexState.Modified, WorkTreeState = WorkTreeState.Deleted } },
             new Case { Line = "C  original/path -> copy/path", Expected = new GitStatusEntry { Path = "original/path", NewPath = "copy/path", IndexState = IndexState.Copied, WorkTreeState = WorkTreeState.Unmodified } },
             new Case { Line = "A  \"path/with/some\\\"quotes\"", Expected = new GitStatusEntry { Path = "path/with/some\"quotes", IndexState = IndexState.Added, WorkTreeState = WorkTreeState.Unmodified } },
-            
+
             // Edge cases, maybe impossible on Windows?
             new Case { Line = "C  a->b -> a->c", Expected = new GitStatusEntry { Path = "a->b", NewPath = "a->c", IndexState = IndexState.Copied, WorkTreeState = WorkTreeState.Unmodified } },
             new Case { Line = "R  \"a -> b\" -> a->c", Expected = new GitStatusEntry { Path = "a -> b", NewPath = "a->c", IndexState = IndexState.Renamed, WorkTreeState = WorkTreeState.Unmodified } },
@@ -38,8 +38,8 @@ namespace Bluewire.Common.GitWrapper.UnitTests.Parsing
             var parser = new GitStatusParser();
             GitStatusEntry parsed;
             var result = parser.Parse(testCase.Line, out parsed);
-            
-            if(!result)
+
+            if (!result)
             {
                 var writer = new StringWriter();
                 foreach (var error in parser.Errors) error.Explain(writer);

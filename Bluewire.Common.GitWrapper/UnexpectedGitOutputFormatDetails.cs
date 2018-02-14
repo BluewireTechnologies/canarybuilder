@@ -11,7 +11,7 @@ namespace Bluewire.Common.GitWrapper
         public void Explain(TextWriter writer)
         {
             writer.WriteLine($"> {Line}");
-            foreach(var explanation in Explanations)
+            foreach (var explanation in Explanations)
             {
                 writer.WriteLine($"    {explanation}");
             }

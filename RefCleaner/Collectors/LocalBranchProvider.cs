@@ -51,7 +51,7 @@ namespace RefCleaner.Collectors
             var branches = await helper.RunCommand(repository, command, parser);
             return branches.Where(r => !Ref.IsBuiltIn(r)).ToArray();
         }
-        
+
         public Task<bool> BranchExists(Ref branch)
         {
             return session.BranchExists(repository, branch);

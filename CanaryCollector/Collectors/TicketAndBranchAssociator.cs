@@ -11,7 +11,7 @@ namespace CanaryCollector.Collectors
     /// <remarks>
     /// A ticket may have multiple relevant branches, destined for different release branches. We need
     /// to identify those branches specifically intended for inclusion in master.
-    /// 
+    ///
     /// Bluewire.Conventions defines the expected branch name format. It is assumed that any branch
     /// specifically targetted at a release is not a candidate for merging into master.
     /// </remarks>
@@ -21,7 +21,7 @@ namespace CanaryCollector.Collectors
         {
             var ticketedBranches = CollectTicketBranchesForMaster(availableBranchNames);
 
-            return tickets.Join(ticketedBranches, 
+            return tickets.Join(ticketedBranches,
                 t => t.Identifier,
                 b => b.TicketIdentifier,
                 (t, b) => new TicketLinkedBranch { Branch = b.Branch, Ticket = t });

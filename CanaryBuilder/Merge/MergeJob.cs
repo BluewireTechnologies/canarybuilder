@@ -22,16 +22,16 @@ namespace CanaryBuilder.Merge
             this.workingCopyPath = workingCopyPath;
             this.scriptPath = scriptPath;
         }
-        
+
         public async Task Run(IJobLogger logger)
         {
             var git = await new GitFinder().FromEnvironment();
-            
+
             var jobDefinition = LoadScript(scriptPath);
 
             var workingCopy = new GitWorkingCopy(workingCopyPath);
             workingCopy.CheckExistence();
-            
+
 
             await new MergeJobRunner(git).Run(workingCopy, jobDefinition, logger);
         }

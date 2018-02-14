@@ -29,6 +29,6 @@ namespace CanaryCollector.Collectors
             return new TicketAndBranchAssociator().Apply(await pendingIssuesTask, await availableBranchesTask)
                 .OrderBy(a => a.Ticket.Type).ThenBy(a => a.Branch.Name)
                 .Select(a => a.Branch);
-        }    
+        }
     }
 }

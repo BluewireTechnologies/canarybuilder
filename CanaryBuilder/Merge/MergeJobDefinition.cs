@@ -8,7 +8,7 @@ namespace CanaryBuilder.Merge
         public Ref Base { get; set; }
 
         public Ref TemporaryBranch { get; set; }
-        
+
         public Ref FinalBranch { get; set; }
         public Ref FinalTag { get; set; }
 
