@@ -23,7 +23,24 @@ if($createBranch -like "feature/*" -or
     exit 2;
 }
 
-$verifierCommand = '"C:\Program Files (x86)\MSbuild\14.0\Bin\MSBuild.exe" /v:minimal VerifyCanary.Task.proj';
+$visualStudio2017Root = $(.\vswhere -products "*" -version "15" -requires Microsoft.Component.MSBuild -property installationPath);
+if (!$visualStudio2017Root -or -not (Test-Path "${visualStudio2017Root}"))
+{
+    "Cannot find Visual Studio 2017 environment.";
+    exit 3;
+}
+$msbuild15 = "${visualStudio2017Root}\MSBuild\15.0\Bin\amd64\MSBuild.exe";
+if (-not (Test-Path "${msbuild15}"))
+{
+    $msbuild15 = "${visualStudio2017Root}\MSBuild\15.0\Bin\MSBuild.exe";
+}
+if (-not (Test-Path "${msbuild15}"))
+{
+    "Cannot find MSBuild 15 executable at ${msbuild15}";
+    exit 3;
+}
+
+$verifierCommand = "`"${msbuild15}`" /v:minimal VerifyCanary.Task.proj";
 $datestamp = $(Get-Date).ToString("yyyyMMdd-HHmm");
 
 function Run-Git()
