@@ -15,6 +15,7 @@
         <OutputBinaryProjects Include="CanaryBuilder\CanaryBuilder.csproj" />
         <OutputBinaryProjects Include="CanaryCollector\CanaryCollector.csproj" />
         <OutputBinaries Include="Driver\Generate-NightlyCanaryBranch.ps1" />
+        <OutputBinaries Include="Driver\vswhere.exe" />
         <OutputBinaryProjects Include="Bluewire.Tools.Runner\Bluewire.Tools.Runner.csproj" />
         <OutputBinaryProjects Include="RefCleaner\RefCleaner.csproj" />
     </ItemGroup>
