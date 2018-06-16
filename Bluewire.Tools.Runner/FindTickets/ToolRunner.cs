@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Bluewire.Common.Console;
 using Bluewire.Common.Console.Logging;
-using Bluewire.Common.Console.ThirdParty;
 using Bluewire.Common.GitWrapper;
 using log4net.Core;
 using Bluewire.Common.GitWrapper.Model;
@@ -23,49 +22,47 @@ namespace Bluewire.Tools.Runner.FindTickets
             writer.WriteLine($"  {Name}: Find the tickets mentioned between two semantic versions (release, build number and optional semantic tag). Supply only one semantic version to produce a list of tickets to the head of the branch that build is found on.");
         }
 
-        private static OptionSet CreateOptions(Arguments arguments)
-        {
-            return new OptionSet
-            {
-                {"s=|start-semver=", "Starting (lower) semantic version (<major>.<minor>.<build>[-semtag]). Omit the semtag if you want all semantic version tags to be searched for a match in this order: release, rc, beta.", o => arguments.StartSemanticVersion = o },
-                { "e=|end-semver=", "Ending (higher) semantic version (<major>.<minor>.<build>[-semtag]). Omit the semtag if you want all semantic version tags to be searched for a match in this order: release, rc, beta.", o => arguments.EndSemanticVersion = o },
-                {"repo=|repository=", "Specify the repository to use. Default: current directory.", o => arguments.WorkingCopyOrRepo = o}
-            };
-        }
-
         public int RunMain(string[] args, string parentArgs)
         {
-            var arguments = new Arguments();
-            var options = CreateOptions(arguments);
-            var sessionArgs = new SessionArguments<Arguments>(arguments, options);
-            sessionArgs.Application += parentArgs;
-            var consoleSession = new ConsoleSession<Arguments>(sessionArgs);
-            consoleSession.ListParameterUsage = "<from version> [to version]";
-            return consoleSession.Run(args, async a => await new Impl(a).Run());
+            var tool = new Impl();
+            var consoleSession = new ConsoleSession()
+            {
+                Options = {
+                    { "s=|start-semver=", "Starting (lower) semantic version (<major>.<minor>.<build>[-semtag]). Omit the semtag if you want all semantic version tags to be searched for a match in this order: release, rc, beta.", o => tool.StartSemanticVersion = o },
+                    { "e=|end-semver=", "Ending (higher) semantic version (<major>.<minor>.<build>[-semtag]). Omit the semtag if you want all semantic version tags to be searched for a match in this order: release, rc, beta.", o => tool.EndSemanticVersion = o },
+                    { "repo=|repository=", "Specify the repository to use. Default: current directory.", o => tool.WorkingCopyOrRepo = o }
+                },
+                ListParameterUsage = "<from version> [to version]"
+            };
+            consoleSession.ArgumentList.AddRemainder("", tool.ArgumentList.Add);
+            consoleSession.Application += parentArgs;
+            var logger = consoleSession.Options.AddCollector(new SimpleConsoleLoggingPolicy { Verbosity = { Default = Level.Info } });
+
+            return consoleSession.Run(args, async () => {
+                using (LoggingPolicy.Register(consoleSession, logger))
+                {
+                    return await tool.Run();
+                }
+            });
         }
 
         class Impl
         {
-            private readonly Arguments arguments;
+            public string StartSemanticVersion { get; set; }
+            public string EndSemanticVersion { get; set; }
 
-            public Impl(Arguments arguments)
-            {
-                this.arguments = arguments;
-
-                Log.Configure();
-                Log.SetConsoleVerbosity(arguments.Verbosity);
-            }
+            public string WorkingCopyOrRepo { get; set; } = Environment.CurrentDirectory;
+            public IList<string> ArgumentList { get; } = new List<string>();
 
             public async Task<int> Run()
             {
-                TryInferArgumentsFromList(arguments);
-
+                TryInferArgumentsFromList();
 
                 var git = await new GitFinder().FromEnvironment();
                 var gitSession = new GitSession(git, new ConsoleInvocationLogger());
-                var gitRepository = GetGitRepository(arguments.WorkingCopyOrRepo);
+                var gitRepository = GetGitRepository(WorkingCopyOrRepo);
 
-                var startCommitJob = new Builds.FindCommits.ResolveCommitFromSemanticVersion(arguments.StartSemanticVersion);
+                var startCommitJob = new Builds.FindCommits.ResolveCommitFromSemanticVersion(StartSemanticVersion);
                 var startBuilds = await startCommitJob.ResolveCommits(gitSession, gitRepository);
                 if (startBuilds.Length > 1)
                 {
@@ -80,9 +77,9 @@ namespace Bluewire.Tools.Runner.FindTickets
                 var startBuild = startBuilds[0];
                 Build endBuild;
 
-                if (!string.IsNullOrEmpty(arguments.EndSemanticVersion))
+                if (!string.IsNullOrEmpty(EndSemanticVersion))
                 {
-                    var endCommitJob = new Builds.FindCommits.ResolveCommitFromSemanticVersion(arguments.EndSemanticVersion);
+                    var endCommitJob = new Builds.FindCommits.ResolveCommitFromSemanticVersion(EndSemanticVersion);
                     var endBuilds = await endCommitJob.ResolveCommits(gitSession, gitRepository);
                     if (endBuilds.Length > 1)
                     {
@@ -117,17 +114,17 @@ namespace Bluewire.Tools.Runner.FindTickets
                 }
             }
 
-            private static void TryInferArgumentsFromList(Arguments arguments)
+            private void TryInferArgumentsFromList()
             {
-                if (!arguments.ArgumentList.Any()) return;
-                if (arguments.ArgumentList.Count > 2)
+                if (!ArgumentList.Any()) return;
+                if (ArgumentList.Count > 2)
                 {
-                    Log.Console.Warn($"Excess arguments detected: {string.Join(" ", arguments.ArgumentList.Skip(1))}");
+                    Log.Console.Warn($"Excess arguments detected: {string.Join(" ", ArgumentList.Skip(1))}");
                     // Continue parsing the first two arguments.
                 }
 
-                arguments.StartSemanticVersion = arguments.ArgumentList.First().Trim();
-                arguments.EndSemanticVersion = arguments.ArgumentList.ElementAtOrDefault(1)?.Trim();
+                StartSemanticVersion = ArgumentList.First().Trim();
+                EndSemanticVersion = ArgumentList.ElementAtOrDefault(1)?.Trim();
             }
 
             private async Task<Ref> FindEndCommitFromStartBuild(GitSession session, Common.GitWrapper.GitRepository repository, SemanticVersion startSemanticVersion)
@@ -156,28 +153,6 @@ namespace Bluewire.Tools.Runner.FindTickets
                     throw new InvalidArgumentsException(ex);
                 }
             }
-        }
-
-        public class Arguments : IVerbosityArgument, IArgumentList
-        {
-            private readonly IEnumerable<Level> logLevels = new List<Level> { Level.Warn, Level.Info, Level.Debug };
-            private int logLevel = 1;
-
-            public Level Verbosity => logLevels.ElementAtOrDefault(logLevel) ?? Level.All;
-
-            public void Verbose()
-            {
-                logLevel++;
-                LogInvocations = true;
-            }
-
-            public bool LogInvocations { get; private set; }
-
-            public string StartSemanticVersion { get; set; }
-            public string EndSemanticVersion { get; set; }
-
-            public string WorkingCopyOrRepo { get; set; } = Environment.CurrentDirectory;
-            public IList<string> ArgumentList { get; } = new List<string>();
         }
     }
 }

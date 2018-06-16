@@ -54,13 +54,11 @@
     </StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Bluewire.Common.Console, Version=10.2.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Bluewire.Common.Console.10.2.1\lib\net45\Bluewire.Common.Console.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Bluewire.Common.Console, Version=11.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Bluewire.Common.Console.11.0.0\lib\net45\Bluewire.Common.Console.dll</HintPath>
     </Reference>
-    <Reference Include="Bluewire.Common.Console.Client, Version=9.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Bluewire.Common.Console.Client.9.1.0\lib\net45\Bluewire.Common.Console.Client.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Bluewire.Common.Console.Client, Version=9.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Bluewire.Common.Console.Client.9.1.1\lib\net45\Bluewire.Common.Console.Client.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
@@ -113,6 +111,7 @@
     <Compile Include="Shared\BuildUtils.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="Bluewire.Tools.Builds.nuspec">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>

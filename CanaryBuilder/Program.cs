@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Bluewire.Common.Console;
 using Bluewire.Common.Console.Logging;
-using Bluewire.Common.Console.ThirdParty;
 using CanaryBuilder.Logging;
 using CanaryBuilder.Merge;
 using CanaryBuilder.Parsers;
@@ -18,39 +13,45 @@ namespace CanaryBuilder
     {
         public static int Main(string[] args)
         {
-            var arguments = new Arguments();
-            var options = new OptionSet
+            var program = new Program();
+            var session = new ConsoleSession
             {
-                { "diagnostics", "Show diagnostics and environment information.", o => arguments.ShowDiagnostics = true }
-            };
-
-            var session = new ConsoleSession<Arguments>(arguments, options)
-            {
+                Options = {
+                    { "diagnostics", "Show diagnostics and environment information.", o => program.ShowDiagnostics = true }
+                },
+                ArgumentList = {
+                    { "mode", o => program.Mode = o },
+                    { "script path", o => program.ScriptPath = o },
+                    { "working copy", o => program.WorkingCopy = o }
+                },
                 ListParameterUsage = "[merge <script path> <working copy>]"
             };
+            var logger = session.Options.AddCollector(new SimpleConsoleLoggingPolicy { Verbosity = { Default = Level.Info } });
 
-            return session.Run(args, async a => await new Program(a).Run());
+            return session.Run(args, async () => {
+                using (LoggingPolicy.Register(session, logger))
+                {
+                    return await program.Run();
+                }
+            });
         }
 
-        private readonly Arguments arguments;
+        public bool ShowDiagnostics { get; set; }
 
-        private Program(Arguments arguments)
-        {
-            this.arguments = arguments;
-            Log.Configure();
-            Log.SetConsoleVerbosity(arguments.Verbosity);
-        }
+        public string Mode { get; set; }
+        public string ScriptPath { get; set; }
+        public string WorkingCopy { get; set; }
 
-        private async Task<int> Run()
+        public async Task<int> Run()
         {
-            if (arguments.ShowDiagnostics)
+            if (ShowDiagnostics)
             {
                 return await new Diagnostics().Run(Console.Out);
             }
-            if (arguments.Mode == "merge")
+            if (Mode == "merge")
             {
-                if (String.IsNullOrWhiteSpace(arguments.ScriptPath)) throw new InvalidArgumentsException("No script path specified for 'merge' mode.");
-                if (String.IsNullOrWhiteSpace(arguments.WorkingCopy)) throw new InvalidArgumentsException("No working copy specified for 'merge' mode.");
+                if (String.IsNullOrWhiteSpace(ScriptPath)) throw new InvalidArgumentsException("No script path specified for 'merge' mode.");
+                if (String.IsNullOrWhiteSpace(WorkingCopy)) throw new InvalidArgumentsException("No working copy specified for 'merge' mode.");
 
                 using (var console = new ConsoleLogWriter())
                 {
@@ -65,7 +66,7 @@ namespace CanaryBuilder
         {
             try
             {
-                await new MergeJob(arguments.WorkingCopy, arguments.ScriptPath).Run(logger);
+                await new MergeJob(WorkingCopy, ScriptPath).Run(logger);
                 return 0;
             }
             catch (JobScriptException ex)
@@ -78,31 +79,6 @@ namespace CanaryBuilder
                 logger.Error(ex);
                 return 5;
             }
-        }
-
-        class Arguments : IVerbosityArgument, IArgumentList
-        {
-            private readonly IEnumerable<Level> logLevels = new List<Level> { Level.Warn, Level.Info, Level.Debug };
-            private int logLevel = 1;
-            private readonly List<string> argumentList = new List<string>();
-
-            public Level Verbosity
-            {
-                get { return logLevels.ElementAtOrDefault(logLevel) ?? Level.All; }
-            }
-
-            public void Verbose()
-            {
-                logLevel++;
-            }
-
-            public bool ShowDiagnostics { get; set; }
-
-            public string Mode => argumentList.ElementAtOrDefault(0);
-            public string ScriptPath => argumentList.ElementAtOrDefault(1);
-            public string WorkingCopy => argumentList.ElementAtOrDefault(2);
-
-            IList<string> IArgumentList.ArgumentList => argumentList;
         }
     }
 }

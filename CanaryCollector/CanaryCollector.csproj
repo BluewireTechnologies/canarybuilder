@@ -40,13 +40,11 @@
       <HintPath>..\packages\Atlassian.SDK.9.2.4\lib\Atlassian.Jira.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Bluewire.Common.Console, Version=10.2.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Bluewire.Common.Console.10.2.1\lib\net45\Bluewire.Common.Console.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Bluewire.Common.Console, Version=11.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Bluewire.Common.Console.11.0.0\lib\net45\Bluewire.Common.Console.dll</HintPath>
     </Reference>
-    <Reference Include="Bluewire.Common.Console.Client, Version=9.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Bluewire.Common.Console.Client.9.1.0\lib\net45\Bluewire.Common.Console.Client.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Bluewire.Common.Console.Client, Version=9.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Bluewire.Common.Console.Client.9.1.1\lib\net45\Bluewire.Common.Console.Client.dll</HintPath>
     </Reference>
     <Reference Include="Costura, Version=1.6.2.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
       <HintPath>..\packages\Costura.Fody.1.6.2\lib\dotnet\Costura.dll</HintPath>

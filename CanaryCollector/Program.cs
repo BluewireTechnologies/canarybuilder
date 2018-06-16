@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -8,7 +7,6 @@ using System.Threading.Tasks;
 using Bluewire.Common.Console;
 using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.Console.Logging;
-using Bluewire.Common.Console.ThirdParty;
 using CanaryCollector.Collectors;
 using CanaryCollector.Model;
 using CanaryCollector.Remote;
@@ -22,39 +20,44 @@ namespace CanaryCollector
     {
         static int Main(string[] args)
         {
-            var arguments = new Arguments();
-            var options = new OptionSet
+            var program = new Program();
+            var session = new ConsoleSession
             {
-                { "pending", "Include tickets pending review.", o => arguments.IncludePending = true },
-                { "tag=", "Include tickets with the specified tag.", o => arguments.IncludeTags.Add(o) },
-                { "url=", "Include branches listed by the specified resource. Currently only Google Docs spreadsheets are supported.", (Uri o) => arguments.IncludeUris.Add(o) },
-                { "youtrack=", "Use the specified Youtrack URL as the source of tickets.", (Uri o) => arguments.YoutrackUri = o },
-                { "jira=", "Use the specified Jira URL as the source of tickets.", (Uri o) => arguments.JiraUri = o },
-                { "repo=|repository=", "Use the specified repository as the source of branches.", o => arguments.RepositoryPath = o }
+                Options = {
+                    { "pending", "Include tickets pending review.", o => program.IncludePending = true },
+                    { "tag=", "Include tickets with the specified tag.", o => program.IncludeTags.Add(o) },
+                    { "url=", "Include branches listed by the specified resource. Currently only Google Docs spreadsheets are supported.", (Uri o) => program.IncludeUris.Add(o) },
+                    { "youtrack=", "Use the specified Youtrack URL as the source of tickets.", (Uri o) => program.YoutrackUri = o },
+                    { "jira=", "Use the specified Jira URL as the source of tickets.", (Uri o) => program.JiraUri = o },
+                    { "repo=|repository=", "Use the specified repository as the source of branches.", o => program.RepositoryPath = o }
+                }
             };
+            var logger = session.Options.AddCollector(new SimpleConsoleLoggingPolicy { Verbosity = { Default = Level.Info } });
 
-            var session = new ConsoleSession<Arguments>(arguments, options);
-
-            return session.Run(args, async a => await new Program(a).Run());
+            return session.Run(args, async () => {
+                using (LoggingPolicy.Register(session, logger))
+                {
+                    return await program.Run();
+                }
+            });
         }
 
-        private readonly Arguments arguments;
+        public ICollection<string> IncludeTags { get; } = new HashSet<string>();
+        public ICollection<Uri> IncludeUris { get; } = new HashSet<Uri>();
+        public bool IncludePending { get; set; }
 
-        private Program(Arguments arguments)
-        {
-            this.arguments = arguments;
-            Log.Configure();
-            Log.SetConsoleVerbosity(arguments.Verbosity);
-        }
+        public Uri YoutrackUri { get; set; }
+        public Uri JiraUri { get; set; }
+        public string RepositoryPath { get; set; }
 
         private async Task<int> Run()
         {
-            var factory = new BranchCollectorFactory(GetTicketProviderFactory(), arguments.RepositoryPath, Log.Console.IsDebugEnabled ? new ConsoleInvocationLogger() : null);
+            var factory = new BranchCollectorFactory(GetTicketProviderFactory(), RepositoryPath, Log.Console.IsDebugEnabled ? new ConsoleInvocationLogger() : null);
 
             var collectors = new List<IBranchCollector>();
-            collectors.AddRange(factory.CreateUriCollectors(arguments.IncludeUris));
-            collectors.AddRange(await factory.CreateTagCollectors(arguments.IncludeTags));
-            if (arguments.IncludePending) collectors.Add(await factory.CreatePendingCollector());
+            collectors.AddRange(factory.CreateUriCollectors(IncludeUris));
+            collectors.AddRange(await factory.CreateTagCollectors(IncludeTags));
+            if (IncludePending) collectors.Add(await factory.CreatePendingCollector());
             if (!collectors.Any()) throw new InvalidArgumentsException("Nothing to do. Please specify --pending, --tag or --uri.");
 
             var branches = new List<Branch>();
@@ -73,9 +76,9 @@ namespace CanaryCollector
 
         private ITicketProviderFactory GetTicketProviderFactory()
         {
-            if (arguments.YoutrackUri != null && arguments.JiraUri != null) throw new InvalidArgumentsException("Specify only one of --youtrack, --jira.");
-            if (arguments.YoutrackUri != null) return new YouTrackTicketProviderFactory(arguments.YoutrackUri);
-            if (arguments.JiraUri != null) return new JiraTicketProviderFactory(arguments.JiraUri);
+            if (YoutrackUri != null && JiraUri != null) throw new InvalidArgumentsException("Specify only one of --youtrack, --jira.");
+            if (YoutrackUri != null) return new YouTrackTicketProviderFactory(YoutrackUri);
+            if (JiraUri != null) return new JiraTicketProviderFactory(JiraUri);
             return new NoTicketProviderFactory();
         }
 
@@ -89,27 +92,6 @@ namespace CanaryCollector
                     yield return branch;
                 }
             }
-        }
-
-        class Arguments : IVerbosityArgument
-        {
-            private readonly IEnumerable<Level> logLevels = new List<Level> { Level.Warn, Level.Info, Level.Debug };
-            private int logLevel = 1;
-
-            public Level Verbosity => logLevels.ElementAtOrDefault(logLevel) ?? Level.All;
-
-            public void Verbose()
-            {
-                logLevel++;
-            }
-
-            public ICollection<string> IncludeTags { get; } = new HashSet<string>();
-            public ICollection<Uri> IncludeUris { get; } = new HashSet<Uri>();
-            public bool IncludePending { get; set; }
-
-            public Uri YoutrackUri { get; set; }
-            public Uri JiraUri { get; set; }
-            public string RepositoryPath { get; set; }
         }
 
         class ConsoleInvocationLogger : IConsoleInvocationLogger

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Bluewire.Common.Console;
 using Bluewire.Common.Console.Logging;
-using Bluewire.Common.Console.ThirdParty;
 using Bluewire.Common.GitWrapper;
 using log4net.Core;
 using Bluewire.Tools.Builds.Shared;
@@ -23,48 +22,52 @@ namespace Bluewire.Tools.Runner.FindCommits
             writer.WriteLine($"  {Name}: Find the commit hash(es) for the specified semantic version (release, build number and optional semantic tag).");
         }
 
-        private static OptionSet CreateOptions(Arguments arguments)
-        {
-            return new OptionSet
-            {
-                {"s=|semver=", "Resolve a commit hash for a semantic version (<major>.<minor>.<build>[-semtag]). Omit the semtag if you want all semantic version tags to be searched.", o => arguments.Request(RequestType.SemanticVersion, o) },
-                {"repo=|repository=", "Specify the repository to use. Default: current directory.", o => arguments.WorkingCopyOrRepo = o}
-            };
-        }
-
         public int RunMain(string[] args, string parentArgs)
         {
-            var arguments = new Arguments();
-            var options = CreateOptions(arguments);
-            var sessionArgs = new SessionArguments<Arguments>(arguments, options);
-            sessionArgs.Application += parentArgs;
-            var consoleSession = new ConsoleSession<Arguments>(sessionArgs);
-            consoleSession.ListParameterUsage = "<semantic version>";
-            return consoleSession.Run(args, async a => await new Impl(a).Run());
+            var tool = new Impl();
+            var consoleSession = new ConsoleSession()
+            {
+                Options = {
+                    {"s=|semver=", "Resolve a commit hash for a semantic version (<major>.<minor>.<build>[-semtag]). Omit the semtag if you want all semantic version tags to be searched.", o => tool.Request(RequestType.SemanticVersion, o) },
+                    {"repo=|repository=", "Specify the repository to use. Default: current directory.", o => tool.WorkingCopyOrRepo = o}
+                }
+            };
+            consoleSession.ArgumentList.AddRemainder("", tool.ArgumentList.Add);
+            consoleSession.Application += parentArgs;
+            var logger = consoleSession.Options.AddCollector(new SimpleConsoleLoggingPolicy { Verbosity = { Default = Level.Info } });
+
+            return consoleSession.Run(args, async () => {
+                using (LoggingPolicy.Register(consoleSession, logger))
+                {
+                    return await tool.Run();
+                }
+            });
         }
 
         class Impl
         {
-            private readonly Arguments arguments;
+            public RequestType RequestType { get; private set; }
+            public string Identifier { get; private set; }
 
-            public Impl(Arguments arguments)
+            public void Request(RequestType type, string identifier)
             {
-                this.arguments = arguments;
-
-                Log.Configure();
-                Log.SetConsoleVerbosity(arguments.Verbosity);
+                RequestType = type;
+                Identifier = identifier;
             }
+
+            public string WorkingCopyOrRepo { get; set; } = Environment.CurrentDirectory;
+            public IList<string> ArgumentList { get; } = new List<string>();
 
             public async Task<int> Run()
             {
-                TryInferArgumentsFromList(arguments);
+                TryInferArgumentsFromList();
 
-                var job = CreateJob(arguments);
+                var job = CreateJob();
 
                 var git = await new GitFinder().FromEnvironment();
                 var gitSession = new GitSession(git, new ConsoleInvocationLogger());
 
-                var gitRepository = GetGitRepository(arguments.WorkingCopyOrRepo);
+                var gitRepository = GetGitRepository(WorkingCopyOrRepo);
 
                 var builds = await job.ResolveCommits(gitSession, gitRepository);
 
@@ -101,32 +104,32 @@ namespace Bluewire.Tools.Runner.FindCommits
                 return originalBuilds.ToArray();
             }
 
-            private static void TryInferArgumentsFromList(Arguments arguments)
+            private void TryInferArgumentsFromList()
             {
-                if (!arguments.ArgumentList.Any()) return;
-                if (arguments.RequestType != RequestType.None)
+                if (!ArgumentList.Any()) return;
+                if (RequestType != RequestType.None)
                 {
-                    Log.Console.Warn($"Excess arguments detected: {String.Join(" ", arguments.ArgumentList)}");
+                    Log.Console.Warn($"Excess arguments detected: {String.Join(" ", ArgumentList)}");
                     return;
                 }
-                if (arguments.ArgumentList.Count > 1)
+                if (ArgumentList.Count > 1)
                 {
-                    Log.Console.Warn($"Excess arguments detected: {String.Join(" ", arguments.ArgumentList.Skip(1))}");
+                    Log.Console.Warn($"Excess arguments detected: {String.Join(" ", ArgumentList.Skip(1))}");
                     // Continue parsing the first argument.
                 }
 
-                var unqualifiedArgument = arguments.ArgumentList.First().Trim();
+                var unqualifiedArgument = ArgumentList.First().Trim();
 
-                arguments.Request(RequestType.SemanticVersion, unqualifiedArgument);
+                Request(RequestType.SemanticVersion, unqualifiedArgument);
             }
 
-            private static Builds.FindCommits.IBuildVersionResolutionJob CreateJob(Arguments arguments)
+            private Builds.FindCommits.IBuildVersionResolutionJob CreateJob()
             {
-                switch (arguments.RequestType)
+                switch (RequestType)
                 {
                     case RequestType.SemanticVersion:
-                        Log.Console.Debug($"Resolving commit from semantic version {arguments.Identifier}");
-                        return new Builds.FindCommits.ResolveCommitFromSemanticVersion(arguments.Identifier);
+                        Log.Console.Debug($"Resolving commit from semantic version {Identifier}");
+                        return new Builds.FindCommits.ResolveCommitFromSemanticVersion(Identifier);
                 }
                 throw new InvalidArgumentsException("Semantic version (--semver) must be specified.");
             }
@@ -142,34 +145,6 @@ namespace Bluewire.Tools.Runner.FindCommits
                     throw new InvalidArgumentsException(ex);
                 }
             }
-        }
-
-        public class Arguments : IVerbosityArgument, IArgumentList
-        {
-            private readonly IEnumerable<Level> logLevels = new List<Level> { Level.Warn, Level.Info, Level.Debug };
-            private int logLevel = 1;
-
-            public Level Verbosity => logLevels.ElementAtOrDefault(logLevel) ?? Level.All;
-
-            public void Verbose()
-            {
-                logLevel++;
-                LogInvocations = true;
-            }
-
-            public bool LogInvocations { get; private set; }
-
-            public RequestType RequestType { get; private set; }
-            public string Identifier { get; private set; }
-
-            public void Request(RequestType type, string identifier)
-            {
-                RequestType = type;
-                Identifier = identifier;
-            }
-
-            public string WorkingCopyOrRepo { get; set; } = Environment.CurrentDirectory;
-            public IList<string> ArgumentList { get; } = new List<string>();
         }
 
         public enum RequestType

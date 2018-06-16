@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Bluewire.Common.Console;
 using Bluewire.Common.Console.Logging;
-using Bluewire.Common.Console.ThirdParty;
-using Bluewire.Common.GitWrapper;
-using Bluewire.Conventions;
 using log4net.Core;
 
 namespace Bluewire.Tools.Runner.GenerateScripts
@@ -29,44 +25,48 @@ namespace Bluewire.Tools.Runner.GenerateScripts
             writer.WriteLine($"  {Name}: Generate invoker scripts for each known tool.");
         }
 
-        private static OptionSet CreateOptions(Arguments arguments)
-        {
-            return new OptionSet
-            {
-                {"d=|directory=", "Produce scripts in the specified directory. Default: same directory as this runner.", o => arguments.TargetDirectory = o },
-                {"r=|runner=", "Specify the path to the runner, relative to the directory which will contain the scripts.", o => arguments.RunnerPath = o }
-            };
-        }
-
         public int RunMain(string[] args, string parentArgs)
         {
-            var arguments = new Arguments();
-            var options = CreateOptions(arguments);
-            var sessionArgs = new SessionArguments<Arguments>(arguments, options);
-            sessionArgs.Application += parentArgs;
-            return new ConsoleSession<Arguments>(sessionArgs).Run(args, async a => await new Impl(a, toolNames).Run());
+            var tool = new Impl(toolNames);
+            var consoleSession = new ConsoleSession()
+            {
+                Options = {
+                    { "d=|directory=", "Produce scripts in the specified directory. Default: same directory as this runner.", o => tool.TargetDirectory = o },
+                    { "r=|runner=", "Specify the path to the runner, relative to the directory which will contain the scripts.", o => tool.RunnerPath = o }
+                }
+            };
+            consoleSession.Application += parentArgs;
+            var logger = consoleSession.Options.AddCollector(new SimpleConsoleLoggingPolicy { Verbosity = { Default = Level.Info } });
+
+            return consoleSession.Run(args, async () => {
+                using (LoggingPolicy.Register(consoleSession, logger))
+                {
+                    return await tool.Run();
+                }
+            });
         }
 
         class Impl
         {
-            private readonly Arguments arguments;
+            public string TargetDirectory { get; set; }
+            public string RunnerPath { get; set; }
+
             private readonly string[] toolNames;
 
-            public Impl(Arguments arguments, string[] toolNames)
+            public Impl(string[] toolNames)
             {
-                this.arguments = arguments;
                 this.toolNames = toolNames;
 
-                Log.Configure();
-                Log.SetConsoleVerbosity(arguments.Verbosity);
+                var applicationLocation = Environment.GetCommandLineArgs().FirstOrDefault();
+                TargetDirectory = applicationLocation == null ? AppDomain.CurrentDomain.BaseDirectory : Path.GetDirectoryName(applicationLocation);
             }
 
             public Task<int> Run()
             {
-                var targetDirectory = Path.GetFullPath(arguments.TargetDirectory);
+                var targetDirectory = Path.GetFullPath(TargetDirectory);
                 Log.Console.Debug($"Scripts will be produced in: {targetDirectory}");
 
-                var runnerInvocation = GetRunnerInvocation(targetDirectory, arguments.RunnerPath);
+                var runnerInvocation = GetRunnerInvocation(targetDirectory, RunnerPath);
                 var shellRunnerInvocation = ToLinuxPath(runnerInvocation);
                 Log.Console.Debug($"Using Linux runner invocation: {shellRunnerInvocation}");
 
@@ -148,28 +148,6 @@ namespace Bluewire.Tools.Runner.GenerateScripts
                 Log.Console.Debug("(Unverified)");
                 return runnerPath;
             }
-        }
-
-        public class Arguments : IVerbosityArgument
-        {
-            private readonly IEnumerable<Level> logLevels = new List<Level> { Level.Warn, Level.Info, Level.Debug };
-            private int logLevel = 1;
-
-            public Arguments()
-            {
-                var applicationLocation = Environment.GetCommandLineArgs().FirstOrDefault();
-                TargetDirectory = applicationLocation == null ? AppDomain.CurrentDomain.BaseDirectory : Path.GetDirectoryName(applicationLocation);
-            }
-
-            public Level Verbosity => logLevels.ElementAtOrDefault(logLevel) ?? Level.All;
-
-            public void Verbose()
-            {
-                logLevel++;
-            }
-
-            public string TargetDirectory { get; set; }
-            public string RunnerPath { get; set; }
         }
 
         public enum RequestType
