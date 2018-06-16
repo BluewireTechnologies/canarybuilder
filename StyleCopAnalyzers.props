@@ -3,6 +3,8 @@
   <PropertyGroup>
     <StyleCopAnalyzersRootPath>$(MSBuildThisFileDirectory)StyleCopAnalyzers\</StyleCopAnalyzersRootPath>
     <CodeAnalysisRuleSet>$(StyleCopAnalyzersRootPath)CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <StyleCopTreatErrorsAsWarnings>false</StyleCopTreatErrorsAsWarnings>
   </PropertyGroup>
 
   <!-- Enable stylecop analyzers for all non-release builds or a release build that's running a build in visual studio (i.e. Intellisense). -->
