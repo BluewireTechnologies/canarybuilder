@@ -22,7 +22,7 @@ namespace Bluewire.Common.GitWrapper
         public override void Explain(TextWriter writer)
         {
             writer.WriteLine(Message);
-            foreach(var detail in Details)
+            foreach (var detail in Details)
             {
                 detail.Explain(writer);
             }

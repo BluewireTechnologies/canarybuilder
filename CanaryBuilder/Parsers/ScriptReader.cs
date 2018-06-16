@@ -28,4 +28,3 @@ namespace CanaryBuilder.Parsers
         private const char COMMENT_MARKER = '#';
     }
 }
-

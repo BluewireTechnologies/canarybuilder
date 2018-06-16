@@ -9,4 +9,3 @@ namespace CanaryCollector
         Task<IEnumerable<Branch>> CollectBranches();
     }
 }
-

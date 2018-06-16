@@ -47,7 +47,7 @@ namespace RefCleaner.Collectors
             {
                 return new Ref(name);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 error.Explanations.Add(ex.Message);
                 return null;

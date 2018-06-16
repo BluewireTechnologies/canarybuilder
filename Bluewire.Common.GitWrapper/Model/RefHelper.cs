@@ -74,7 +74,7 @@ namespace Bluewire.Common.GitWrapper.Model
         {
             var parts = @ref.ToString().Split('/');
             var i = 0;
-            foreach(var prefix in prefixes)
+            foreach (var prefix in prefixes)
             {
                 if (parts[i] == prefix)
                 {

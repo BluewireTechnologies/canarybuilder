@@ -19,7 +19,7 @@ namespace RefCleaner.Collectors
         public async Task<IEnumerable<Ref>> CollectRefs()
         {
             var branches = await branchProvider.GetAllBranches();
-            foreach(var branch in branches)
+            foreach (var branch in branches)
             {
                 await ApplyFilters(branch);
             }
@@ -31,7 +31,7 @@ namespace RefCleaner.Collectors
 
         private async Task ApplyFilters(BranchDetails branch)
         {
-            foreach(var filter in filters)
+            foreach (var filter in filters)
             {
                 await filter.ApplyFilter(branch);
             }

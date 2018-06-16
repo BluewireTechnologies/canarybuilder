@@ -16,4 +16,3 @@ namespace CanaryBuilder.Merge
         public IWorkingCopyVerifier Verifier { get; set; }
     }
 }
-

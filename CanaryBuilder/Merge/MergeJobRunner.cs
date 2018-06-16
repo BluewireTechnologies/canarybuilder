@@ -159,7 +159,7 @@ namespace CanaryBuilder.Merge
                 logger.Info($"Cleanly merged {candidate.Ref}");
                 await AssertCleanWorkingCopy(session, workingCopy); // Sanity check only.
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 if (workingCopy.IsMerging)
                 {
@@ -182,7 +182,7 @@ namespace CanaryBuilder.Merge
 
                 await AssertCleanWorkingCopy(session, workingCopy);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.Warn($"Post-merge verification of {candidate.Ref} failed. It will be rolled back.", ex);
                 await session.ResetCompletelyClean(workingCopy, startingRef);

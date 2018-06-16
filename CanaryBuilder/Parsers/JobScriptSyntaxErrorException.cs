@@ -16,4 +16,3 @@ namespace CanaryBuilder.Parsers
         }
     }
 }
-

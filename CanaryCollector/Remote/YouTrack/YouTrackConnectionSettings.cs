@@ -27,4 +27,3 @@ namespace CanaryCollector.Remote.YouTrack
         public bool UseSSL { get; set; }
     }
 }
-
