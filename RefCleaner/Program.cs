@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Bluewire.Common.Console;
 using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.Console.Logging;
-using Bluewire.Common.Console.ThirdParty;
 using Bluewire.Common.GitWrapper.Model;
 using log4net.Core;
 
@@ -18,32 +16,33 @@ namespace RefCleaner
     {
         static int Main(string[] args)
         {
-            var arguments = new Arguments();
-            var options = new OptionSet
+            var program = new Program();
+            var session = new ConsoleSession
             {
-                { "repo=|repository=", "Use the specified repository as the source of tag and branch information.", o => arguments.RepositoryPath = o },
-                { "remote=", "Target the specified remote for cleanup", o => arguments.RemoteName = o },
-                // Not implemented:
-                { "aggressive", "Include all branches which are not identified as 'must keep', rather than just those marked 'discardable'.", o => arguments.Aggressive = true }
+                Options = {
+                    { "repo=|repository=", "Use the specified repository as the source of tag and branch information.", o => program.RepositoryPath = o },
+                    { "remote=", "Target the specified remote for cleanup", o => program.RemoteName = o },
+                    // Not implemented:
+                    { "aggressive", "Include all branches which are not identified as 'must keep', rather than just those marked 'discardable'.", o => program.Aggressive = true }
+                }
             };
+            var logger = session.Options.AddCollector(new SimpleConsoleLoggingPolicy { Verbosity = { Default = Level.Info } });
 
-            var session = new ConsoleSession<Arguments>(arguments, options);
-
-            return session.Run(args, async a => await new Program(a).Run());
+            return session.Run(args, async () => {
+                using (LoggingPolicy.Register(session, logger))
+                {
+                    return await program.Run();
+                }
+            });
         }
 
-        private readonly Arguments arguments;
-
-        private Program(Arguments arguments)
-        {
-            this.arguments = arguments;
-            Log.Configure();
-            Log.SetConsoleVerbosity(arguments.Verbosity);
-        }
+        public string RepositoryPath { get; set; }
+        public string RemoteName { get; set; }
+        public bool Aggressive { get; set; }
 
         private async Task<int> Run()
         {
-            var factory = new RefCollectorFactory(arguments.RepositoryPath, arguments.RemoteName, Log.Console.IsDebugEnabled ? new ConsoleInvocationLogger() : null);
+            var factory = new RefCollectorFactory(RepositoryPath, RemoteName, Log.Console.IsDebugEnabled ? new ConsoleInvocationLogger() : null);
 
             var collectors = new List<IRefCollector>
             {
@@ -63,23 +62,6 @@ namespace RefCleaner
             }
 
             return 0;
-        }
-
-        class Arguments : IVerbosityArgument
-        {
-            private readonly IEnumerable<Level> logLevels = new List<Level> { Level.Warn, Level.Info, Level.Debug };
-            private int logLevel = 1;
-
-            public Level Verbosity => logLevels.ElementAtOrDefault(logLevel) ?? Level.All;
-
-            public void Verbose()
-            {
-                logLevel++;
-            }
-
-            public string RepositoryPath { get; set; }
-            public string RemoteName { get; set; }
-            public bool Aggressive { get; set; }
         }
 
         class ConsoleInvocationLogger : IConsoleInvocationLogger

@@ -31,9 +31,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Bluewire.Common.Console.Client, Version=9.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Bluewire.Common.Console.Client.9.1.0\lib\net45\Bluewire.Common.Console.Client.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Bluewire.Common.Console.Client, Version=9.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Bluewire.Common.Console.Client.9.1.1\lib\net45\Bluewire.Common.Console.Client.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

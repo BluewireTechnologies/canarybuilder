@@ -6,4 +6,3 @@ namespace CanaryCollector.Model
         public IssueTicket Ticket { get; set; }
     }
 }
-

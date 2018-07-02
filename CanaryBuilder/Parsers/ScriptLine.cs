@@ -6,4 +6,3 @@ namespace CanaryBuilder.Parsers
         public string Content { get; set; }
     }
 }
-

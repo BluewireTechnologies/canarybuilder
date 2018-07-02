@@ -10,4 +10,3 @@ namespace CanaryCollector.Collectors
         Task<IssueTicket[]> GetTicketsWithTag(string tagName);
     }
 }
-

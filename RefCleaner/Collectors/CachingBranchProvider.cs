@@ -35,12 +35,12 @@ namespace RefCleaner.Collectors
         private async Task<T> GetOrAdd<T>(Dictionary<Ref, T> cache, Ref subject, Func<Task<T>> fetch)
         {
             T result;
-            lock(cache)
+            lock (cache)
             {
                 if (cache.TryGetValue(subject, out result)) return result;
             }
             var fetched = await fetch();
-            lock(cache)
+            lock (cache)
             {
                 if (cache.TryGetValue(subject, out result)) return result;
                 cache[subject] = fetched;

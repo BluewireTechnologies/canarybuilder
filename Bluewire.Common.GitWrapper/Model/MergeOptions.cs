@@ -5,4 +5,3 @@
         public MergeFastForward FastForward { get; set; }
     }
 }
-
