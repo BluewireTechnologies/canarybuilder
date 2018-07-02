@@ -18,11 +18,17 @@ namespace CanaryCollector.Remote.Jira
             this.jira = jira;
         }
 
-        public Task<IssueTicket[]> GetTicketsPendingMerge()
+        public async Task<IssueTicket[]> GetTicketsPendingMerge()
         {
-            var issues = jira.Issues.Queryable.Where(t => t.Status == "pending review" || t.Status == "test").Take(500);
-            return Task.FromResult(issues.Select(ReadTicket).ToArray());
+            var linearWorkflowIssues = GetLinearWorkflowIssues().Take(500).ToArray();
+            var pullRequests = GetIncompletePullRequests().Take(500).ToArray();
+            var pullRequestParents = await jira.Issues.GetIssuesAsync(pullRequests.Select(s => s.ParentIssueKey).Distinct());
+
+            return linearWorkflowIssues.Concat(pullRequestParents.Values).Select(ReadTicket).ToArray();
         }
+
+        private IQueryable<Issue> GetLinearWorkflowIssues() => jira.Issues.Queryable.Where(t => t.Status == "pending review" || t.Status == "test");
+        private IQueryable<Issue> GetIncompletePullRequests() => jira.Issues.Queryable.Where(s => s.Type == "pull request").Where(s => s.Resolution == null);
 
         public async Task<IssueTicket[]> GetTicketsWithTag(string tagName)
         {
