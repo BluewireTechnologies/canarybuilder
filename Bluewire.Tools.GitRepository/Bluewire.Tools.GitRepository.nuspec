@@ -27,6 +27,7 @@
 	
     <dependencies>
       <!-- Ignore, all referenced NuGet packages will be added here at compile time -->
+      <dependency id="Bluewire.Common.GitWrapper" version="2.1.2" />
     </dependencies>
 
     <frameworkAssemblies>
