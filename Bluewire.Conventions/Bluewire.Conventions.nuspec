@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>Bluewire.Tools.GitRepository</id>
+    <id>Bluewire.Conventions</id>
 
 	<!-- When empty, this will be set at compile time to the [assembly:AssemblyProduct("")] attribute value -->
     <title></title>
@@ -18,7 +18,7 @@
 	
 	<!-- When empty, this will be set at compile time to the [assembly:AssemblyTitle("")] attribute value -->
     <description></description>
-
+    
 	<!-- Set this to false if you don't need to support a license -->
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
 
@@ -27,7 +27,6 @@
 	
     <dependencies>
       <!-- Ignore, all referenced NuGet packages will be added here at compile time -->
-      <dependency id="Bluewire.Common.GitWrapper" version="2.1.2" />
     </dependencies>
 
     <frameworkAssemblies>
@@ -38,7 +37,7 @@
   <files>
 	<!-- This will automatically add the binary output of this project at compile time.
 	It will inject a file element like the following:		
-    <file src="**\Bluewire.Tools.GitRepository.*" target="lib/[targetFramework]" exclude="Bluewire.Tools.GitRepository.*.CodeAnalysisLog.xml;Bluewire.Tools.GitRepository.*.lastcodeanalysissucceeded;*Test*.*" />
+    <file src="**\Bluewire.Conventions.*" target="lib/[targetFramework]" exclude="Bluewire.Conventions.*.CodeAnalysisLog.xml;Bluewire.Conventions.*.lastcodeanalysissucceeded;*Test*.*" />
 	The targetFramework value will be determined by the target framework of the project
 	-->
 
