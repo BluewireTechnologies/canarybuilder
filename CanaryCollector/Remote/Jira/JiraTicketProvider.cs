@@ -22,7 +22,7 @@ namespace CanaryCollector.Remote.Jira
         {
             var linearWorkflowIssues = GetLinearWorkflowIssues().Take(500).ToArray();
             var pullRequests = GetIncompletePullRequests().Take(500).ToArray();
-            var pullRequestParents = await jira.Issues.GetIssuesAsync(pullRequests.Select(s => s.ParentIssueKey).Distinct());
+            var pullRequestParents = await jira.Issues.GetIssuesAsync(pullRequests.Select(s => s.ParentIssueKey).Where(k => !String.IsNullOrWhiteSpace(k)).Distinct());
 
             return linearWorkflowIssues.Concat(pullRequestParents.Values).Select(ReadTicket).ToArray();
         }
