@@ -33,6 +33,10 @@ namespace RefCleaner.Collectors
             {
                 details.UpdateDisposition(BranchDisposition.MustKeep);
             }
+            if (structured.Namespace.Split('/').Contains("backport", StringComparer.OrdinalIgnoreCase))
+            {
+                details.UpdateDisposition(BranchDisposition.MustKeep);
+            }
         }
     }
 }
