@@ -40,6 +40,7 @@ namespace CanaryCollector.Remote.Jira
         private static IssueTicketType ConvertType(IssueType type)
         {
             if (comparer.Equals(type.Name, "bug")) return IssueTicketType.Bug;
+            if (comparer.Equals(type.Name, "problem")) return IssueTicketType.Bug;
             if (comparer.Equals(type.Name, "usability problem")) return IssueTicketType.UsabilityProblem;
             if (comparer.Equals(type.Name, "feature")) return IssueTicketType.Feature;
             if (comparer.Equals(type.Name, "technical debt")) return IssueTicketType.TechnicalDebt;
