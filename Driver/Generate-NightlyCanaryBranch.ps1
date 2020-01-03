@@ -8,6 +8,8 @@ param(
     [string]$baseBranch = "master" # Only master is currently supported
 )
 
+$ownDirectory = $(Split-Path -Path $MyInvocation.MyCommand.Definition -Parent);
+
 if($createBranch -eq "master")
 {
     "Cannot overwrite the 'master' branch.";
@@ -23,24 +25,34 @@ if($createBranch -like "feature/*" -or
     exit 2;
 }
 
-$visualStudio2017Root = $(.\vswhere -products "*" -version "15" -requires Microsoft.Component.MSBuild -property installationPath);
-if (!$visualStudio2017Root -or -not (Test-Path "${visualStudio2017Root}"))
-{
-    "Cannot find Visual Studio 2017 environment.";
-    exit 3;
+function Enumerate-MSBuilds() {
+
+    function Find-MSBuild($path) {
+        Get-ChildItem "$path" -include "MSbuild.exe" -recurse
+    }
+
+    $possiblePaths = @(& "${ownDirectory}\vswhere.exe" -products "*" -requires Microsoft.Component.MSBuild -property installationPath);
+
+    foreach ($path in $possiblePaths) {
+        Find-MSBuild "${path}\MSBuild\*\Bin\amd64\MSBuild.exe"
+        Find-MSBuild "${path}\MSBuild\*\Bin\MSBuild.exe"
+    }
 }
-$msbuild15 = "${visualStudio2017Root}\MSBuild\15.0\Bin\amd64\MSBuild.exe";
-if (-not (Test-Path "${msbuild15}"))
+
+$msbuild = $(Enumerate-MSBuilds | select-object -first 1);
+if (!$msbuild)
 {
-    $msbuild15 = "${visualStudio2017Root}\MSBuild\15.0\Bin\MSBuild.exe";
-}
-if (-not (Test-Path "${msbuild15}"))
-{
-    "Cannot find MSBuild 15 executable at ${msbuild15}";
+    "Cannot find MSBuild executable.";
     exit 3;
 }
 
-$verifierCommand = "`"${msbuild15}`" /v:minimal VerifyCanary.Task.proj";
+if (-not (Test-Path "${msbuild}"))
+{
+    "Cannot find MSBuild executable at ${msbuild}";
+    exit 3;
+}
+
+$verifierCommand = "`"${msbuild}`" /v:minimal VerifyCanary.Task.proj";
 $datestamp = $(Get-Date).ToString("yyyyMMdd-HHmm");
 
 function Run-Git()
