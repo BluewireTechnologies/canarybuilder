@@ -95,12 +95,12 @@
   <ItemGroup>
     <Compile Include="FindBuild\BuildVersionFinder.cs" />
     <Compile Include="FindBuild\IntegrationPoint.cs" />
+    <Compile Include="Shared\RepositoryStructureException.cs" />
+    <Compile Include="Shared\RepositoryStructureInspector.cs" />
     <Compile Include="FindBuild\ResolveBuildVersionsFromGitHubPullRequest.cs" />
     <Compile Include="FindBuild\ResolveBuildVersionsFromTicketIdentifier.cs" />
     <Compile Include="FindBuild\TargetBranchResolver.cs" />
     <Compile Include="FindBuild\IBuildVersionResolutionJob.cs" />
-    <Compile Include="FindBuild\RepositoryStructureException.cs" />
-    <Compile Include="FindBuild\RepositoryStructureInspector.cs" />
     <Compile Include="FindBuild\ResolveBuildVersionsFromCommit.cs" />
     <Compile Include="FindTickets\ITicketsResolutionJob.cs" />
     <Compile Include="FindTickets\ResolveTicketsFromSemanticVersions.cs" />

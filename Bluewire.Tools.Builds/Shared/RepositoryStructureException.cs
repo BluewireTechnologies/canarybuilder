@@ -1,6 +1,6 @@
 using System;
 
-namespace Bluewire.Tools.Builds.FindBuild
+namespace Bluewire.Tools.Builds.Shared
 {
     public class RepositoryStructureException : ApplicationException
     {

@@ -6,6 +6,8 @@ using Bluewire.Tools.GitRepository;
 using System.Collections.Generic;
 using Bluewire.Tools.Builds.Shared;
 using System;
+using System.Linq;
+using Bluewire.Tools.Builds.FindBuild;
 
 namespace Bluewire.Tools.Builds.FindCommits
 {
@@ -67,30 +69,16 @@ namespace Bluewire.Tools.Builds.FindCommits
             var branchSemantics = new BranchSemantics();
 
             var startBranchName = new Ref(branchSemantics.GetVersionZeroBranchName(semVer));
-            var endLocalBranchName = branchSemantics.GetVersionLatestBranchName(semVer);
-            if (string.IsNullOrEmpty(endLocalBranchName) || string.IsNullOrEmpty(startBranchName)) return null;
+            if (string.IsNullOrEmpty(startBranchName)) return null;
 
             var startRef = new Ref(startBranchName);
-            var endRef = await GetEndRef(session, repository, semVer, endLocalBranchName);
+            var endRef = await new RepositoryStructureInspector(session).ResolveTagOrTipOfBranchForVersion(repository, semVer);
 
             // It's less likely that the end ref will exist
-            if (!await session.RefExists(repository, endRef)) return null;
+            if (endRef == null) return null;
             if (!await session.RefExists(repository, startRef)) return null;
 
             return await resolver.FindCommit(repository, startRef, endRef, semVer.Build);
-        }
-
-        private static async Task<Ref> GetEndRef(GitSession session, IGitFilesystemContext repository, SemanticVersion semVer, string endLocalBranchName)
-        {
-            if (endLocalBranchName == "master")
-            {
-                var maintTag = new Ref($"tags/maint/{semVer.Major}.{semVer.Minor}");
-                if (await session.TagExists(repository, maintTag))
-                {
-                    return RefHelper.GetRemoteRef(new Ref(maintTag));
-                }
-            }
-            return RefHelper.GetRemoteRef(new Ref(endLocalBranchName));
         }
     }
 }

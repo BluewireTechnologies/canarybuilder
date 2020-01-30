@@ -9,6 +9,7 @@ using Bluewire.Common.GitWrapper;
 using log4net.Core;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
+using Bluewire.Tools.Builds.FindBuild;
 using Bluewire.Tools.Builds.Shared;
 
 namespace Bluewire.Tools.Runner.FindTickets
@@ -41,12 +42,12 @@ namespace Bluewire.Tools.Runner.FindTickets
             return consoleSession.Run(args, async () => {
                 using (LoggingPolicy.Register(consoleSession, logger))
                 {
-                    return await tool.Run();
+                    return await tool.Run(Console.Out);
                 }
             });
         }
 
-        class Impl
+        internal class Impl
         {
             public string StartSemanticVersion { get; set; }
             public string EndSemanticVersion { get; set; }
@@ -54,7 +55,7 @@ namespace Bluewire.Tools.Runner.FindTickets
             public string WorkingCopyOrRepo { get; set; } = Environment.CurrentDirectory;
             public IList<string> ArgumentList { get; } = new List<string>();
 
-            public async Task<int> Run()
+            public async Task<int> Run(TextWriter writer)
             {
                 TryInferArgumentsFromList();
 
@@ -95,22 +96,22 @@ namespace Bluewire.Tools.Runner.FindTickets
                 }
                 else
                 {
-                    var endCommit = await FindEndCommitFromStartBuild(gitSession, gitRepository, startBuild.SemanticVersion);
+                    var endCommit = await new RepositoryStructureInspector(gitSession).ResolveTagOrTipOfBranchForVersion(gitRepository, startBuild.SemanticVersion);
                     endBuild = new Build() { Commit = endCommit, SemanticVersion = null };
                 }
 
                 Log.Console.Debug($"Finding tickets between semantic version {startBuild.SemanticVersion} and {endBuild.SemanticVersion?.ToString() ?? endBuild.Commit}");
                 var job = new Builds.FindTickets.ResolveTicketsBetweenRefs(startBuild.Commit, endBuild.Commit);
                 var tickets = await job.ResolveTickets(gitSession, gitRepository);
-                RenderTickets(tickets);
+                RenderTickets(tickets, writer);
                 return 0;
             }
 
-            private static void RenderTickets(string[] tickets)
+            private static void RenderTickets(string[] tickets, TextWriter writer)
             {
                 foreach (var ticket in tickets)
                 {
-                    Console.WriteLine(ticket);
+                    writer.WriteLine(ticket);
                 }
             }
 
@@ -125,21 +126,6 @@ namespace Bluewire.Tools.Runner.FindTickets
 
                 StartSemanticVersion = ArgumentList.First().Trim();
                 EndSemanticVersion = ArgumentList.ElementAtOrDefault(1)?.Trim();
-            }
-
-            private async Task<Ref> FindEndCommitFromStartBuild(GitSession session, Common.GitWrapper.GitRepository repository, SemanticVersion startSemanticVersion)
-            {
-                    var branchSemantics = new BranchSemantics();
-                    var refName = branchSemantics.GetVersionLatestBranchName(startSemanticVersion);
-                    if (refName == "master")
-                    {
-                        var maintTag = new Ref($"tags/maint/{startSemanticVersion.Major}.{startSemanticVersion.Minor}");
-                        if (await session.TagExists(repository, maintTag))
-                        {
-                            return maintTag;
-                        }
-                    }
-                    return RefHelper.GetRemoteRef(new Ref(refName));
             }
 
             private static Common.GitWrapper.GitRepository GetGitRepository(string path)

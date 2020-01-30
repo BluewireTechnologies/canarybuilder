@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
+using Bluewire.Tools.Builds.Shared;
 
 namespace Bluewire.Tools.Builds.FindBuild
 {
