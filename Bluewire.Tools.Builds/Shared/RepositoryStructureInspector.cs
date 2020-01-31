@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
+using Bluewire.Tools.Builds.FindBuild;
 using Bluewire.Tools.GitRepository;
 
-namespace Bluewire.Tools.Builds.FindBuild
+namespace Bluewire.Tools.Builds.Shared
 {
     public class RepositoryStructureInspector
     {
@@ -73,6 +74,33 @@ namespace Bluewire.Tools.Builds.FindBuild
         {
             var versionNumber = await GetActiveVersionNumber(repository, commit);
             return await ResolveBaseTagForVersion(repository, versionNumber);
+        }
+
+        public async Task<Ref> ResolveTagOrTipOfBranchForVersion(IGitFilesystemContext repository, SemanticVersion semanticVersion)
+        {
+            var branchSemantics = new BranchSemantics();
+            var endLocalBranchNames = branchSemantics.GetVersionLatestBranchNames(semanticVersion);
+            foreach (var endLocalBranchName in endLocalBranchNames)
+            {
+                var endRef = await GetEndRef(endLocalBranchName);
+                if (await gitSession.RefExists(repository, endRef)) return endRef;
+            }
+            return null;
+
+            async Task<Ref> GetEndRef(string endLocalBranchName)
+            {
+                if (endLocalBranchName == "master")
+                {
+                    // This is only applicable for versions which predate the use of backport/* branches, where the
+                    // beta version terminates at maint/*.
+                    var maintTag = new Ref($"tags/maint/{semanticVersion.Major}.{semanticVersion.Minor}");
+                    if (await gitSession.TagExists(repository, maintTag))
+                    {
+                        return RefHelper.GetRemoteRef(new Ref(maintTag));
+                    }
+                }
+                return RefHelper.GetRemoteRef(new Ref(endLocalBranchName));
+            }
         }
 
         public async Task<IntegrationQueryResult[]> QueryIntegrationPoints(Common.GitWrapper.GitRepository repository, Ref subject, StructuredBranch[] targetBranches)

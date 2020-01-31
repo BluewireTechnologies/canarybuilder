@@ -81,6 +81,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyAttributes.cs" />
     <Compile Include="ConsoleInvocationLogger.cs" />
     <Compile Include="FindBuild\ToolRunner.cs" />
     <Compile Include="FindTickets\ToolRunner.cs" />
