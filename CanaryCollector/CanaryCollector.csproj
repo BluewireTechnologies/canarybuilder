@@ -21,17 +21,11 @@
     <PackageReference Include="Bluewire.Common.Console.Client">
       <Version>9.1.1</Version>
     </PackageReference>
-    <PackageReference Include="EasyHttp">
-      <Version>1.6.86</Version>
-    </PackageReference>
     <PackageReference Include="JsonFx">
       <Version>2.0.1209.2802</Version>
     </PackageReference>
     <PackageReference Include="log4net">
       <Version>2.0.8</Version>
-    </PackageReference>
-    <PackageReference Include="YouTrackSharp">
-      <Version>2.0.30</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="..\StyleCopAnalyzers.props" />
