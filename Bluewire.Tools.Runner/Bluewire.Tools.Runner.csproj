@@ -1,86 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{07FD50C6-7569-49DB-9926-127E2E7F4339}</ProjectGuid>
+    <TargetFramework>net45</TargetFramework>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Bluewire.Tools.Runner</RootNamespace>
-    <AssemblyName>Bluewire.Tools.Runner</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>Bluewire.Tools.Runner.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.configuration" />
-    <Reference Include="System.Configuration.Install" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.ServiceProcess" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <None Remove="*.ncrunchproject" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyAttributes.cs" />
-    <Compile Include="ConsoleInvocationLogger.cs" />
-    <Compile Include="FindBuild\ToolRunner.cs" />
-    <Compile Include="FindTickets\ToolRunner.cs" />
-    <Compile Include="FindCommits\ToolRunner.cs" />
-    <Compile Include="GenerateScripts\ToolRunner.cs" />
-    <Compile Include="IToolRunner.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj">
-      <Project>{815563f8-0af9-4e56-9160-a26cdd1db163}</Project>
-      <Name>Bluewire.Common.GitWrapper</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Bluewire.Conventions\Bluewire.Conventions.csproj">
-      <Project>{7fd6a3ba-5b0c-4ec5-bc18-d1cea058b7e9}</Project>
-      <Name>Bluewire.Conventions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Bluewire.Tools.Builds\Bluewire.Tools.Builds.csproj">
-      <Project>{0af75344-ac58-442b-a096-54deb7abc8f4}</Project>
-      <Name>Bluewire.Tools.Builds</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Bluewire.Tools.GitRepository\Bluewire.Tools.GitRepository.csproj">
-      <Project>{f9238a4e-6ead-4e8a-84b5-5f7400b1a065}</Project>
-      <Name>Bluewire.Tools.GitRepository</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj" />
+    <ProjectReference Include="..\Bluewire.Conventions\Bluewire.Conventions.csproj" />
+    <ProjectReference Include="..\Bluewire.Tools.Builds\Bluewire.Tools.Builds.csproj" />
+    <ProjectReference Include="..\Bluewire.Tools.GitRepository\Bluewire.Tools.GitRepository.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Bluewire.Common.Console">
@@ -94,12 +25,4 @@
     </PackageReference>
   </ItemGroup>
   <Import Project="..\StyleCopAnalyzers.props" />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

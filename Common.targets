@@ -8,6 +8,7 @@
     -->
     <ItemGroup>
         <NUnitPaths Include="packages\Nunit*\tools\nunit3-console.exe" />
+        <NUnitPaths Include="packages\Nunit*\*\tools\nunit3-console.exe" />
     </ItemGroup>
     <FindInList List="@(NUnitPaths)" FindLastMatch="true" ItemSpecToFind="%(NUnitPaths.Identity)" >
         <Output TaskParameter="ItemFound" PropertyName="NUnitRunnerPath"/>
@@ -34,6 +35,7 @@
         <DotCoverPaths Condition="'$(agent_home_dir)' != ''" Include="$(agent_home_dir)\tools\**\dotCover.exe" />
         <DotCoverPaths Include="$(LOCALAPPDATA)\JetBrains\Installations\**\dotCover.exe" />
         <DotCoverPaths Include="packages\JetBrains.dotCover.CommandLineTools*\tools\dotCover.exe" />
+        <DotCoverPaths Include="packages\JetBrains.dotCover.CommandLineTools\*\tools\dotCover.exe" />
     </ItemGroup>
     <ItemGroup>
         <DotCoverDirectories Include="@(DotCoverPaths->'%(RootDir)%(Directory)')" />
@@ -53,7 +55,7 @@
   </Target>
 
   <Target Name="BuildNUnitTestAssemblies" Condition="'@(NUnitProjects)' != ''">
-    <MSBuild Projects="@(NUnitProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration)" >
+    <MSBuild Projects="@(NUnitProjects)" Targets="DispatchToInnerBuilds" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="@(_BuildProperties);InnerTargets=Build" >
         <Output TaskParameter="TargetOutputs" ItemName="NUnitProjectAssemblies" />
     </MSBuild>
     <Error Condition="'@(NUnitProjectAssemblies)' == ''" Text="NUnit projects were found, but the build produced no assemblies." />
@@ -81,7 +83,7 @@
     <Message Text="Coverage tool: $(CoverageToolName)" />
   </Target>
 
-  <Target Name="RunNUnitTests" DependsOnTargets="_SelectCoverageTool;RunNUnitTestsOnly;RunNUnitTestsWithDotCover">
+  <Target Name="RunNUnitTests" Condition="'@(NUnitProjects)' != ''" DependsOnTargets="_SelectCoverageTool;RunNUnitTestsOnly;RunNUnitTestsWithDotCover">
   </Target>
 
   <Target Name="RunNUnitTestsOnly" Condition="'$(CoverageToolName)' == '*NONE*'" DependsOnTargets="_RunNUnitTestsOnly">
@@ -131,101 +133,23 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="PrepareNuGetPack">
+  <Target Name="PrepareBuildProperties">
     <ItemGroup>
-      <_MSBuildNuGetPackVersion1 Include="packages\MsBuild.NuGet.Pack.1.*\*.nupkg" />
+      <_BuildProperties Include="VersionSuffix=$(SemanticTag)" />
+      <_BuildProperties Include="PackageOutputPath=$(OutputDirectory)" />
+      <_BuildProperties Include="IncludeSymbols=true" />
     </ItemGroup>
-
+    
     <ItemGroup>
-        <BuildAndPackageProperties Include="RunNuGetPack=true" />
-        <BuildAndPackageProperties Include="IncludeBuildVersion=true" />
-        <BuildAndPackageProperties Include="NugetPackageTargetDir=$(OutputDirectory)" Condition="'@(_MSBuildNuGetPackVersion1)' != ''" />
-        <BuildAndPackageProperties Include="NugetPackageOutDir=$(OutputDirectory)" />
-    </ItemGroup>
-  </Target>
-
-  <!-- BEGIN Versioning targets -->
-
-  <Target Name="_CollectAssemblyInfos" >
-    <ItemGroup>
-        <_AllProjects Include="$(MSBuildProjectDirectory)\**\*.csproj" />
-    </ItemGroup>
-
-    <CreateItem Include="@(_AllProjects->'%(RootDir)%(Directory)**\AssemblyInfo.cs')">
-        <Output TaskParameter="Include" ItemName="_AllAssemblyInfos" />
-    </CreateItem>
-    <CreateItem Include="@(SemVerProjects->'%(RootDir)%(Directory)**\AssemblyInfo.cs')">
-        <Output TaskParameter="Include" ItemName="_SemVerAssemblyInfos" />
-    </CreateItem>
-
-    <ItemGroup>
-        <_AutoVersionedAssemblyInfos Include="@(_AllAssemblyInfos)" Exclude="@(_SemVerAssemblyInfos)" />
+      <NugetProjects UndefineProperties="Version" />
+      <NugetProjects Condition="'%(NugetProjects.UseSemVer)' != 'true'" AdditionalProperties="VersionPrefix=$(Version)" />
+      
+      <OctoPackProjects UndefineProperties="Version" />
+      <OctoPackProjects Condition="'%(OctoPackProjects.UseSemVer)' != 'true'" AdditionalProperties="VersionPrefix=$(Version)" />
+      
+      <OutputBinaryProjects UndefineProperties="Version" />
+      <OutputBinaryProjects Condition="'%(OutputBinaryProjects.UseSemVer)' != 'true'" AdditionalProperties="VersionPrefix=$(Version)" />
     </ItemGroup>
   </Target>
-
-  <Target Name="ApplyAutoVersionNumber" Condition="'$(Version)'!=''" Inputs="@(_AutoVersionedAssemblyInfos)" Outputs="%(Identity).skip" DependsOnTargets="_CollectAssemblyInfos">
-    <PropertyGroup>
-        <_AssemblyInformationalVersion Condition="'$(SemanticTag)' != ''">$(Version)-$(SemanticTag)</_AssemblyInformationalVersion>
-        <_AssemblyInformationalVersion Condition="'$(SemanticTag)' == ''">$(Version)</_AssemblyInformationalVersion>
-    </PropertyGroup>
-    <Message Text="%(_AutoVersionedAssemblyInfos.Identity):" />
-    <Message Text="     AssemblyVersion: $(Version)" />
-    <Message Text="     AssemblyFileVersion: $(Version)" />
-    <Message Text="     AssemblyInformationalVersion: $(_AssemblyInformationalVersion)" />
-
-    <AssemblyInfo FileName="%(_AutoVersionedAssemblyInfos.Identity)"
-        AssemblyVersion="$(Version)"
-        AssemblyFileVersion="$(Version)"
-        AssemblyInformationalVersion="$(_AssemblyInformationalVersion)"
-        />
-  </Target>
-
-  <Target Name="ApplySemanticVersionNumber" Inputs="@(_SemVerAssemblyInfos)" Outputs="%(Identity).skip" DependsOnTargets="_CollectAssemblyInfos">
-    <AssemblyInfo FileName="%(_SemVerAssemblyInfos.Identity)">
-        <Output TaskParameter="AssemblyFileVersion" PropertyName="_ExistingAssemblyFileVersion" />
-    </AssemblyInfo>
-    <PropertyGroup>
-        <_AssemblyInformationalVersion Condition="'$(SemanticTag)' != ''">$(_ExistingAssemblyFileVersion)-$(SemanticTag)</_AssemblyInformationalVersion>
-        <_AssemblyInformationalVersion Condition="'$(SemanticTag)' == ''">$(_ExistingAssemblyFileVersion)</_AssemblyInformationalVersion>
-        <_AssemblyInformationalVersion Condition="'$(_ExistingAssemblyFileVersion)' == ''"></_AssemblyInformationalVersion>
-    </PropertyGroup>
-
-    <Message Text="%(_SemVerAssemblyInfos.Identity):" />
-    <Warning Text="     AssemblyFileVersion could not be found" Condition="'$(_AssemblyInformationalVersion)' == ''" />
-
-    <Message Text="     AssemblyInformationalVersion: $(_AssemblyInformationalVersion)" Condition="'$(_AssemblyInformationalVersion)' != ''" />
-
-    <AssemblyInfo FileName="%(_SemVerAssemblyInfos.Identity)"
-        AssemblyInformationalVersion="$(_AssemblyInformationalVersion)"
-        />
-  </Target>
-
-  <UsingTask TaskName="AssemblyInfo" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" Condition="'$(MSBuildToolsVersion)' &lt; '15'">
-    <ParameterGroup>
-      <FileName ParameterType="System.String" Required="true" />
-      <AssemblyVersion ParameterType="System.String" Required="false" Output="true" />
-      <AssemblyFileVersion ParameterType="System.String" Required="false" Output="true" />
-      <AssemblyInformationalVersion ParameterType="System.String" Required="false" Output="true" />
-    </ParameterGroup>
-    <Task>
-      <Reference Include="$(MSBuildBinPath)\Microsoft.Build.Framework.dll"/>
-      <Reference Include="$(MSBuildBinPath)\Microsoft.Build.Utilities.Core.dll"/>
-      <Code Type="Class" Language="cs" Source="AssemblyInfo.CodeTask.cs" />
-    </Task>
-  </UsingTask>
-
-  <UsingTask TaskName="AssemblyInfo" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" Condition="'$(MSBuildToolsVersion)' &gt;= '15'">
-    <ParameterGroup>
-      <FileName ParameterType="System.String" Required="true" />
-      <AssemblyVersion ParameterType="System.String" Required="false" Output="true" />
-      <AssemblyFileVersion ParameterType="System.String" Required="false" Output="true" />
-      <AssemblyInformationalVersion ParameterType="System.String" Required="false" Output="true" />
-    </ParameterGroup>
-    <Task>
-      <Code Type="Class" Language="cs" Source="AssemblyInfo.CodeTask.cs" />
-    </Task>
-  </UsingTask>
-
-  <!-- END Versioning targets -->
 
 </Project>

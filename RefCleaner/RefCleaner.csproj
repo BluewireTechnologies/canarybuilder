@@ -1,86 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A8A322E2-DEDB-4746-AFA7-45F3615C952C}</ProjectGuid>
+    <TargetFramework>net46</TargetFramework>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>RefCleaner</RootNamespace>
-    <AssemblyName>RefCleaner</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.configuration" />
-    <Reference Include="System.Configuration.Install" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.ServiceProcess" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <None Remove="*.ncrunchproject" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Collectors\BranchDetails.cs" />
-    <Compile Include="Collectors\BranchDetailsParser.cs" />
-    <Compile Include="Collectors\BranchDisposition.cs" />
-    <Compile Include="Collectors\KeepAllPersonalBranches.cs" />
-    <Compile Include="Collectors\RemoteBranchProvider.cs" />
-    <Compile Include="Collectors\CachingBranchProvider.cs" />
-    <Compile Include="Collectors\DatestampedTagCollector.cs" />
-    <Compile Include="Collectors\FilteredBranchCollector.cs" />
-    <Compile Include="Collectors\IBranchProvider.cs" />
-    <Compile Include="Collectors\LocalBranchProvider.cs" />
-    <Compile Include="Collectors\MergedBranchTester.cs" />
-    <Compile Include="IRefCollector.cs" />
-    <Compile Include="IRefFilter.cs" />
-    <Compile Include="Collectors\KeepAllReleaseBranches.cs" />
-    <Compile Include="Collectors\KeepRecentBranches.cs" />
-    <Compile Include="Collectors\DiscardMergedBranches.cs" />
-    <Compile Include="RefCollectorFactory.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj">
-      <Project>{815563f8-0af9-4e56-9160-a26cdd1db163}</Project>
-      <Name>Bluewire.Common.GitWrapper</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Bluewire.Conventions\Bluewire.Conventions.csproj">
-      <Project>{7FD6A3BA-5B0C-4EC5-BC18-D1CEA058B7E9}</Project>
-      <Name>Bluewire.Conventions</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj" />
+    <ProjectReference Include="..\Bluewire.Conventions\Bluewire.Conventions.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Bluewire.Common.Console">
@@ -94,12 +23,4 @@
     </PackageReference>
   </ItemGroup>
   <Import Project="..\StyleCopAnalyzers.props" />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

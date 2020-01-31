@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <ItemGroup>
-        <SemVerProjects Include="Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj" />
-        <SemVerProjects Include="Bluewire.Conventions\Bluewire.Conventions.csproj" />
-    
         <!-- Full list of NuGet package projects -->
-        <NugetProjects Include="Bluewire.Tools.GitRepository\Bluewire.Tools.GitRepository.csproj" />
-        <NugetProjects Include="Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj" />
-        <NugetProjects Include="Bluewire.Tools.Builds\Bluewire.Tools.Builds.csproj" />
-        <NugetProjects Include="Bluewire.Conventions\Bluewire.Conventions.csproj" />
+        <NugetProjects Include="Bluewire.Tools.GitRepository\Bluewire.Tools.GitRepository.csproj">
+            <UseSemVer>True</UseSemVer>
+        </NugetProjects>
+        <NugetProjects Include="Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj">
+            <UseSemVer>True</UseSemVer>
+        </NugetProjects>
+        <NugetProjects Include="Bluewire.Tools.Builds\Bluewire.Tools.Builds.csproj">
+            <UseSemVer>True</UseSemVer>
+        </NugetProjects>
+        <NugetProjects Include="Bluewire.Conventions\Bluewire.Conventions.csproj">
+            <UseSemVer>True</UseSemVer>
+        </NugetProjects>
 
         <!-- Full list of NUnit test projects -->
         <NUnitProjects Include="**\*Tests.csproj" />
@@ -20,4 +25,7 @@
         <OutputBinaryProjects Include="Bluewire.Tools.Runner\Bluewire.Tools.Runner.csproj" />
         <OutputBinaryProjects Include="RefCleaner\RefCleaner.csproj" />
     </ItemGroup>
+    <PropertyGroup>
+        <DotCoverConfigurationFile>DotCover.coverage.xml</DotCoverConfigurationFile>
+    </PropertyGroup>
 </Project>
