@@ -21,6 +21,7 @@
     <PackageReference Include="Bluewire.Common.Console.Client">
       <Version>9.1.1</Version>
     </PackageReference>
+    <PackageReference Include="Costura.Fody" Version="4.1.0" />
     <PackageReference Include="JsonFx">
       <Version>2.0.1209.2802</Version>
     </PackageReference>

@@ -17,6 +17,7 @@
     <PackageReference Include="Bluewire.Common.Console.Client">
       <Version>9.1.1</Version>
     </PackageReference>
+    <PackageReference Include="Costura.Fody" Version="4.1.0" />
     <PackageReference Include="log4net">
       <Version>2.0.8</Version>
     </PackageReference>
