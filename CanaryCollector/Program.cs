@@ -11,7 +11,6 @@ using CanaryCollector.Collectors;
 using CanaryCollector.Model;
 using CanaryCollector.Remote;
 using CanaryCollector.Remote.Jira;
-using CanaryCollector.Remote.YouTrack;
 using log4net.Core;
 
 namespace CanaryCollector
@@ -27,7 +26,6 @@ namespace CanaryCollector
                     { "pending", "Include tickets pending review.", o => program.IncludePending = true },
                     { "tag=", "Include tickets with the specified tag.", o => program.IncludeTags.Add(o) },
                     { "url=", "Include branches listed by the specified resource. Currently only Google Docs spreadsheets are supported.", (Uri o) => program.IncludeUris.Add(o) },
-                    { "youtrack=", "Use the specified Youtrack URL as the source of tickets.", (Uri o) => program.YoutrackUri = o },
                     { "jira=", "Use the specified Jira URL as the source of tickets.", (Uri o) => program.JiraUri = o },
                     { "repo=|repository=", "Use the specified repository as the source of branches.", o => program.RepositoryPath = o }
                 }
@@ -46,7 +44,6 @@ namespace CanaryCollector
         public ICollection<Uri> IncludeUris { get; } = new HashSet<Uri>();
         public bool IncludePending { get; set; }
 
-        public Uri YoutrackUri { get; set; }
         public Uri JiraUri { get; set; }
         public string RepositoryPath { get; set; }
 
@@ -76,8 +73,6 @@ namespace CanaryCollector
 
         private ITicketProviderFactory GetTicketProviderFactory()
         {
-            if (YoutrackUri != null && JiraUri != null) throw new InvalidArgumentsException("Specify only one of --youtrack, --jira.");
-            if (YoutrackUri != null) return new YouTrackTicketProviderFactory(YoutrackUri);
             if (JiraUri != null) return new JiraTicketProviderFactory(JiraUri);
             return new NoTicketProviderFactory();
         }

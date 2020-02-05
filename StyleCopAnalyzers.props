@@ -5,6 +5,18 @@
     <CodeAnalysisRuleSet>$(StyleCopAnalyzersRootPath)CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <StyleCopTreatErrorsAsWarnings>false</StyleCopTreatErrorsAsWarnings>
+    
+    <!--
+        * Suppress XML comment warnings completely.
+        * Ignore duplicate 'using' statements, which might be introduced by merges.
+      -->
+    <NoWarn>1591,1592,1573,1574,1571,1570,1572,1711,1587,0105</NoWarn>
+    <!-- Treat warnings as errors by default: -->
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <!-- Keep '#warning' and some internally-suppressed warnings as warnings: -->
+    <WarningsNotAsErrors>1030,1701,1702</WarningsNotAsErrors>
+    <!-- Do not fail on SemVer 2 compatibility warnings when building packages. -->
+    <NoWarn>$(NoWarn),NU5105</NoWarn>
   </PropertyGroup>
 
   <!-- Enable stylecop analyzers for all non-release builds or a release build that's running a build in visual studio (i.e. Intellisense). -->

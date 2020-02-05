@@ -1,5 +1,4 @@
 ﻿using System;
-using Atlassian.Jira;
 using CanaryCollector.Collectors;
 
 namespace CanaryCollector.Remote.Jira

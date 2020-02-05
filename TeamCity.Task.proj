@@ -27,13 +27,8 @@
         <SemanticTag>alpha</SemanticTag>
     </PropertyGroup>
 
-    <ItemGroup>
-        <!-- Projects which are assumed to specify their version number explicitly. Only semantic tags will be generated. -->
-        <SemVerProjects Include="$(MSBuildProjectDirectory)\**\*.Contracts.csproj"  />
-    </ItemGroup>
-
     <ItemDefinitionGroup>
-        <!-- Projects which reference MSBuild.NuGet.Pack and use it to produce NuGet packages. -->
+        <!-- Projects which produce NuGet packages. -->
         <NugetProjects></NugetProjects>
         <!-- NUnit test projects. -->
         <NUnitProjects></NUnitProjects>
@@ -49,9 +44,13 @@
 
     <Import Project="Build.props" />
 
-    <Target DependsOnTargets="ValidateParameters;PrepareOutputDirectory;ApplyAutoVersionNumber;ApplySemanticVersionNumber" Name="Build">
-        <MSBuild Projects="@(NugetProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration)" />
-        <MSBuild Projects="@(OutputBinaryProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration)">
+    <ItemGroup>
+        <_BuildProperties Include="Configuration=$(Configuration)" />
+    </ItemGroup>
+
+    <Target DependsOnTargets="ValidateParameters;PrepareOutputDirectory;PrepareBuildProperties;Restore" Name="Build">
+        <MSBuild Projects="@(NugetProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="@(_BuildProperties)" />
+        <MSBuild Projects="@(OutputBinaryProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="@(_BuildProperties)">
             <Output TaskParameter="TargetOutputs" ItemName="_ProjectOutputBinaries" />
         </MSBuild>
         <ItemGroup>
@@ -59,16 +58,27 @@
             <OutputBinaries Include="@(_ProjectOutputBinaries)" />
             <OutputBinaries Include="%(_ProjectOutputConfigurationFiles.Identity)" Condition="Exists('%(Identity)')" />
         </ItemGroup>
-        <MSBuild Projects="@(OctoPackProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration)" />
+        <MSBuild Projects="@(OctoPackProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="@(_BuildProperties)" />
+    </Target>
+    
+    <Target Name="Restore">
+        <ItemGroup>
+            <_AllProjects Include="@(NugetProjects)" />
+            <_AllProjects Include="@(NUnitProjects)" />
+            <_AllProjects Include="@(OctoPackProjects)" />
+            <_AllProjects Include="@(OutputBinaryProjects)" />
+            <_AllProjects Include="SolutionPackages\SolutionPackages.*proj" />
+        </ItemGroup>
+        <MSBuild Projects="@(_AllProjects)" Targets="Restore" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="@(_BuildProperties);RestorePackagesPath=$(MSBuildProjectDirectory)\packages" />
     </Target>
 
     <Target Name="BuildAndTest" DependsOnTargets="Build;RunNUnitTests">
     </Target>
    
-    <Target Name="BuildAndPackage" DependsOnTargets="BuildAndTest;PrepareNuGetPack">
-        <MSBuild Projects="@(NugetProjects)" Targets="BuildPackage" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration);@(BuildAndPackageProperties)"/>
+    <Target Name="BuildAndPackage" DependsOnTargets="BuildAndTest">
+        <MSBuild Projects="@(NugetProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="@(_BuildProperties)"/>
         <Copy SourceFiles="@(OutputBinaries)" DestinationFiles="@(OutputBinaries->'$(OutputDirectory)\%(FileName)%(Extension)')" />
-        <MSBuild Projects="@(OctoPackProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="Configuration=$(Configuration);RunOctoPack=true;OctoPackPublishPackageToFileShare=$(OutputDirectory)" />
+        <MSBuild Projects="@(OctoPackProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="@(_BuildProperties);RunOctoPack=true;OctoPackPublishPackageToFileShare=$(OutputDirectory)" />
     </Target>
 
     <Target Name="PrepareOutputDirectory" DependsOnTargets="ValidateParameters">

@@ -4,9 +4,6 @@
     <IncludeFilters>
       <!-- Modern naming convention: all project names should start with 'Bluewire.' -->
       <FilterEntry><ModuleMask>Bluewire.*</ModuleMask></FilterEntry>
-      <FilterEntry><ModuleMask>CanaryBuilder*</ModuleMask></FilterEntry>
-      <FilterEntry><ModuleMask>CanaryCollector*</ModuleMask></FilterEntry>
-      <FilterEntry><ModuleMask>RefCleaner*</ModuleMask></FilterEntry>
     </IncludeFilters>
     <ExcludeFilters>
       <!-- Default exclusions -->
