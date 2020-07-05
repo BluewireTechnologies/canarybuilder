@@ -31,7 +31,7 @@ function Enumerate-MSBuilds() {
         Get-ChildItem "$path" -include "MSbuild.exe" -recurse
     }
 
-    $possiblePaths = @(& "${ownDirectory}\vswhere.exe" -products "*" -requires Microsoft.Component.MSBuild -property installationPath);
+    $possiblePaths = @(& "${ownDirectory}\vswhere.exe" -products "*" -requires Microsoft.Component.MSBuild -property installationPath | sort -descending);
 
     foreach ($path in $possiblePaths) {
         Find-MSBuild "${path}\MSBuild\*\Bin\amd64\MSBuild.exe"

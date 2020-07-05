@@ -4,6 +4,9 @@
   <PropertyGroup>
     <Configuration>Release</Configuration>
     <PreferredMSBuildToolsVersion>Current</PreferredMSBuildToolsVersion>
+
+    <UseTeamCityLogging>False</UseTeamCityLogging>
+    <UseTeamCityLogging Condition="'$(TEAMCITY_VERSION)' != ''">True</UseTeamCityLogging>
   </PropertyGroup>
 
 </Project>
