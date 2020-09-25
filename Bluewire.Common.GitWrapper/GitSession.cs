@@ -426,11 +426,14 @@ namespace Bluewire.Common.GitWrapper
 
         public async Task<LogEntry[]> ReadLog(IGitFilesystemContext workingCopyOrRepo, LogOptions options, params IRefRange[] refRanges)
         {
-            var parser = new GitLogParser();
+            var parser = new GitLogParser(options.LogDiffType);
             var cmd = CommandHelper.CreateCommand("log");
             if (options.MatchMessage != null) cmd.Add("--grep", options.MatchMessage.ToString());
             if (options.ShowMerges == LogShowMerges.Never) cmd.Add("--no-merges");
             else if (options.ShowMerges == LogShowMerges.Only) cmd.Add("--merges");
+
+            if (options.LogDiffType == LogDiffType.NameOnly) cmd.Add("--name-only");
+            else if (options.LogDiffType == LogDiffType.NameAndStatus) cmd.Add("--name-status");
 
             if (options.IncludeAllRefs)
             {

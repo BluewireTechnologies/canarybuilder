@@ -13,6 +13,9 @@
         Copied,
         UpdatedButUnmerged,
         Untracked,
-        Ignored
+        Ignored,
+
+        // Unable to parse.
+        Invalid = -1,
     }
 }

@@ -7,6 +7,7 @@ namespace Bluewire.Common.GitWrapper.Parsing.Log
         Commit,
         NamedHeader,
         Blank,
-        MessageLine
+        MessageLine,
+        Diff,
     }
 }

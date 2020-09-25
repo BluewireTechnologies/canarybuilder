@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -97,6 +98,58 @@ with whitespace lines too.
                 new Ref("test/branch3"));
 
             Assert.That(logEntries.Length, Is.EqualTo(13));
+        }
+
+        [Test]
+        public async Task CanReadAffectedFileNames()
+        {
+            File.AppendAllText(workingCopy.Path("testfile1"), "contents");
+            await session.AddFile(workingCopy, "testfile1");
+            await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
+            var firstCommitHash = await session.ResolveRef(workingCopy, Ref.Head);
+            File.AppendAllText(workingCopy.Path("testfile1"), "more");
+            await session.AddFile(workingCopy, "testfile1");
+            File.AppendAllText(workingCopy.Path("testfile2"), "contents");
+            await session.AddFile(workingCopy, "testfile2");
+            await session.Commit(workingCopy, "second commit", CommitOptions.AllowEmptyCommit);
+
+            var logEntries = await session.ReadLog(workingCopy, new LogOptions { LogDiffType = LogDiffType.NameOnly }, new Difference(Ref.Head.Parent(), Ref.Head));
+
+            var logEntry = logEntries.Single();
+
+            Assert.That(logEntry.Files, Is.Not.Null);
+            Assert.That(logEntry.Files,
+                Is.EquivalentTo(new []
+                {
+                    new LogEntry.File { Path = "testfile1" },
+                    new LogEntry.File { Path = "testfile2" },
+                }));
+        }
+
+        [Test]
+        public async Task CanReadAffectedFileNamesAndStates()
+        {
+            File.AppendAllText(workingCopy.Path("testfile1"), "contents");
+            await session.AddFile(workingCopy, "testfile1");
+            await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
+            var firstCommitHash = await session.ResolveRef(workingCopy, Ref.Head);
+            File.AppendAllText(workingCopy.Path("testfile1"), "more");
+            await session.AddFile(workingCopy, "testfile1");
+            File.AppendAllText(workingCopy.Path("testfile2"), "contents");
+            await session.AddFile(workingCopy, "testfile2");
+            await session.Commit(workingCopy, "second commit", CommitOptions.AllowEmptyCommit);
+
+            var logEntries = await session.ReadLog(workingCopy, new LogOptions { LogDiffType = LogDiffType.NameAndStatus }, new Difference(Ref.Head.Parent(), Ref.Head));
+
+            var logEntry = logEntries.Single();
+
+            Assert.That(logEntry.Files, Is.Not.Null);
+            Assert.That(logEntry.Files,
+                Is.EquivalentTo(new []
+                {
+                    new LogEntry.File { Path = "testfile1", IndexState = IndexState.Modified },
+                    new LogEntry.File { Path = "testfile2", IndexState = IndexState.Added },
+                }));
         }
     }
 }

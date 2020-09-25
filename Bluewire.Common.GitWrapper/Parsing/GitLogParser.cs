@@ -16,13 +16,20 @@ namespace Bluewire.Common.GitWrapper.Parsing
     /// </remarks>
     public class GitLogParser : IGitAsyncOutputParser<LogEntry[]>
     {
+        private readonly LogDiffType logDiffType;
         private readonly List<UnexpectedGitOutputFormatDetails> errors = new List<UnexpectedGitOutputFormatDetails>();
+
+        public GitLogParser(LogDiffType logDiffType)
+        {
+            this.logDiffType = logDiffType;
+        }
+
         public IEnumerable<UnexpectedGitOutputFormatDetails> Errors => errors;
 
         public async Task<LogEntry[]> Parse(IAsyncEnumerator<string> lines, CancellationToken token)
         {
             var entries = new List<LogEntry>();
-            using (var reader = new GitLogReader(lines))
+            using (var reader = new GitLogReader(lines, logDiffType))
             {
                 while (await reader.NextLogEntry())
                 {
