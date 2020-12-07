@@ -60,33 +60,40 @@ namespace Bluewire.Tools.Runner.FindCommits
 
             public async Task<int> Run()
             {
-                TryInferArgumentsFromList();
-
-                var job = CreateJob();
-
-                var git = await new GitFinder().FromEnvironment();
-                var gitSession = new GitSession(git, new ConsoleInvocationLogger());
-
-                var gitRepository = GetGitRepository(WorkingCopyOrRepo);
-
-                var builds = await job.ResolveCommits(gitSession, gitRepository);
-
-                if (builds.Length == 0)
+                try
                 {
-                    Console.Error.WriteLine("No commits found for that build. Try running 'git fetch' to update your repo.");
-                    return 1;
-                }
-                else
-                {
-                    var originalBuilds = await FindOriginalBuildNumbers(builds, gitSession, gitRepository);
-                    var selectedBuilds = BuildUtils.DeduplicateAndPrioritiseResult(originalBuilds);
-                    foreach (var build in selectedBuilds)
+                    TryInferArgumentsFromList();
+
+                    var job = CreateJob();
+
+                    var git = await new GitFinder().FromEnvironment();
+                    var gitSession = new GitSession(git, new ConsoleInvocationLogger());
+
+                    var gitRepository = GetGitRepository(WorkingCopyOrRepo);
+
+                    var builds = await job.ResolveCommits(gitSession, gitRepository);
+
+                    if (builds.Length == 0)
                     {
-                        Console.WriteLine(build);
+                        Console.Error.WriteLine("No commits found for that build. Try running 'git fetch' to update your repo.");
+                        return 1;
                     }
-                 }
+                    else
+                    {
+                        var originalBuilds = await FindOriginalBuildNumbers(builds, gitSession, gitRepository);
+                        var selectedBuilds = BuildUtils.DeduplicateAndPrioritiseResult(originalBuilds);
+                        foreach (var build in selectedBuilds)
+                        {
+                            Console.WriteLine(build);
+                        }
+                    }
 
-                return 0;
+                    return 0;
+                }
+                catch (RefNotFoundException ex)
+                {
+                    throw new ErrorWithReturnCodeException(3, ex.Message);
+                }
             }
 
             private async static Task<Build[]> FindOriginalBuildNumbers(Build[] builds, GitSession session, Common.GitWrapper.GitRepository repository)
