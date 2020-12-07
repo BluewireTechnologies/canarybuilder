@@ -1,18 +1,18 @@
 ﻿using System;
 using System.IO;
-using Bluewire.Common.Console.Client.Shell;
+using CliWrap;
 
 namespace Bluewire.Common.GitWrapper
 {
     public class GitException : ApplicationException
     {
-        public ICommandLine CommandLine { get; private set; }
+        public string CommandArguments { get; }
         public int ExitCode { get; private set; }
         public string Messages { get; private set; }
 
-        public GitException(ICommandLine commandLine, int exitCode, string messages) : base(messages)
+        public GitException(Command command, int exitCode, string messages) : base(messages)
         {
-            CommandLine = commandLine;
+            CommandArguments = command.Arguments;
             ExitCode = exitCode;
             Messages = messages;
         }
@@ -21,7 +21,7 @@ namespace Bluewire.Common.GitWrapper
         {
             writer.WriteLine($"Git exited with code {ExitCode}.");
             writer.WriteLine(Messages);
-            writer.WriteLine($"Arguments: {CommandLine.GetQuotedArguments()}");
+            writer.WriteLine($"Arguments: {CommandArguments}");
         }
     }
 }

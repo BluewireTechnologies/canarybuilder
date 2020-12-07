@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace Bluewire.Common.GitWrapper.IntegrationTests
@@ -18,7 +19,7 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
         {
             var git = await new GitFinder().FromEnvironment();
 
-            var versionString = await git.GetVersionString();
+            var versionString = await git.GetVersionString(new TestConsoleInvocationLogger(new StringWriter()));
 
             Assert.That(versionString, Is.Not.Null);
             Assert.That(versionString, Does.Match(@"\d\.\d"));

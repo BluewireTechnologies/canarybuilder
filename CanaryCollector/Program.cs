@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Bluewire.Common.Console;
-using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.Console.Logging;
+using Bluewire.Common.GitWrapper;
 using CanaryCollector.Collectors;
 using CanaryCollector.Model;
 using CanaryCollector.Remote;
 using CanaryCollector.Remote.Jira;
+using CliWrap;
 using log4net.Core;
 
 namespace CanaryCollector
@@ -89,29 +88,24 @@ namespace CanaryCollector
             }
         }
 
-        class ConsoleInvocationLogger : IConsoleInvocationLogger
+        class ConsoleInvocationLogger : IConsoleInvocationLogger, IConsoleInvocationLogScope
         {
             private void WriteLine(string line)
             {
                 Log.Console.Debug(line);
             }
 
-            public IConsoleInvocationLogScope LogInvocation(IConsoleProcess process)
+            public IConsoleInvocationLogScope Create() => this;
+            public IConsoleInvocationLogScope CreateMinor() => this;
+
+            Command IConsoleInvocationLogScope.LogOutputs(Command command)
             {
-                WriteLine($" [SHELL]  {process.CommandLine}");
-
-                var stdout = process.StdOut.Select(l => $"  [STDOUT]  {l}");
-                var stderr = process.StdErr.Select(l => $"  [STDERR]  {l}");
-
-                var logger = Observer.Create<string>(WriteLine);
-
-                return new ConsoleInvocationLogScope(stdout.Merge(stderr).Subscribe(logger));
+                return command
+                    .TeeStandardOutput(l => WriteLine($"  [STDOUT]  {l}"))
+                    .TeeStandardError(l => WriteLine($"  [STDERR]  {l}"));
             }
 
-            public IConsoleInvocationLogScope LogMinorInvocation(IConsoleProcess process)
-            {
-                return LogInvocation(process);
-            }
+            void IConsoleInvocationLogScope.LogResult(CommandResult result, bool ignoreExitCode) { }
         }
     }
 }

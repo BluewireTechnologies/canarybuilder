@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.GitWrapper.Model;
 
 namespace Bluewire.Common.GitWrapper
@@ -62,9 +61,6 @@ namespace Bluewire.Common.GitWrapper
             return System.IO.Path.Combine(Root, relativePath);
         }
 
-        IConsoleProcess IGitFilesystemContext.Invoke(CommandLine cmd)
-        {
-            return cmd.RunFrom(Root);
-        }
+        string IGitFilesystemContext.GitWorkingDirectory => Root;
     }
 }

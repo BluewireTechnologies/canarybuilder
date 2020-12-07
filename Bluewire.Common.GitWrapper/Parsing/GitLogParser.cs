@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Bluewire.Common.GitWrapper.Async;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Common.GitWrapper.Parsing.Log;
 
@@ -22,7 +21,7 @@ namespace Bluewire.Common.GitWrapper.Parsing
         public async Task<LogEntry[]> Parse(IAsyncEnumerator<string> lines, CancellationToken token)
         {
             var entries = new List<LogEntry>();
-            using (var reader = new GitLogReader(lines))
+            await using (var reader = new GitLogReader(lines))
             {
                 while (await reader.NextLogEntry())
                 {

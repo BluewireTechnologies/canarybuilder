@@ -11,10 +11,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Bluewire.Common.Console.Client">
-      <Version>9.1.1</Version>
-    </PackageReference>
-  </ItemGroup>
   <Import Project="..\StyleCopAnalyzers.props" />
 </Project>

@@ -4,6 +4,7 @@
     <TargetFrameworks>net48</TargetFrameworks>
     <VersionPrefix>3.1.0</VersionPrefix>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="*.ncrunchproject" />
@@ -12,9 +13,7 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Bluewire.Common.Console.Client">
-      <Version>9.1.1</Version>
-    </PackageReference>
+    <PackageReference Include="CliWrap" Version="3.2.4" />
   </ItemGroup>
   <Import Project="..\StyleCopAnalyzers.props" />
 </Project>

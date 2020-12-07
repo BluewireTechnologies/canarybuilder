@@ -4,12 +4,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Bluewire.Common.GitWrapper.Async;
 using Bluewire.Common.GitWrapper.Model;
 
 namespace Bluewire.Common.GitWrapper.Parsing.Log
 {
-    public class GitLogReader : IDisposable
+    public class GitLogReader : IAsyncDisposable
     {
         private readonly List<UnexpectedGitOutputFormatDetails> errors = new List<UnexpectedGitOutputFormatDetails>();
         public IEnumerable<UnexpectedGitOutputFormatDetails> Errors => errors;
@@ -106,10 +105,10 @@ namespace Bluewire.Common.GitWrapper.Parsing.Log
             Current = null;
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             Complete();
-            reader.Dispose();
+            await reader.DisposeAsync();
         }
 
         private static bool TryParseHeader(string header, string line, out string matched)
@@ -163,7 +162,7 @@ namespace Bluewire.Common.GitWrapper.Parsing.Log
             return true;
         }
 
-        public class LineReader
+        public class LineReader : IAsyncDisposable
         {
             private readonly IAsyncEnumerator<string> enumerator;
 
@@ -174,7 +173,7 @@ namespace Bluewire.Common.GitWrapper.Parsing.Log
 
             public async Task<bool> MoveNext()
             {
-                while (await enumerator.MoveNext())
+                while (await enumerator.MoveNextAsync())
                 {
                     if (enumerator.Current.Length == 0) continue;
                     Current = enumerator.Current;
@@ -188,10 +187,7 @@ namespace Bluewire.Common.GitWrapper.Parsing.Log
             public string Current { get; private set; }
             public LineType LineType { get; private set; }
 
-            public void Dispose()
-            {
-                enumerator.Dispose();
-            }
+            public ValueTask DisposeAsync() => enumerator.DisposeAsync();
         }
     }
 }

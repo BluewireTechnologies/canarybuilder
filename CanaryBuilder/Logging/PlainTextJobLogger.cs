@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Reactive;
-using System.Reactive.Disposables;
-using Bluewire.Common.Console.Client.Shell;
+using Bluewire.Common.GitWrapper;
+using CliWrap;
 
 namespace CanaryBuilder.Logging
 {
@@ -53,78 +52,75 @@ namespace CanaryBuilder.Logging
             var currentIndent = indentLevel++;
             Write(currentIndent, "BEGIN", message, ConsoleColor.Cyan);
 
-            return Disposable.Create(() => { indentLevel--; });
+            return new Scope(this);
         }
 
-        public IConsoleInvocationLogScope LogInvocation(IConsoleProcess process)
+        class Scope : IDisposable
         {
-            Write(indentLevel, "SHELL", process.CommandLine.ToString(), ConsoleColor.White);
-            return new InvocationLogScope(this, process);
+            private PlainTextJobLogger parent;
+
+            public Scope(PlainTextJobLogger parent)
+            {
+                this.parent = parent;
+            }
+
+            public void Dispose()
+            {
+                if (parent == null) return;
+                parent.indentLevel--;
+                parent = null;
+            }
         }
 
-        public IConsoleInvocationLogScope LogMinorInvocation(IConsoleProcess process)
-        {
-            return new MinorInvocationLogScope(this, process);
-        }
+        public IConsoleInvocationLogScope Create() => new InvocationLogScope(this);
 
-        class InvocationLogScope : ConsoleInvocationLogScope
+        public IConsoleInvocationLogScope CreateMinor() => new InvocationLogScope(this);
+
+        class InvocationLogScope : IConsoleInvocationLogScope
         {
             private readonly PlainTextJobLogger parent;
-            private readonly IConsoleProcess process;
             private readonly int scopeIndent;
-            private bool highlightErrorCode = true;
 
-            public InvocationLogScope(PlainTextJobLogger parent, IConsoleProcess process)
+            public InvocationLogScope(PlainTextJobLogger parent)
             {
                 this.parent = parent;
-                this.process = process;
                 this.scopeIndent = parent.indentLevel + 1;
-
-                var stdOutLogger = Observer.Create<string>(l => parent.Write(scopeIndent, "STDOUT", l));
-                var stdErrLogger = Observer.Create<string>(l => parent.Write(scopeIndent, "STDERR", l, ConsoleColor.DarkYellow));
-
-                RecordSubscription(process.StdOut.Subscribe(stdOutLogger));
-                RecordSubscription(process.StdErr.Subscribe(stdErrLogger));
             }
 
-            public override void IgnoreExitCode()
+            public Command LogOutputs(Command command)
             {
-                highlightErrorCode = false;
+                parent.Write(parent.indentLevel, "SHELL", command.ToString(), ConsoleColor.White);
+                return command
+                    .TeeStandardOutput(l => parent.Write(scopeIndent, "STDOUT", l))
+                    .TeeStandardError(l => parent.Write(scopeIndent, "STDERR", l, ConsoleColor.DarkYellow));
             }
 
-            public override void Dispose()
+            public void LogResult(CommandResult result, bool ignoreExitCode)
             {
-                var exitCode = process.Completed.Result;
-                parent.Write(scopeIndent, "SHELL", $"Exit code: {exitCode}", (highlightErrorCode && exitCode != 0) ? ConsoleColor.Yellow : ConsoleColor.White);
-                base.Dispose();
+                parent.Write(scopeIndent, "SHELL", $"Exit code: {result.ExitCode}", (ignoreExitCode || result.ExitCode == 0) ? ConsoleColor.White : ConsoleColor.Yellow);
             }
         }
 
-        class MinorInvocationLogScope : ConsoleInvocationLogScope
+        class MinorInvocationLogScope : IConsoleInvocationLogScope
         {
             private readonly PlainTextJobLogger parent;
-            private readonly IConsoleProcess process;
-            private bool showErrorCode = true;
+            private Command command;
 
-            public MinorInvocationLogScope(PlainTextJobLogger parent, IConsoleProcess process)
+            public MinorInvocationLogScope(PlainTextJobLogger parent)
             {
                 this.parent = parent;
-                this.process = process;
             }
 
-            public override void IgnoreExitCode()
+            public Command LogOutputs(Command command)
             {
-                showErrorCode = false;
+                this.command = command;
+                return command;
             }
 
-            public override void Dispose()
+            public void LogResult(CommandResult result, bool ignoreExitCode)
             {
-                var exitCode = process.Completed.Result;
-                if (showErrorCode && exitCode != 0)
-                {
-                    parent.Write(parent.indentLevel, "SHELL", $"{process.CommandLine} exited with code {exitCode}", ConsoleColor.Yellow);
-                }
-                base.Dispose();
+                if (ignoreExitCode || result.ExitCode == 0) return;
+                parent.Write(parent.indentLevel, "SHELL", $"{command} exited with code {result.ExitCode}", ConsoleColor.Yellow);
             }
         }
     }

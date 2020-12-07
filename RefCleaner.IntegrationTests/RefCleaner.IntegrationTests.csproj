@@ -12,9 +12,6 @@
     <ProjectReference Include="..\RefCleaner\RefCleaner.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Bluewire.Common.Console.Client">
-      <Version>9.1.1</Version>
-    </PackageReference>
     <PackageReference Include="Bluewire.Common.Console.NUnit3">
       <Version>9.2.2</Version>
     </PackageReference>

@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Common.GitWrapper.Parsing;
+using CliWrap;
 
 namespace RefCleaner.Collectors
 {
@@ -36,11 +36,14 @@ namespace RefCleaner.Collectors
             return branches.Where(r => !Ref.IsBuiltIn(r.Ref)).ToArray();
         }
 
-        private CommandLine CreateAllBranchesForEachRefCommand()
+        private Command CreateAllBranchesForEachRefCommand()
         {
             return helper.CreateCommand("for-each-ref")
-                .Add("--format", "%(committerdate:iso-strict) %(objectname) %(refname:strip=2)")
-                .Add("refs/heads/");
+                .AddArguments(args =>
+                {
+                    args.Add("--format", "%(committerdate:iso-strict) %(objectname) %(refname:strip=2)");
+                    args.Add("refs/heads/");
+                });
         }
 
         public async Task<ICollection<Ref>> GetMergedBranches(Ref mergeTarget)
@@ -57,12 +60,15 @@ namespace RefCleaner.Collectors
             return session.BranchExists(repository, branch);
         }
 
-        private CommandLine CreateMergedBranchesForEachRefCommand(Ref mergeTarget)
+        private Command CreateMergedBranchesForEachRefCommand(Ref mergeTarget)
         {
             return helper.CreateCommand("for-each-ref")
-                .Add("--merged", mergeTarget)
-                .Add("--format", "%(refname:strip=2)")
-                .Add("refs/heads/");
+                .AddArguments(args =>
+                {
+                    args.Add("--merged", mergeTarget);
+                    args.Add("--format", "%(refname:strip=2)");
+                    args.Add("refs/heads/");
+                });
         }
     }
 }

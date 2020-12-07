@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Bluewire.Common.GitWrapper.Async;
 
 namespace Bluewire.Common.GitWrapper
 {

@@ -1,28 +1,29 @@
 using System.IO;
 using System.Threading.Tasks;
-using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.GitWrapper;
 using CanaryBuilder.Logging;
+using CliWrap;
 
 namespace CanaryBuilder.Merge
 {
     public class CommandLineWorkingCopyVerifier : IWorkingCopyVerifier
     {
-        public CommandLineWorkingCopyVerifier(ICommandLine commandLine)
+        public CommandLineWorkingCopyVerifier(Command command)
         {
-            CommandLine = commandLine.Seal();
+            Command = command;
         }
 
-        public ICommandLine CommandLine { get; }
+        public Command Command { get; }
 
         public async Task Verify(GitWorkingCopy workingCopy, IJobLogger details)
         {
-            var process = CommandLine.RunFrom(workingCopy.Root);
-            using (details.LogInvocation(process))
-            {
-                var exitCode = await process.Completed;
-                if (exitCode != 0) throw new InvalidWorkingCopyStateException($"The command exited with code {exitCode}");
-            }
+            var result = await Command
+                .RunFrom(workingCopy)
+                .LogInvocation(details, out var log)
+                .ExecuteAsync()
+                .LogResult(log);
+
+            if (result.ExitCode != 0) throw new InvalidWorkingCopyStateException($"The command exited with code {result.ExitCode}");
         }
     }
 }

@@ -177,7 +177,7 @@ namespace CanaryBuilder.UnitTests.Merge
                 parser.Validate(definition);
 
                 var verifier = AssertVerifierOfType<CommandLineWorkingCopyVerifier>(definition.Verifier);
-                Assert.That(verifier.CommandLine.ProgramPath, Is.EqualTo("TestBuild"));
+                Assert.That(verifier.Command.TargetFilePath, Is.EqualTo("TestBuild"));
             }
 
             [Test]
@@ -204,7 +204,7 @@ namespace CanaryBuilder.UnitTests.Merge
                 parser.Validate(definition);
 
                 var verifier = AssertVerifierOfType<CommandLineWorkingCopyVerifier>(definition.Verifier);
-                Assert.That(verifier.CommandLine.ProgramPath, Is.EqualTo(@"C:\Program Files\TestBuild"));
+                Assert.That(verifier.Command.TargetFilePath, Is.EqualTo(@"C:\Program Files\TestBuild"));
             }
 
             [Test]
@@ -218,7 +218,7 @@ namespace CanaryBuilder.UnitTests.Merge
                 parser.Validate(definition);
 
                 var verifier = AssertVerifierOfType<CommandLineWorkingCopyVerifier>(definition.Verifier);
-                Assert.That(verifier.CommandLine.GetQuotedArguments(), Is.EqualTo(@"""file name"""));
+                Assert.That(verifier.Command.Arguments, Is.EqualTo(@"""file name"""));
             }
         }
 
@@ -240,7 +240,7 @@ namespace CanaryBuilder.UnitTests.Merge
                 Assert.That(definition.Merges.ElementAt(0).Verifier, Is.Null);
 
                 var verifier = AssertVerifierOfType<CommandLineWorkingCopyVerifier>(definition.Merges.ElementAt(1).Verifier);
-                Assert.That(verifier.CommandLine.ProgramPath, Is.EqualTo("TestBuild"));
+                Assert.That(verifier.Command.TargetFilePath, Is.EqualTo("TestBuild"));
             }
 
             [Test]
@@ -254,7 +254,7 @@ namespace CanaryBuilder.UnitTests.Merge
                 parser.Validate(definition);
 
                 var verifier = AssertVerifierOfType<CommandLineWorkingCopyVerifier>(definition.Merges.Single().Verifier);
-                Assert.That(verifier.CommandLine.ProgramPath, Is.EqualTo(@"C:\Program Files\TestBuild"));
+                Assert.That(verifier.Command.TargetFilePath, Is.EqualTo(@"C:\Program Files\TestBuild"));
             }
 
             [Test]
@@ -268,7 +268,7 @@ namespace CanaryBuilder.UnitTests.Merge
                 parser.Validate(definition);
 
                 var verifier = AssertVerifierOfType<CommandLineWorkingCopyVerifier>(definition.Merges.Single().Verifier);
-                Assert.That(verifier.CommandLine.GetQuotedArguments(), Is.EqualTo(@"""file name"""));
+                Assert.That(verifier.Command.Arguments, Is.EqualTo(@"""file name"""));
             }
         }
 

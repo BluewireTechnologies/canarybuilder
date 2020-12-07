@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.GitWrapper.Model;
 
 namespace Bluewire.Common.GitWrapper
@@ -39,10 +38,6 @@ namespace Bluewire.Common.GitWrapper
             return new GitWorkingCopy(path).GetDefaultRepository();
         }
 
-        IConsoleProcess IGitFilesystemContext.Invoke(CommandLine cmd)
-        {
-            // We could just as easily use '--git-dir <location>' here, I think, but I'm not sure of all the implications.
-            return cmd.RunFrom(Location);
-        }
+        string IGitFilesystemContext.GitWorkingDirectory => Location;
     }
 }

@@ -1,12 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
-using Bluewire.Common.Console.Client.Shell;
-using Bluewire.Common.GitWrapper.Async;
 using Bluewire.Common.GitWrapper.Model;
+using CliWrap;
+using CliWrap.Buffered;
+using CliWrap.EventStream;
 
 namespace Bluewire.Common.GitWrapper
 {
@@ -27,106 +27,99 @@ namespace Bluewire.Common.GitWrapper
         /// <summary>
         /// Creates a Git command line invocation of the specified command and arguments.
         /// </summary>
-        public CommandLine CreateCommand(string gitCommand, params string[] arguments)
+        public Command CreateCommand(string gitCommand, params string[] arguments)
         {
-            var cmd = new CommandLine(Git.GetExecutableFilePath(), gitCommand);
-            cmd.Add(arguments);
-            return cmd;
+            return Cli.Wrap(Git.GetExecutableFilePath())
+                .WithValidation(CommandResultValidation.None)
+                .AddArguments(gitCommand)
+                .AddArguments(arguments);
         }
 
         /// <summary>
         /// Helper method. Runs a command which is expected to return true or false via exit code. Output is ignored.
         /// </summary>
-        public async Task<bool> RunTestCommand(IGitFilesystemContext workingCopyOrRepo, CommandLine command)
+        public async Task<bool> RunTestCommand(IGitFilesystemContext workingCopyOrRepo, Command command)
         {
             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
 
-            var process = workingCopyOrRepo.Invoke(command);
-            using (var log = Logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
-                log?.IgnoreExitCode();
+            var result = await command
+                .RunFrom(workingCopyOrRepo)
+                .LogInvocation(Logger, out var log)
+                .ExecuteAsync()
+                .LogResult(log, true);
 
-                var exitCode = await process.Completed;
-                return exitCode == 0;
-            }
+            return result.ExitCode == 0;
         }
 
         /// <summary>
         /// Helper method. Runs a command which is expected to simply succeed or fail. Output is ignored.
         /// </summary>
-        public async Task RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, CommandLine command)
+        public async Task RunSimpleCommand(IGitFilesystemContext workingCopyOrRepo, Command command)
         {
             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
 
-            var process = workingCopyOrRepo.Invoke(command);
-            using (Logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
+            var result = await command
+                .RunFrom(workingCopyOrRepo)
+                .CaptureErrors(out var checker)
+                .LogInvocation(Logger, out var log)
+                .ExecuteAsync()
+                .LogResult(log);
 
-                await GitHelpers.ExpectSuccess(process);
-            }
+            checker.CheckSuccess(result);
         }
 
          /// <summary>
         /// Helper method. Runs a command which is expected to produce a single line of output.
         /// </summary>
-        public async Task<string> RunSingleLineCommand(IGitFilesystemContext workingCopyOrRepo, CommandLine command)
+        public async Task<string> RunSingleLineCommand(IGitFilesystemContext workingCopyOrRepo, Command command)
         {
             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
 
-            var process = workingCopyOrRepo.Invoke(command);
-            using (Logger?.LogInvocation(process))
-            {
-                return await GitHelpers.ExpectOneLine(process);
-            }
-        }
+            var result = await command
+                .RunFrom(workingCopyOrRepo)
+                .LogInvocation(Logger, out var log)
+                .ExecuteBufferedAsync()
+                .LogResult(log);
 
-        /// <summary>
-        /// Helper method. Runs a command which is expected to produce output which can be parsed easily as a series of lines.
-        /// </summary>
-        public async Task<T[]> RunCommand<T>(IGitFilesystemContext workingCopyOrRepo, CommandLine command, Func<IObservable<string>, IObservable<T>> pipeline)
-        {
-            var process = workingCopyOrRepo.Invoke(command);
-            using (Logger?.LogInvocation(process))
-            {
-                var result = pipeline(process.StdOut).ToArray().ToTask();
-                process.StdOut.StopBuffering();
-                await GitHelpers.ExpectSuccess(process);
-                return await result;
-            }
+            return GitHelpers.ExpectOneLine(command, result);
         }
 
         /// <summary>
         /// Helper method. Runs a command which is expected to produce output which can be parsed asynchronously.
         /// </summary>
-        public async Task<T> RunCommand<T>(IGitFilesystemContext workingCopyOrRepo, CommandLine command, IGitAsyncOutputParser<T> parser, CancellationToken token = default(CancellationToken))
+        public async Task<T> RunCommand<T>(IGitFilesystemContext workingCopyOrRepo, Command command, IGitAsyncOutputParser<T> parser, CancellationToken token = default(CancellationToken))
         {
-            var process = workingCopyOrRepo.Invoke(command);
-            using (Logger?.LogInvocation(process))
+            var asyncStdout = PrepareAsyncEnumerableCommand(workingCopyOrRepo, command, token);
+            await using (var stdoutEnumerator = SelectStandardOutput(asyncStdout).GetAsyncEnumerator(token))
             {
-                return await ParseOutput(process, parser, token);
+                var result = await parser.Parse(stdoutEnumerator, token);
+                if (parser.Errors.Any())
+                {
+                    throw new UnexpectedGitOutputFormatException(command, parser.Errors.ToArray());
+                }
+                return result;
             }
         }
 
-        /// <summary>
-        /// Helper method. Given a running process, parses its STDOUT stream line-by-line using the specified
-        /// asynchronous parser instance.
-        /// </summary>
-        public async Task<T> ParseOutput<T>(IConsoleProcess process, IGitAsyncOutputParser<T> parser, CancellationToken token = default(CancellationToken))
+        internal static async IAsyncEnumerable<string> SelectStandardOutput(IAsyncEnumerable<CommandEvent> enumerable)
         {
-            using (var stdoutEnumerator = process.StdOut.GetAsyncEnumerator())
+            await foreach (var item in enumerable)
             {
-                process.StdOut.StopBuffering();
-                var result = parser.Parse(stdoutEnumerator, token);
-                await GitHelpers.ExpectSuccess(process);
-                await WaitForCompletion(result);
-                if (parser.Errors.Any())
-                {
-                    throw new UnexpectedGitOutputFormatException(process.CommandLine, parser.Errors.ToArray());
-                }
-                return await result;
+                if (item is StandardOutputCommandEvent typed) yield return typed.Text;
             }
+        }
+
+        private IAsyncEnumerable<CommandEvent> PrepareAsyncEnumerableCommand(IGitFilesystemContext workingCopyOrRepo, Command command, CancellationToken token = default(CancellationToken))
+        {
+            if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
+
+            return command
+                .RunFrom(workingCopyOrRepo)
+                .CaptureErrors(out var checker)
+                .LogInvocation(Logger, out var log)
+                .ListenAsync(token)
+                .LogResult(log)
+                .OnExit(r => checker.CheckSuccess(r));
         }
 
         /// <summary>

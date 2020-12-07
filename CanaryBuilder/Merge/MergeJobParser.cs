@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.GitWrapper.Model;
 using CanaryBuilder.Parsers;
+using CliWrap;
 
 namespace CanaryBuilder.Merge
 {
@@ -89,17 +90,17 @@ namespace CanaryBuilder.Merge
             throw new JobScriptSyntaxErrorException(line, $"Trailing characters on line: '{line.Content}'");
         }
 
-        private ICommandLine ConsumeCommandLine(ref ScriptLine line)
+        private Command ConsumeCommandLine(ref ScriptLine line)
         {
             var programPath = ConsumeLeadingMaybeQuotedString(ref line);
             if (String.IsNullOrWhiteSpace(programPath)) return null;
 
-            var commandLine = new CommandLine(programPath);
+            var arguments = new List<string>();
             while (line.Content.Length > 0)
             {
-                commandLine.Add(ConsumeLeadingMaybeQuotedString(ref line));
+                arguments.Add(ConsumeLeadingMaybeQuotedString(ref line));
             }
-            return commandLine;
+            return new Command(programPath).WithArguments(arguments);
         }
 
 
