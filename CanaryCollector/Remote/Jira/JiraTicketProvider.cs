@@ -21,14 +21,10 @@ namespace CanaryCollector.Remote.Jira
         public async Task<IssueTicket[]> GetTicketsPendingMerge()
         {
             var linearWorkflowIssues = GetLinearWorkflowIssues().Take(500).ToArray();
-            var pullRequests = GetIncompletePullRequests().Take(500).ToArray();
-            var pullRequestParents = await jira.Issues.GetIssuesAsync(pullRequests.Select(s => s.ParentIssueKey).Where(k => !String.IsNullOrWhiteSpace(k)).Distinct());
-
-            return linearWorkflowIssues.Concat(pullRequestParents.Values).Select(ReadTicket).ToArray();
+            return linearWorkflowIssues.Select(ReadTicket).ToArray();
         }
 
-        private IQueryable<Issue> GetLinearWorkflowIssues() => jira.Issues.Queryable.Where(t => t.Status == "pending review" || t.Status == "test");
-        private IQueryable<Issue> GetIncompletePullRequests() => jira.Issues.Queryable.Where(s => s.Type == "pull request").Where(s => s.Resolution == null);
+        private IQueryable<Issue> GetLinearWorkflowIssues() => jira.Issues.Queryable.Where(t => t.Status == "dev complete" || t.Status == "code approved");
 
         public async Task<IssueTicket[]> GetTicketsWithTag(string tagName)
         {
