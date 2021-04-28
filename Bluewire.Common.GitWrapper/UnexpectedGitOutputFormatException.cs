@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using Bluewire.Common.Console.Client.Shell;
+using CliWrap;
 
 namespace Bluewire.Common.GitWrapper
 {
@@ -10,12 +10,12 @@ namespace Bluewire.Common.GitWrapper
     {
         public UnexpectedGitOutputFormatDetails[] Details { get; private set; }
 
-        public UnexpectedGitOutputFormatException(ICommandLine commandLine, params UnexpectedGitOutputFormatDetails[] details) : base(commandLine, 0, "The output of the command could not be parsed.")
+        public UnexpectedGitOutputFormatException(Command command, params UnexpectedGitOutputFormatDetails[] details) : base(command, 0, "The output of the command could not be parsed.")
         {
             Details = details;
         }
 
-        public UnexpectedGitOutputFormatException(ICommandLine commandLine, string message) : base(commandLine, 0, message)
+        public UnexpectedGitOutputFormatException(Command command, string message) : base(command, 0, message)
         {
         }
 
@@ -26,7 +26,7 @@ namespace Bluewire.Common.GitWrapper
             {
                 detail.Explain(writer);
             }
-            writer.WriteLine($"Arguments: {CommandLine.GetQuotedArguments()}");
+            writer.WriteLine($"Arguments: {CommandArguments}");
         }
     }
 }

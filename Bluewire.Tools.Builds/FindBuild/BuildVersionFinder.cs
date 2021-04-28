@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Bluewire.Common.Console;
 using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
@@ -28,23 +27,16 @@ namespace Bluewire.Tools.Builds.FindBuild
 
         public async Task<SemanticVersion[]> GetBuildVersionsFromCommit(Ref commitHash, StructuredBranch[] targetBranches)
         {
-            try
-            {
-                var inspector = new RepositoryStructureInspector(gitSession);
-                var integrationPoints = await inspector.QueryIntegrationPoints(repository, commitHash, targetBranches);
+            var inspector = new RepositoryStructureInspector(gitSession);
+            var integrationPoints = await inspector.QueryIntegrationPoints(repository, commitHash, targetBranches);
 
-                var buildNumbers = new List<SemanticVersion>();
-                foreach (var group in integrationPoints.GroupBy(i => i.IntegrationPoint, i => i.TargetBranch))
-                {
-                    var branch = GetPreferredBranch(group);
-                    buildNumbers.Add(await GetBuildNumberFromIntegrationPoint(group.Key, branch));
-                }
-                return buildNumbers.ToArray();
-            }
-            catch (RepositoryStructureException ex)
+            var buildNumbers = new List<SemanticVersion>();
+            foreach (var group in integrationPoints.GroupBy(i => i.IntegrationPoint, i => i.TargetBranch))
             {
-                throw new ErrorWithReturnCodeException(3, ex.Message);
+                var branch = GetPreferredBranch(group);
+                buildNumbers.Add(await GetBuildNumberFromIntegrationPoint(group.Key, branch));
             }
+            return buildNumbers.ToArray();
         }
 
         private static StructuredBranch GetPreferredBranch(IEnumerable<StructuredBranch> targetBranches)
@@ -76,7 +68,7 @@ namespace Bluewire.Tools.Builds.FindBuild
 
             var calculator = new TopologicalBuildNumberCalculator(gitSession);
             var buildNumber = await calculator.GetBuildNumber(repository, baseTag.ResolvedRef, mergeCommit);
-            if (buildNumber == null) throw new ErrorWithReturnCodeException(4,  "Could not determine build number for the commit. Is the graph properly connected?");
+            if (buildNumber == null) throw new CannotDetermineBuildNumberException(baseTag.ResolvedRef, mergeCommit);
 
             var branchType = new BranchSemantics().GetBranchType(branch);
             return new SemanticVersion(versionNumber, buildNumber.Value, branchType);

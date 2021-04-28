@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
-using Bluewire.Common.Console;
 using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
+using Bluewire.Tools.Builds.Shared;
 
 namespace Bluewire.Tools.Builds.FindBuild
 {
@@ -34,7 +34,7 @@ namespace Bluewire.Tools.Builds.FindBuild
             }
             catch (GitException)
             {
-                throw new ErrorWithReturnCodeException(3, $"Cannot find the specified ref {commitRef}.");
+                throw new RefNotFoundException(commitRef);
             }
         }
     }

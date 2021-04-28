@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <TargetFrameworks>net48</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="*.ncrunchproject" />
@@ -11,9 +11,6 @@
     <ProjectReference Include="..\CanaryBuilder\CanaryBuilder.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Bluewire.Common.Console.Client">
-      <Version>9.1.1</Version>
-    </PackageReference>
     <PackageReference Include="NUnit">
       <Version>3.12.0</Version>
     </PackageReference>

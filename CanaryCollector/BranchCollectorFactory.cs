@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Bluewire.Common.Console;
-using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.GitWrapper;
 using CanaryCollector.Collectors;
 

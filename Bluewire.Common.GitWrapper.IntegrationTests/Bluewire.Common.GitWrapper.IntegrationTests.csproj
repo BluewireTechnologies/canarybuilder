@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net45</TargetFrameworks>
+    <TargetFrameworks>net48</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="*.ncrunchproject" />
@@ -10,9 +10,6 @@
     <ProjectReference Include="..\Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Bluewire.Common.Console.Client">
-      <Version>9.1.1</Version>
-    </PackageReference>
     <PackageReference Include="Bluewire.Common.Console.NUnit3">
       <Version>9.2.2</Version>
     </PackageReference>

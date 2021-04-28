@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
-using System.Threading;
 using System.Threading.Tasks;
-using Bluewire.Common.Console.Client.Shell;
-using Bluewire.Common.GitWrapper.Async;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Common.GitWrapper.Parsing;
-using Bluewire.Common.GitWrapper.Parsing.Log;
+using CliWrap.Buffered;
 
 namespace Bluewire.Common.GitWrapper
 {
@@ -30,60 +25,66 @@ namespace Bluewire.Common.GitWrapper
 
         public async Task<Ref> GetCurrentBranch(GitWorkingCopy workingCopy)
         {
-            var cmd = CommandHelper.CreateCommand("rev-parse", "--abbrev-ref", "HEAD");
-            var process = cmd.RunFrom(workingCopy.Root);
-            using (logger?.LogMinorInvocation(process))
-            {
-                var currentBranchName = await GitHelpers.ExpectOneLine(process);
-                var currentBranch = new Ref(currentBranchName);
+            var command = CommandHelper.CreateCommand("rev-parse", "--abbrev-ref", "HEAD");
 
-                if (!Ref.IsBuiltIn(currentBranch)) return currentBranch;
+            var result = await command
+                .RunFrom(workingCopy)
+                .LogMinorInvocation(logger, out var log)
+                .ExecuteBufferedAsync()
+                .LogResult(log);
 
-                return await ResolveRef(workingCopy, currentBranch);
-            }
+            var currentBranchName = GitHelpers.ExpectOneLine(command, result);
+            var currentBranch = new Ref(currentBranchName);
+
+            if (!Ref.IsBuiltIn(currentBranch)) return currentBranch;
+
+            return await ResolveRef(workingCopy, currentBranch);
         }
 
         public async Task<Ref> ResolveRef(IGitFilesystemContext workingCopyOrRepo, Ref @ref)
         {
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
-            var cmd = CommandHelper.CreateCommand("rev-list", "--max-count=1", @ref);
-            var process = workingCopyOrRepo.Invoke(cmd);
-            using (logger?.LogMinorInvocation(process))
-            {
-                var refHash = await GitHelpers.ExpectOneLine(process);
-                return new Ref(refHash);
-            }
+            var command = CommandHelper.CreateCommand("rev-list", "--max-count=1", @ref);
+
+            var result = await command
+                .RunFrom(workingCopyOrRepo)
+                .LogMinorInvocation(logger, out var log)
+                .ExecuteBufferedAsync()
+                .LogResult(log);
+
+            var refHash = GitHelpers.ExpectOneLine(command, result);
+            return new Ref(refHash);
         }
 
         public async Task<bool> RefExists(IGitFilesystemContext workingCopyOrRepo, Ref @ref)
         {
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
-            var cmd = CommandHelper.CreateCommand("show-ref", "--quiet", @ref);
-            var process = workingCopyOrRepo.Invoke(cmd);
-            using (var log = logger?.LogMinorInvocation(process))
-            {
-                log?.IgnoreExitCode();
+            var command = CommandHelper.CreateCommand("show-ref", "--quiet", @ref);
 
-                var exitCode = await process.Completed;
-                return exitCode == 0;
-            }
+            var result = await command
+                .RunFrom(workingCopyOrRepo)
+                .LogMinorInvocation(logger, out var log)
+                .ExecuteAsync()
+                .LogResult(log, true);
+
+            return result.ExitCode == 0;
         }
 
         public async Task<bool> ExactRefExists(IGitFilesystemContext workingCopyOrRepo, Ref @ref)
         {
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
-            var cmd = CommandHelper.CreateCommand("show-ref", "--verify", "--quiet", @ref);
-            var process = workingCopyOrRepo.Invoke(cmd);
-            using (var log = logger?.LogMinorInvocation(process))
-            {
-                log?.IgnoreExitCode();
+            var command = CommandHelper.CreateCommand("show-ref", "--verify", "--quiet", @ref);
 
-                var exitCode = await process.Completed;
-                return exitCode == 0;
-            }
+            var result = await command
+                .RunFrom(workingCopyOrRepo)
+                .LogMinorInvocation(logger, out var log)
+                .ExecuteAsync()
+                .LogResult(log, true);
+
+            return result.ExitCode == 0;
         }
 
         public async Task<bool> BranchExists(IGitFilesystemContext workingCopyOrRepo, Ref branch)
@@ -109,15 +110,21 @@ namespace Bluewire.Common.GitWrapper
 
         public async Task<bool> IsClean(GitWorkingCopy workingCopy)
         {
-            var cmd = CommandHelper.CreateCommand("status", "--porcelain");
-            var process = cmd.RunFrom(workingCopy.Root);
-            using (logger?.LogMinorInvocation(process))
-            {
-                var isEmpty = process.StdOut.IsEmpty().ToTask();
-                process.StdOut.StopBuffering();
-                await GitHelpers.ExpectSuccess(process);
-                return await isEmpty;
-            }
+            var command = CommandHelper.CreateCommand("status", "--porcelain");
+
+            var stdoutEmpty = true;
+
+            var result = await command
+                .RunFrom(workingCopy)
+                .CaptureErrors(out var checker)
+                .LogMinorInvocation(logger, out var log)
+                .TeeStandardOutput(_ => stdoutEmpty = false)
+                .ExecuteAsync()
+                .LogResult(log);
+
+            checker.CheckSuccess(result);
+
+            return stdoutEmpty;
         }
 
         /// <summary>
@@ -133,13 +140,16 @@ namespace Bluewire.Common.GitWrapper
             if (repoName.Intersect(Path.GetInvalidFileNameChars()).Any()) throw new ArgumentException($"Repository name contains invalid characters: '{repoName}'", nameof(repoName));
             Directory.CreateDirectory(containingPath);
 
-            var process = CommandHelper.CreateCommand("init", repoName).RunFrom(containingPath);
-            using (logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
+            var command = CommandHelper.CreateCommand("init", repoName);
 
-                await GitHelpers.ExpectSuccess(process);
-            }
+            var result = await command
+                .WithWorkingDirectory(containingPath)
+                .CaptureErrors(out var checker)
+                .LogInvocation(logger, out var log)
+                .ExecuteAsync()
+                .LogResult(log);
+
+            checker.CheckSuccess(result);
 
             var workingCopy = new GitWorkingCopy(Path.Combine(containingPath, repoName));
             workingCopy.CheckExistence();
@@ -161,13 +171,16 @@ namespace Bluewire.Common.GitWrapper
             if (repoName.Intersect(Path.GetInvalidFileNameChars()).Any()) throw new ArgumentException($"Repository name contains invalid characters: '{repoName}'", nameof(repoName));
             Directory.CreateDirectory(containingPath);
 
-            var process = CommandHelper.CreateCommand("clone", remote.ToString(), repoName).RunFrom(containingPath);
-            using (logger?.LogInvocation(process))
-            {
-                process.StdOut.StopBuffering();
+            var command = CommandHelper.CreateCommand("clone", remote.ToString(), repoName);
 
-                await GitHelpers.ExpectSuccess(process);
-            }
+            var result = await command
+                .WithWorkingDirectory(containingPath)
+                .CaptureErrors(out var checker)
+                .LogInvocation(logger, out var log)
+                .ExecuteAsync()
+                .LogResult(log);
+
+            checker.CheckSuccess(result);
 
             var workingCopy = new GitWorkingCopy(Path.Combine(containingPath, repoName));
             workingCopy.CheckExistence();
@@ -179,8 +192,8 @@ namespace Bluewire.Common.GitWrapper
         /// </summary>
         public async Task Fetch(IGitFilesystemContext workingCopyOrRepo, string remoteName = null)
         {
-            var cmd = CommandHelper.CreateCommand("fetch", remoteName);
-            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, cmd);
+            var command = CommandHelper.CreateCommand("fetch", remoteName);
+            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, command);
         }
 
         public async Task AddFile(GitWorkingCopy workingCopy, string relativePath)
@@ -188,8 +201,8 @@ namespace Bluewire.Common.GitWrapper
             if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
             if (!File.Exists(workingCopy.Path(relativePath))) throw new FileNotFoundException($"File does not exist: {relativePath}", workingCopy.Path(relativePath));
 
-            var cmd = CommandHelper.CreateCommand("add", relativePath);
-            await CommandHelper.RunSimpleCommand(workingCopy, cmd);
+            var command = CommandHelper.CreateCommand("add", relativePath);
+            await CommandHelper.RunSimpleCommand(workingCopy, command);
         }
 
         public async Task<GitStatusEntry[]> Status(GitWorkingCopy workingCopy)
@@ -197,41 +210,50 @@ namespace Bluewire.Common.GitWrapper
             if (workingCopy == null) throw new ArgumentNullException(nameof(workingCopy));
 
             var parser = new GitStatusParser();
-            var cmd = CommandHelper.CreateCommand("status", "--porcelain");
-            return await CommandHelper.RunCommand(workingCopy, cmd, parser);
+            var command = CommandHelper.CreateCommand("status", "--porcelain");
+            return await CommandHelper.RunCommand(workingCopy, command, parser);
         }
 
         public async Task<Ref[]> ListBranches(IGitFilesystemContext workingCopyOrRepo, ListBranchesOptions options = default(ListBranchesOptions))
         {
             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
 
-            var cmd = CommandHelper.CreateCommand("branch", "--list");
-            if (options.Remote) cmd.Add("--remotes");
-            if (options.UnmergedWith != null) cmd.Add("--no-merged", options.UnmergedWith);
-            if (options.MergedWith != null) cmd.Add("--merged", options.MergedWith);
-            if (options.Contains != null) cmd.Add("--contains", options.Contains);
-            if (options.BranchFilter != null) cmd.AddList(options.BranchFilter);
+            var command = CommandHelper.CreateCommand("branch", "--list")
+                .AddArguments(args =>
+                {
+                    if (options.Remote) args.Add("--remotes");
+                    if (options.UnmergedWith != null) args.Add("--no-merged", options.UnmergedWith);
+                    if (options.MergedWith != null) args.Add("--merged", options.MergedWith);
+                    if (options.Contains != null) args.Add("--contains", options.Contains);
+                    if (options.BranchFilter != null) args.Add(options.BranchFilter);
+                });
 
-            var process = workingCopyOrRepo.Invoke(cmd);
-            using (logger?.LogInvocation(process))
+            var parser = new GitListBranchesParser();
+            return await CommandHelper.RunCommand(workingCopyOrRepo, command, parser);
+        }
+
+        class GitListBranchesParser : GitLineOutputParser<Ref>
+        {
+            public override bool Parse(string line, out Ref entry)
             {
-                var branchNames = process.StdOut
-                    .Where(l => !String.IsNullOrWhiteSpace(l))
-                    .Select(l => l.Substring(2))
-                    .Where(l => !l.StartsWith("(detach") && !l.Contains(" -> ") && !l.StartsWith("(HEAD detached "))
-                    .Select(l => new Ref(l))
-                    .ToArray().ToTask();
+                entry = null;
+                if (string.IsNullOrWhiteSpace(line)) return false;
 
-                await GitHelpers.ExpectSuccess(process);
-                return await branchNames;
+                var name = line.Substring(2);
+                if (name.StartsWith("(detach")) return false;
+                if (name.Contains(" -> ")) return false;
+                if (name.StartsWith("(HEAD detached ")) return false;
+
+                entry = new Ref(name);
+                return true;
             }
         }
 
         public async Task<Ref> CreateBranch(IGitFilesystemContext workingCopyOrRepo, string branchName, Ref start = null)
         {
             var branch = new Ref(branchName);
-            var cmd = CommandHelper.CreateCommand("branch", branch, start ?? Ref.Head);
-            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, cmd);
+            var command = CommandHelper.CreateCommand("branch", branch, start ?? Ref.Head);
+            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, command);
             return branch;
         }
 
@@ -239,20 +261,25 @@ namespace Bluewire.Common.GitWrapper
         {
             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
 
-            var cmd = CommandHelper.CreateCommand("tag", "--list");
-            if (options.Contains != null) cmd.Add("--contains", options.Contains);
-            if (!String.IsNullOrWhiteSpace(options.Pattern)) cmd.Add(options.Pattern);
+            var command = CommandHelper.CreateCommand("tag", "--list")
+                .AddArguments(args =>
+                {
+                    if (options.Contains != null) args.Add("--contains", options.Contains);
+                    if (!String.IsNullOrWhiteSpace(options.Pattern)) args.Add(options.Pattern);
+                });
 
-            var process = workingCopyOrRepo.Invoke(cmd);
-            using (logger?.LogInvocation(process))
+            var parser = new GitListTagsParser();
+            return await CommandHelper.RunCommand(workingCopyOrRepo, command, parser);
+        }
+
+        class GitListTagsParser : GitLineOutputParser<Ref>
+        {
+            public override bool Parse(string line, out Ref entry)
             {
-                var tagNames = process.StdOut
-                    .Where(l => !String.IsNullOrWhiteSpace(l))
-                    .Select(l => new Ref(l))
-                    .ToArray().ToTask();
-
-                await GitHelpers.ExpectSuccess(process);
-                return await tagNames;
+                entry = null;
+                if (string.IsNullOrWhiteSpace(line)) return false;
+                entry = new Ref(line);
+                return true;
             }
         }
 
@@ -262,11 +289,15 @@ namespace Bluewire.Common.GitWrapper
             if (message == null) throw new ArgumentNullException(nameof(message));
 
             var tag = new Ref(tagName);
-            var cmd = CommandHelper.CreateCommand("tag", tag,
-                force ? "--force" : null,
-                "--message", message,
-                tagLocation);
-            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, cmd);
+            var command = CommandHelper.CreateCommand("tag", tag)
+                .AddArguments(args =>
+                {
+                    if (force) args.Add("--force");
+                    args.Add("--message", message);
+                    args.Add(tagLocation);
+                });
+
+            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, command);
 
             return tag;
         }
@@ -277,19 +308,23 @@ namespace Bluewire.Common.GitWrapper
             if (message == null) throw new ArgumentNullException(nameof(message));
 
             var tag = new Ref(tagName);
-            var cmd = CommandHelper.CreateCommand("tag", "--annotate", tag,
-                force ? "--force" : null,
-                "--message", message,
-                tagLocation);
-            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, cmd);
+            var command = CommandHelper.CreateCommand("tag", "--annotate", tag)
+                .AddArguments(args =>
+                {
+                    if (force) args.Add("--force");
+                    args.Add("--message", message);
+                    args.Add(tagLocation);
+                });
+
+            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, command);
 
             return tag;
         }
 
         public async Task DeleteTag(IGitFilesystemContext workingCopyOrRepo, Ref tag)
         {
-            var cmd = CommandHelper.CreateCommand("tag", "--delete", tag);
-            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, cmd);
+            var command = CommandHelper.CreateCommand("tag", "--delete", tag);
+            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, command);
         }
 
         public async Task<TagDetails> ReadTagDetails(IGitFilesystemContext workingCopyOrRepo, Ref tag)
@@ -297,49 +332,48 @@ namespace Bluewire.Common.GitWrapper
             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
 
             var parser = new GitTagDetailsParser();
-            var cmd = CommandHelper.CreateCommand("cat-file", "tag", tag);
-            var process = workingCopyOrRepo.Invoke(cmd);
-            using (logger?.LogInvocation(process))
+            var command = CommandHelper.CreateCommand("cat-file", "tag", tag);
+
+            // Not expecting large amounts of data, so just buffer it all:
+            var lines = await CommandHelper.RunCommand(workingCopyOrRepo, command, new GitLineOutputCollector());
+            var details = parser.Parse(lines);
+            if (parser.Errors.Any())
             {
-                await GitHelpers.ExpectSuccess(process);
-                // Not expecting large amounts of data, so just buffer it all:
-                var lines = await process.StdOut.ReadAllLinesAsync();
-                var details = parser.Parse(lines);
-                if (parser.Errors.Any())
-                {
-                    throw new UnexpectedGitOutputFormatException(process.CommandLine, parser.Errors.ToArray());
-                }
-                return details;
+                throw new UnexpectedGitOutputFormatException(command, parser.Errors.ToArray());
             }
+            return details;
         }
 
         public async Task<Ref> CreateBranchAndCheckout(GitWorkingCopy workingCopy, string branchName, Ref start = null)
         {
             var branch = new Ref(branchName);
-            var cmd = CommandHelper.CreateCommand("checkout", "-b", branch, start ?? Ref.Head);
-            await CommandHelper.RunSimpleCommand(workingCopy, cmd);
+            var command = CommandHelper.CreateCommand("checkout", "-b", branch, start ?? Ref.Head);
+            await CommandHelper.RunSimpleCommand(workingCopy, command);
             return branch;
         }
 
         public async Task DeleteBranch(IGitFilesystemContext workingCopyOrRepo, Ref branch, bool force = false)
         {
             // I'm currently running Git v1.9.5, which doesn't understand 'branch --delete --force'
-            var cmd = CommandHelper.CreateCommand("branch", force ? "-D" : "--delete", branch);
-            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, cmd);
+            var command = CommandHelper.CreateCommand("branch", force ? "-D" : "--delete", branch);
+            await CommandHelper.RunSimpleCommand(workingCopyOrRepo, command);
         }
 
         public async Task Commit(GitWorkingCopy workingCopy, string message, CommitOptions options = 0)
         {
-            var cmd = CommandHelper.CreateCommand("commit",
-                options.HasFlag(CommitOptions.AllowEmptyCommit) ? "--allow-empty" : null,
-                "--message", message);
-            await CommandHelper.RunSimpleCommand(workingCopy, cmd);
+            var command = CommandHelper.CreateCommand("commit").
+                AddArguments(args =>
+                {
+                    if (options.HasFlag(CommitOptions.AllowEmptyCommit)) args.Add("--allow-empty");
+                    args.Add("--message", message);
+                });
+            await CommandHelper.RunSimpleCommand(workingCopy, command);
         }
 
         public async Task Checkout(GitWorkingCopy workingCopy, Ref @ref)
         {
-            var cmd = CommandHelper.CreateCommand("checkout", @ref);
-            await CommandHelper.RunSimpleCommand(workingCopy, cmd);
+            var command = CommandHelper.CreateCommand("checkout", @ref);
+            await CommandHelper.RunSimpleCommand(workingCopy, command);
         }
 
         public async Task CheckoutCompletelyClean(GitWorkingCopy workingCopy, Ref @ref = null)
@@ -363,8 +397,8 @@ namespace Bluewire.Common.GitWrapper
         {
             var option = "--" + how.ToString().ToLower();
 
-            var cmd = CommandHelper.CreateCommand("reset", option, @ref);
-            await CommandHelper.RunSimpleCommand(workingCopy, cmd);
+            var command = CommandHelper.CreateCommand("reset", option, @ref);
+            await CommandHelper.RunSimpleCommand(workingCopy, command);
         }
 
         public Task Merge(GitWorkingCopy workingCopy, params Ref[] @refs)
@@ -374,36 +408,41 @@ namespace Bluewire.Common.GitWrapper
 
         public async Task Merge(GitWorkingCopy workingCopy, MergeOptions options, params Ref[] @refs)
         {
-            var cmd = CommandHelper.CreateCommand("merge");
-            if (options.FastForward == MergeFastForward.Never) cmd.Add("--no-ff");
-            else if (options.FastForward == MergeFastForward.Only) cmd.Add("--ff-only");
+            var command = CommandHelper.CreateCommand("merge")
+                .AddArguments(args =>
+                {
+                    if (options.FastForward == MergeFastForward.Never) args.Add("--no-ff");
+                    else if (options.FastForward == MergeFastForward.Only) args.Add("--ff-only");
+                    args.Add(refs.Select(r => r.ToString()));
+                });
 
-            cmd.AddList(@refs.Select(r => r.ToString()));
-
-            await CommandHelper.RunSimpleCommand(workingCopy, cmd);
+            await CommandHelper.RunSimpleCommand(workingCopy, command);
         }
 
         public async Task AbortMerge(GitWorkingCopy workingCopy)
         {
-            var cmd = CommandHelper.CreateCommand("merge", "--abort");
-            await CommandHelper.RunSimpleCommand(workingCopy, cmd);
+            var command = CommandHelper.CreateCommand("merge", "--abort");
+            await CommandHelper.RunSimpleCommand(workingCopy, command);
         }
 
         public async Task<Ref> MergeBase(IGitFilesystemContext workingCopy, Ref mergeTarget, params Ref[] mergeSources)
         {
-            var cmd = CommandHelper.CreateCommand("merge-base");
-            cmd.Add(mergeTarget);
-            cmd.AddList(mergeSources.Select(r => r.ToString()));
+            var command = CommandHelper.CreateCommand("merge-base")
+                .AddArguments(args =>
+                {
+                    args.Add(mergeTarget);
+                    args.Add(mergeSources.Select(r => r.ToString()));
+                });
 
-            var mergeBase = await CommandHelper.RunSingleLineCommand(workingCopy, cmd);
+            var mergeBase = await CommandHelper.RunSingleLineCommand(workingCopy, command);
 
             return String.IsNullOrWhiteSpace(mergeBase) ? null : new Ref(mergeBase);
         }
 
         public async Task<bool> IsAncestor(IGitFilesystemContext workingCopy, Ref maybeAncestor, Ref reference)
         {
-            var cmd = CommandHelper.CreateCommand("merge-base", "--is-ancestor", maybeAncestor, reference);
-            return await CommandHelper.RunTestCommand(workingCopy, cmd);
+            var command = CommandHelper.CreateCommand("merge-base", "--is-ancestor", maybeAncestor, reference);
+            return await CommandHelper.RunTestCommand(workingCopy, command);
         }
 
         /// <summary>
@@ -418,31 +457,46 @@ namespace Bluewire.Common.GitWrapper
             if (start == null) throw new ArgumentNullException(nameof(start));
             if (end == null) throw new ArgumentNullException(nameof(end));
 
-            var cmd = CommandHelper.CreateCommand("rev-list", new Difference(start, end));
-            if (options.FirstParentOnly) cmd.Add("--first-parent");
-            if (options.AncestryPathOnly) cmd.Add("--ancestry-path");
-            return await CommandHelper.RunCommand(workingCopyOrRepo, cmd, ls => ls.Select(l => new Ref(l)));
+            var command = CommandHelper.CreateCommand("rev-list", new Difference(start, end))
+                .AddArguments(args =>
+                {
+                    if (options.FirstParentOnly) args.Add("--first-parent");
+                    if (options.AncestryPathOnly) args.Add("--ancestry-path");
+                });
+            return await CommandHelper.RunCommand(workingCopyOrRepo, command, new GitListCommitsParser());
+        }
+
+        class GitListCommitsParser : GitLineOutputParser<Ref>
+        {
+            public override bool Parse(string line, out Ref entry)
+            {
+                entry = new Ref(line);
+                return true;
+            }
         }
 
         public async Task<LogEntry[]> ReadLog(IGitFilesystemContext workingCopyOrRepo, LogOptions options, params IRefRange[] refRanges)
         {
             var parser = new GitLogParser();
-            var cmd = CommandHelper.CreateCommand("log");
-            if (options.MatchMessage != null) cmd.Add("--grep", options.MatchMessage.ToString());
-            if (options.ShowMerges == LogShowMerges.Never) cmd.Add("--no-merges");
-            else if (options.ShowMerges == LogShowMerges.Only) cmd.Add("--merges");
+            var command = CommandHelper.CreateCommand("log")
+                .AddArguments(args =>
+                {
+                    if (options.MatchMessage != null) args.Add("--grep", options.MatchMessage.ToString());
+                    if (options.ShowMerges == LogShowMerges.Never) args.Add("--no-merges");
+                    else if (options.ShowMerges == LogShowMerges.Only) args.Add("--merges");
 
-            if (options.IncludeAllRefs)
-            {
-                if (refRanges.Length > 0) throw new ArgumentException($"IncludeAllRefs was specified, but so were {refRanges.Length} ref ranges.");
-                cmd.Add("--all");
-            }
-            else
-            {
-                cmd.AddList(refRanges.Select(r => r.ToString()));
-            }
+                    if (options.IncludeAllRefs)
+                    {
+                        if (refRanges.Length > 0) throw new ArgumentException($"IncludeAllRefs was specified, but so were {refRanges.Length} ref ranges.");
+                        args.Add("--all");
+                    }
+                    else
+                    {
+                        args.Add(refRanges.Select(r => r.ToString()));
+                    }
+                });
 
-            return await CommandHelper.RunCommand(workingCopyOrRepo, cmd, parser);
+            return await CommandHelper.RunCommand(workingCopyOrRepo, command, parser);
         }
     }
 }

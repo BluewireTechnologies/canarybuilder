@@ -107,7 +107,7 @@ namespace Bluewire.Conventions
             }
 
             // Git does not require this, I think, but for sanity's sake we're not going to allow it:
-            if (raw.Any(char.IsWhiteSpace))
+            if (raw.Cast<char>().Any(char.IsWhiteSpace))
             {
                 exception = new ArgumentException("Branch name must not contain whitespace.", nameof(raw));
                 return false;

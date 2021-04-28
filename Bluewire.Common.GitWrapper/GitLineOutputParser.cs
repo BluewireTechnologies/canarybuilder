@@ -1,19 +1,19 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Bluewire.Common.GitWrapper.Async;
 
 namespace Bluewire.Common.GitWrapper
 {
     public abstract class GitLineOutputParser<T> : IGitAsyncOutputParser<T[]>
     {
-        public abstract IEnumerable<UnexpectedGitOutputFormatDetails> Errors { get; }
+        public virtual IEnumerable<UnexpectedGitOutputFormatDetails> Errors => Enumerable.Empty<UnexpectedGitOutputFormatDetails>();
         public abstract bool Parse(string line, out T entry);
 
         public async Task<T[]> Parse(IAsyncEnumerator<string> lines, CancellationToken token)
         {
             var results = new List<T>();
-            while (await lines.MoveNext(token))
+            while (await lines.MoveNextAsync())
             {
                 T entry;
                 if (Parse(lines.Current, out entry)) results.Add(entry);

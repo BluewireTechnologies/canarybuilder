@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Bluewire.Common.Console.Client.Shell;
 using NUnit.Framework;
 
 namespace Bluewire.Common.GitWrapper.IntegrationTests
@@ -8,7 +7,7 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
     {
         public static async Task<GitSession> GitSession()
         {
-            var logger = new SimpleConsoleInvocationLogger(TestContext.Out);
+            var logger = new TestConsoleInvocationLogger(TestContext.Out);
             return new GitSession(await new GitFinder(logger).FromEnvironment(), logger);
         }
 

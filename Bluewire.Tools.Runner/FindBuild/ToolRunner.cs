@@ -9,6 +9,7 @@ using Bluewire.Common.GitWrapper;
 using Bluewire.Conventions;
 using log4net.Core;
 using Bluewire.Tools.Builds.FindBuild;
+using Bluewire.Tools.Builds.Shared;
 
 namespace Bluewire.Tools.Runner.FindBuild
 {
@@ -63,20 +64,47 @@ namespace Bluewire.Tools.Runner.FindBuild
 
             public async Task<int> Run()
             {
-                TryInferArgumentsFromList();
+                try
+                {
+                    TryInferArgumentsFromList();
 
-                var job = CreateJob();
+                    var job = CreateJob();
 
-                var git = await new GitFinder().FromEnvironment();
-                var gitSession = new GitSession(git, new ConsoleInvocationLogger());
+                    var git = await new GitFinder().FromEnvironment();
+                    var gitSession = new GitSession(git, new ConsoleInvocationLogger());
 
-                var gitRepository = GetGitRepository(WorkingCopyOrRepo);
+                    var gitRepository = GetGitRepository(WorkingCopyOrRepo);
 
-                var buildNumbers = await job.ResolveBuildVersions(gitSession, gitRepository);
+                    var buildNumbers = await job.ResolveBuildVersions(gitSession, gitRepository);
 
-                foreach (var buildNumber in buildNumbers) Console.Out.WriteLine(buildNumber);
+                    foreach (var buildNumber in buildNumbers) Console.Out.WriteLine(buildNumber);
 
-                return 0;
+                    return 0;
+                }
+                catch (RepositoryStructureException ex)
+                {
+                    throw new ErrorWithReturnCodeException(3, ex.Message);
+                }
+                catch (RefNotFoundException ex)
+                {
+                    throw new ErrorWithReturnCodeException(3, ex.Message);
+                }
+                catch (PullRequestMergeNotFoundException ex)
+                {
+                    throw new ErrorWithReturnCodeException(3, ex.Message);
+                }
+                catch (PullRequestMergesHaveNoCommonParentException ex)
+                {
+                    throw new ErrorWithReturnCodeException(3, $"{ex.Message} Please specify a commit instead.");
+                }
+                catch (CannotDetermineBuildNumberException ex)
+                {
+                    throw new ErrorWithReturnCodeException(4, ex.Message);
+                }
+                catch (NoCommitsReferenceTicketIdentifierException ex)
+                {
+                    throw new ErrorWithReturnCodeException(3, ex.Message);
+                }
             }
 
             private void TryInferArgumentsFromList()

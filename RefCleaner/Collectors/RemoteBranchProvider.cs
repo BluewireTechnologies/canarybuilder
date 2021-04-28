@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Bluewire.Common.Console.Client.Shell;
 using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Common.GitWrapper.Parsing;
+using CliWrap;
 
 namespace RefCleaner.Collectors
 {
@@ -38,11 +38,14 @@ namespace RefCleaner.Collectors
             return branches.Where(r => !Ref.IsBuiltIn(r.Ref)).ToArray();
         }
 
-        private CommandLine CreateAllBranchesForEachRefCommand()
+        private Command CreateAllBranchesForEachRefCommand()
         {
             return helper.CreateCommand("for-each-ref")
-                .Add("--format", "%(committerdate:iso-strict) %(objectname) %(refname:strip=3)")
-                .Add($"refs/remotes/{remoteName}/");
+                .AddArguments(args =>
+                {
+                    args.Add("--format", "%(committerdate:iso-strict) %(objectname) %(refname:strip=3)");
+                    args.Add($"refs/remotes/{remoteName}/");
+                });
         }
 
         public async Task<ICollection<Ref>> GetMergedBranches(Ref mergeTarget)
@@ -59,12 +62,15 @@ namespace RefCleaner.Collectors
             return session.ExactRefExists(repository, AsRemoteRef(branch));
         }
 
-        private CommandLine CreateMergedBranchesForEachRefCommand(Ref mergeTarget)
+        private Command CreateMergedBranchesForEachRefCommand(Ref mergeTarget)
         {
             return helper.CreateCommand("for-each-ref")
-                .Add("--merged", AsRemoteRef(mergeTarget))
-                .Add("--format", "%(refname:strip=3)")
-                .Add($"refs/remotes/{remoteName}/");
+                .AddArguments(args =>
+                {
+                    args.Add("--merged", AsRemoteRef(mergeTarget));
+                    args.Add("--format", "%(refname:strip=3)");
+                    args.Add($"refs/remotes/{remoteName}/");
+                });
         }
 
         private Ref AsRemoteRef(Ref @ref)

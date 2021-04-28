@@ -1,6 +1,5 @@
 ﻿using System;
-using System.IO;
-using Bluewire.Common.Console.Client.Shell;
+using Bluewire.Common.GitWrapper;
 
 namespace CanaryBuilder.Logging
 {

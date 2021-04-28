@@ -1,27 +1,38 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using Bluewire.Common.Console.Client.Shell;
+using CliWrap;
+using CliWrap.Buffered;
 
 namespace Bluewire.Common.GitWrapper
 {
     public static class GitHelpers
     {
-        public static async Task<string> ExpectOneLine(IConsoleProcess process)
+        public static string ExpectOneLine(Command command, BufferedCommandResult result)
         {
-            await ExpectSuccess(process);
+            if (result.ExitCode != 0) throw new GitException(command, result.ExitCode, result.StandardError);
+            using (var lineReader = new StringReader(result.StandardOutput))
+            {
+                var line = lineReader.ReadLine();
+                if (line == null) throw new UnexpectedGitOutputFormatException(command, "No output.");
 
-            var lines = await process.StdOut.ReadAllLinesAsync();
-            if (!lines.Any()) throw new UnexpectedGitOutputFormatException(process.CommandLine, "No output.");
-            if (lines.Count() > 1) throw new UnexpectedGitOutputFormatException(process.CommandLine, new UnexpectedGitOutputFormatDetails { Line = lines[1], Explanations = { $"{lines.Count() - 1} excess lines." } });
-            if (String.IsNullOrWhiteSpace(lines.Single())) throw new UnexpectedGitOutputFormatException(process.CommandLine, "Empty output.");
-            return lines.Single();
+                var excess = ReadLines(lineReader).ToList();
+                if (excess.Any()) throw new UnexpectedGitOutputFormatException(command, new UnexpectedGitOutputFormatDetails { Line = excess.First(), Explanations = { $"{excess.Count} excess lines." } });
+
+                if (String.IsNullOrWhiteSpace(line)) throw new UnexpectedGitOutputFormatException(command, "Empty output.");
+                return line;
+            }
         }
 
-        public static async Task ExpectSuccess(IConsoleProcess process)
+        private static IEnumerable<string> ReadLines(TextReader reader)
         {
-            var code = await process.Completed;
-            if (code != 0) throw new GitException(process.CommandLine, code, String.Join(Environment.NewLine, await process.StdErr.ToStringAsync()));
+            var line = reader.ReadLine();
+            while (line != null)
+            {
+                yield return line;
+                line = reader.ReadLine();
+            }
         }
     }
 }

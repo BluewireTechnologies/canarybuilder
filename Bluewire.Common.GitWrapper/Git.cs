@@ -1,7 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using Bluewire.Common.Console.Client.Shell;
+using CliWrap;
+using CliWrap.Buffered;
 
 namespace Bluewire.Common.GitWrapper
 {
@@ -25,20 +26,27 @@ namespace Bluewire.Common.GitWrapper
         public async Task Validate(IConsoleInvocationLogger logger = null)
         {
             // check that the binary can execute
-            await GetVersionString(logger);
+            await GetVersionString(logger)
+                .ConfigureAwait(false);
         }
 
         public async Task<string> GetVersionString(IConsoleInvocationLogger logger = null)
         {
-            var process = new CommandLine(exePath, "--version").RunFrom(GetExecutableDirectory());
-            using (logger?.LogMinorInvocation(process))
-            {
-                var versionString = await GitHelpers.ExpectOneLine(process); ;
-                const string expectedPrefix = "git version ";
-                if (!versionString.StartsWith(expectedPrefix)) throw new UnexpectedGitOutputFormatException(process.CommandLine);
+            var command = Cli.Wrap(exePath)
+                .WithValidation(CommandResultValidation.None)
+                .WithArguments("--version");
 
-                return versionString.Substring(expectedPrefix.Length).Trim();
-            }
+            var result = await command
+                .WithWorkingDirectory(GetExecutableDirectory())
+                .LogMinorInvocation(logger, out var log)
+                .ExecuteBufferedAsync()
+                .LogResult(log);
+
+            var versionString = GitHelpers.ExpectOneLine(command, result);
+            const string expectedPrefix = "git version ";
+            if (!versionString.StartsWith(expectedPrefix)) throw new UnexpectedGitOutputFormatException(command);
+
+            return versionString.Substring(expectedPrefix.Length).Trim();
         }
     }
 }

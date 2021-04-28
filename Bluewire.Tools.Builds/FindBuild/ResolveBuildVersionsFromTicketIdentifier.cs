@@ -2,10 +2,10 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Bluewire.Common.Console;
 using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
+using Bluewire.Tools.Builds.Shared;
 
 namespace Bluewire.Tools.Builds.FindBuild
 {
@@ -59,7 +59,7 @@ namespace Bluewire.Tools.Builds.FindBuild
             var branchTipsReferencingTickets = await ResolveAllRefs(session, repository, branchNamesReferencingTickets);
 
             var uniqueHashes = commitsReferencingTickets.Select(l => l.Ref).Concat(branchTipsReferencingTickets).Distinct().ToArray();
-            if (uniqueHashes.Length == 0) throw new ErrorWithReturnCodeException(3, $"Could not find any references to ticket {ticketIdentifier}.");
+            if (uniqueHashes.Length == 0) throw new NoCommitsReferenceTicketIdentifierException(ticketIdentifier);
             return uniqueHashes;
         }
 
