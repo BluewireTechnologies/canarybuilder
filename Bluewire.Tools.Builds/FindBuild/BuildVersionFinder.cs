@@ -27,8 +27,7 @@ namespace Bluewire.Tools.Builds.FindBuild
 
         public async Task<SemanticVersion[]> GetBuildVersionsFromCommit(Ref commitHash, StructuredBranch[] targetBranches)
         {
-            var inspector = new RepositoryStructureInspector(gitSession);
-            var integrationPoints = await inspector.QueryIntegrationPoints(repository, commitHash, targetBranches);
+            var integrationPoints = await QueryIntegrationPoints(repository, commitHash, targetBranches);
 
             var buildNumbers = new List<SemanticVersion>();
             foreach (var group in integrationPoints.GroupBy(i => i.IntegrationPoint, i => i.TargetBranch))
@@ -37,6 +36,24 @@ namespace Bluewire.Tools.Builds.FindBuild
                 buildNumbers.Add(await GetBuildNumberFromIntegrationPoint(group.Key, branch));
             }
             return buildNumbers.ToArray();
+        }
+
+        public async Task<IntegrationQueryResult[]> QueryIntegrationPoints(Common.GitWrapper.GitRepository repository, Ref subject, StructuredBranch[] targetBranches)
+        {
+            var inspector = new RepositoryStructureInspector(gitSession);
+            var baseTag = await inspector.ResolveBaseTagForCommit(repository, subject);
+
+            var integrationPoints = new List<IntegrationQueryResult>();
+            var integrationPointLocator = new BranchIntegrationPointLocator(gitSession);
+            foreach (var branch in targetBranches)
+            {
+                integrationPoints.Add(new IntegrationQueryResult {
+                    Subject = subject,
+                    TargetBranch = branch,
+                    IntegrationPoint = await integrationPointLocator.FindCommit(repository, baseTag.ResolvedRef, new Ref(branch.ToString()), subject)
+                });
+            }
+            return integrationPoints.ToArray();
         }
 
         private static StructuredBranch GetPreferredBranch(IEnumerable<StructuredBranch> targetBranches)

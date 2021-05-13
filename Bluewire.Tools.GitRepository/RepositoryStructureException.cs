@@ -1,6 +1,6 @@
 using System;
 
-namespace Bluewire.Tools.Builds.Shared
+namespace Bluewire.Tools.GitRepository
 {
     public class RepositoryStructureException : ApplicationException
     {

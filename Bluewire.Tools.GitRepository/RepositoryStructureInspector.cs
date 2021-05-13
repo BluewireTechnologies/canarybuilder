@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
-using Bluewire.Tools.Builds.FindBuild;
-using Bluewire.Tools.GitRepository;
 
-namespace Bluewire.Tools.Builds.Shared
+namespace Bluewire.Tools.GitRepository
 {
     public class RepositoryStructureInspector
     {
@@ -101,23 +99,6 @@ namespace Bluewire.Tools.Builds.Shared
                 }
                 return RefHelper.GetRemoteRef(new Ref(endLocalBranchName));
             }
-        }
-
-        public async Task<IntegrationQueryResult[]> QueryIntegrationPoints(Common.GitWrapper.GitRepository repository, Ref subject, StructuredBranch[] targetBranches)
-        {
-            var baseTag = await ResolveBaseTagForCommit(repository, subject);
-
-            var integrationPoints = new List<IntegrationQueryResult>();
-            var integrationPointLocator = new BranchIntegrationPointLocator(gitSession);
-            foreach (var branch in targetBranches)
-            {
-                integrationPoints.Add(new IntegrationQueryResult {
-                    Subject = subject,
-                    TargetBranch = branch,
-                    IntegrationPoint = await integrationPointLocator.FindCommit(repository, baseTag.ResolvedRef, new Ref(branch.ToString()), subject)
-                });
-            }
-            return integrationPoints.ToArray();
         }
 
         /// <summary>

@@ -11,6 +11,7 @@ using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
 using Bluewire.Tools.Builds.FindBuild;
 using Bluewire.Tools.Builds.Shared;
+using Bluewire.Tools.GitRepository;
 
 namespace Bluewire.Tools.Runner.FindTickets
 {

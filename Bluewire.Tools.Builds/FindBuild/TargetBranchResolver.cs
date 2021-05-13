@@ -4,6 +4,7 @@ using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
 using Bluewire.Tools.Builds.Shared;
+using Bluewire.Tools.GitRepository;
 
 namespace Bluewire.Tools.Builds.FindBuild
 {

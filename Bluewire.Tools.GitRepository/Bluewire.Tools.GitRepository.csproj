@@ -10,6 +10,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj" />
+    <ProjectReference Include="..\Bluewire.Conventions\Bluewire.Conventions.csproj" />
   </ItemGroup>
   <Import Project="..\StyleCopAnalyzers.props" />
 </Project>
