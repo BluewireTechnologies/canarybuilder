@@ -23,6 +23,26 @@ namespace Bluewire.Common.GitWrapper
             CommandHelper = new GitCommandHelper(git, logger);
         }
 
+        public async Task<GitWorkingCopy> FindWorkingCopyContaining(string path)
+        {
+            if (!Path.IsPathRooted(path)) throw new ArgumentException($"Not an absolute path: {path}");
+            if (File.Exists(path)) path = Path.GetDirectoryName(path);
+            if (!Directory.Exists(path)) throw new ArgumentException($"Directory does not exist: {path}");
+
+            var command = CommandHelper.CreateCommand("rev-parse", "--show-toplevel");
+
+            var result = await command
+                .WithWorkingDirectory(path)
+                .LogMinorInvocation(logger, out var log)
+                .ExecuteBufferedAsync()
+                .LogResult(log);
+
+            if (result.ExitCode != 0) return null;
+            var rootPath = GitHelpers.ExpectOneLine(command, result);
+            if (String.IsNullOrEmpty(rootPath)) return null;
+            return new GitWorkingCopy(Path.GetFullPath(rootPath));
+        }
+
         public async Task<Ref> GetCurrentBranch(GitWorkingCopy workingCopy)
         {
             var command = CommandHelper.CreateCommand("rev-parse", "--abbrev-ref", "HEAD");
