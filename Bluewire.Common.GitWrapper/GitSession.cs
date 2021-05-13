@@ -465,6 +465,13 @@ namespace Bluewire.Common.GitWrapper
             return await CommandHelper.RunTestCommand(workingCopy, command);
         }
 
+        public async Task<bool> IsFirstParentAncestor(IGitFilesystemContext workingCopyOrRepo, Ref maybeFirstParentAncestor, Ref reference)
+        {
+            var command = CommandHelper.CreateCommand("rev-list", "--first-parent", reference, "--not", $"{maybeFirstParentAncestor}^@", "--");
+            var commits = await CommandHelper.RunCommand(workingCopyOrRepo, command, new GitListCommitsParser());
+            return commits.Contains(maybeFirstParentAncestor);
+        }
+
         /// <summary>
         /// List revisions on the first-parent ancestry chain between 'start' and 'end'.
         /// </summary>
