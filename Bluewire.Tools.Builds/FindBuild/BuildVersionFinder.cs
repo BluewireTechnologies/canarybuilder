@@ -15,19 +15,19 @@ namespace Bluewire.Tools.Builds.FindBuild
     public class BuildVersionFinder
     {
         private readonly GitSession gitSession;
-        private readonly Common.GitWrapper.GitRepository repository;
+        private readonly IGitFilesystemContext workingCopyOrRepo;
 
-        public BuildVersionFinder(GitSession gitSession, Common.GitWrapper.GitRepository repository)
+        public BuildVersionFinder(GitSession gitSession, IGitFilesystemContext workingCopyOrRepo)
         {
             if (gitSession == null) throw new ArgumentNullException(nameof(gitSession));
-            if (repository == null) throw new ArgumentNullException(nameof(repository));
+            if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
             this.gitSession = gitSession;
-            this.repository = repository;
+            this.workingCopyOrRepo = workingCopyOrRepo;
         }
 
         public async Task<SemanticVersion[]> GetBuildVersionsFromCommit(Ref commitHash, StructuredBranch[] targetBranches)
         {
-            var integrationPoints = await QueryIntegrationPoints(repository, commitHash, targetBranches);
+            var integrationPoints = await QueryIntegrationPoints(commitHash, targetBranches);
 
             var buildNumbers = new List<SemanticVersion>();
             foreach (var group in integrationPoints.GroupBy(i => i.IntegrationPoint, i => i.TargetBranch))
@@ -38,10 +38,10 @@ namespace Bluewire.Tools.Builds.FindBuild
             return buildNumbers.ToArray();
         }
 
-        public async Task<IntegrationQueryResult[]> QueryIntegrationPoints(Common.GitWrapper.GitRepository repository, Ref subject, StructuredBranch[] targetBranches)
+        public async Task<IntegrationQueryResult[]> QueryIntegrationPoints(Ref subject, StructuredBranch[] targetBranches)
         {
             var inspector = new RepositoryStructureInspector(gitSession);
-            var baseTag = await inspector.ResolveBaseTagForCommit(repository, subject);
+            var baseTag = await inspector.ResolveBaseTagForCommit(workingCopyOrRepo, subject);
 
             var integrationPoints = new List<IntegrationQueryResult>();
             var integrationPointLocator = new BranchIntegrationPointLocator(gitSession);
@@ -50,7 +50,7 @@ namespace Bluewire.Tools.Builds.FindBuild
                 integrationPoints.Add(new IntegrationQueryResult {
                     Subject = subject,
                     TargetBranch = branch,
-                    IntegrationPoint = await integrationPointLocator.FindCommit(repository, baseTag.ResolvedRef, new Ref(branch.ToString()), subject)
+                    IntegrationPoint = await integrationPointLocator.FindCommit(workingCopyOrRepo, baseTag.ResolvedRef, new Ref(branch.ToString()), subject)
                 });
             }
             return integrationPoints.ToArray();
@@ -78,13 +78,13 @@ namespace Bluewire.Tools.Builds.FindBuild
             var inspector = new RepositoryStructureInspector(gitSession);
 
             var sprintNumber = SprintNumber.Parse(branch.ToString());
-            var versionNumber = await inspector.GetActiveVersionNumber(repository, mergeCommit);
-            var baseTag = await inspector.ResolveBaseTagForVersion(repository, versionNumber);
+            var versionNumber = await inspector.GetActiveVersionNumber(workingCopyOrRepo, mergeCommit);
+            var baseTag = await inspector.ResolveBaseTagForVersion(workingCopyOrRepo, versionNumber);
 
             if (sprintNumber != null) Debug.Assert(sprintNumber == Version.Parse(versionNumber));
 
             var calculator = new TopologicalBuildNumberCalculator(gitSession);
-            var buildNumber = await calculator.GetBuildNumber(repository, baseTag.ResolvedRef, mergeCommit);
+            var buildNumber = await calculator.GetBuildNumber(workingCopyOrRepo, baseTag.ResolvedRef, mergeCommit);
             if (buildNumber == null) throw new CannotDetermineBuildNumberException(baseTag.ResolvedRef, mergeCommit);
 
             var branchType = new BranchSemantics().GetBranchType(branch);

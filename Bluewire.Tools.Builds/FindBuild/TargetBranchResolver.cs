@@ -11,14 +11,14 @@ namespace Bluewire.Tools.Builds.FindBuild
     public class TargetBranchResolver
     {
         private readonly GitSession gitSession;
-        private readonly Common.GitWrapper.GitRepository repository;
+        private readonly IGitFilesystemContext workingCopyOrRepo;
 
-        public TargetBranchResolver(GitSession gitSession, Common.GitWrapper.GitRepository repository)
+        public TargetBranchResolver(GitSession gitSession, IGitFilesystemContext workingCopyOrRepo)
         {
             if (gitSession == null) throw new ArgumentNullException(nameof(gitSession));
-            if (repository == null) throw new ArgumentNullException(nameof(repository));
+            if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
             this.gitSession = gitSession;
-            this.repository = repository;
+            this.workingCopyOrRepo = workingCopyOrRepo;
         }
 
         public async Task<StructuredBranch[]> IdentifyTargetBranchesOfCommit(Ref hash)
@@ -32,7 +32,7 @@ namespace Bluewire.Tools.Builds.FindBuild
                 BranchType.Release
             };
 
-            return await inspector.FindContainingBranches(repository, types, hash, 10); // Tolerate some duplicate integration points for performance reasons.
+            return await inspector.FindContainingBranches(workingCopyOrRepo, types, hash, 10); // Tolerate some duplicate integration points for performance reasons.
         }
     }
 }

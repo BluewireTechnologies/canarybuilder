@@ -20,15 +20,15 @@ namespace Bluewire.Tools.Builds.FindTickets
             this.endRef = endRef;
         }
 
-        public async Task<string[]> ResolveTickets(GitSession session, Common.GitWrapper.GitRepository repository)
+        public async Task<string[]> ResolveTickets(GitSession session, IGitFilesystemContext workingCopyOrRepo)
         {
             if (string.IsNullOrEmpty(startRef?.ToString()))
                 throw new InvalidOperationException("Starting Ref (commit) must be supplied");
             if (string.IsNullOrEmpty(endRef?.ToString()))
                 throw new InvalidOperationException("Ending Ref (commit) must be supplied");
 
-            var includeCommits = await session.ReadLog(repository, new LogOptions(), new Difference(startRef, endRef));
-            var excludeCommits = await session.ReadLog(repository, new LogOptions(), new Difference(endRef, startRef));
+            var includeCommits = await session.ReadLog(workingCopyOrRepo, new LogOptions(), new Difference(startRef, endRef));
+            var excludeCommits = await session.ReadLog(workingCopyOrRepo, new LogOptions(), new Difference(endRef, startRef));
 
             var includeTicketsStrings = includeCommits.SelectMany(c => Patterns.TicketIdentifier.Matches(c.Message).OfType<Match>().Select(m => m.Value));
             var excludeTicketsStrings = excludeCommits.SelectMany(c => Patterns.TicketIdentifier.Matches(c.Message).OfType<Match>().Select(m => m.Value));

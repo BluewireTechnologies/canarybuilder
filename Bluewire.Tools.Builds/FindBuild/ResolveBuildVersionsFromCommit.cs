@@ -15,22 +15,22 @@ namespace Bluewire.Tools.Builds.FindBuild
             this.commitRef = commitRef;
         }
 
-        public async Task<SemanticVersion[]> ResolveBuildVersions(GitSession session, Common.GitWrapper.GitRepository repository)
+        public async Task<SemanticVersion[]> ResolveBuildVersions(GitSession session, IGitFilesystemContext workingCopyOrRepo)
         {
-            var hash = await ResolveToHash(session, repository);
+            var hash = await ResolveToHash(session, workingCopyOrRepo);
 
-            var resolver = new TargetBranchResolver(session, repository);
+            var resolver = new TargetBranchResolver(session, workingCopyOrRepo);
             var targetBranches = await resolver.IdentifyTargetBranchesOfCommit(hash);
 
-            var finder = new BuildVersionFinder(session, repository);
+            var finder = new BuildVersionFinder(session, workingCopyOrRepo);
             return await finder.GetBuildVersionsFromCommit(hash, targetBranches);
         }
 
-        private async Task<Ref> ResolveToHash(GitSession session, Common.GitWrapper.GitRepository repository)
+        private async Task<Ref> ResolveToHash(GitSession session, IGitFilesystemContext workingCopyOrRepo)
         {
             try
             {
-                return await session.ResolveRef(repository, new Ref(commitRef));
+                return await session.ResolveRef(workingCopyOrRepo, new Ref(commitRef));
             }
             catch (GitException)
             {

@@ -19,35 +19,35 @@ namespace Bluewire.Tools.GitRepository
             this.gitSession = gitSession;
         }
 
-        public async Task<string> GetActiveVersionNumber(Common.GitWrapper.GitRepository repository, Ref commit)
+        public async Task<string> GetActiveVersionNumber(IGitFilesystemContext workingCopyOrRepo, Ref commit)
         {
             try
             {
-                return await GetActiveVersionNumberUsingMarkerFile(repository, commit);
+                return await GetActiveVersionNumberUsingMarkerFile(workingCopyOrRepo, commit);
             }
             catch (GitException ex)
             {
                 try
                 {
-                    return await GetActiveVersionNumberFromTagSearch(repository, commit);
+                    return await GetActiveVersionNumberFromTagSearch(workingCopyOrRepo, commit);
                 } catch { /* Discard this exception and throw the original exception instead. */ }
                 throw new RepositoryStructureException($"Unable to determine the active version number for the commit. {ex.Message}");
             }
         }
 
-        private async Task<string> GetActiveVersionNumberUsingMarkerFile(Common.GitWrapper.GitRepository repository, Ref commit)
+        private async Task<string> GetActiveVersionNumberUsingMarkerFile(IGitFilesystemContext workingCopyOrRepo, Ref commit)
         {
             var cmd = gitSession.CommandHelper.CreateCommand("show", $"{commit}:.current-version");
-            var line = await gitSession.CommandHelper.RunSingleLineCommand(repository, cmd);
+            var line = await gitSession.CommandHelper.RunSingleLineCommand(workingCopyOrRepo, cmd);
             var versionNumber = line.Trim();
             if (SprintNumber.Parse(versionNumber) != null) return versionNumber;
             throw new RepositoryStructureException($"Unable to determine the active version number for the commit. The .current-version could not be parsed: {versionNumber}");
         }
 
-        private async Task<string> GetActiveVersionNumberFromTagSearch(Common.GitWrapper.GitRepository repository, Ref commit)
+        private async Task<string> GetActiveVersionNumberFromTagSearch(IGitFilesystemContext workingCopyOrRepo, Ref commit)
         {
             var cmd = gitSession.CommandHelper.CreateCommand("describe", "--first-parent", commit);
-            var line = await gitSession.CommandHelper.RunSingleLineCommand(repository, cmd);
+            var line = await gitSession.CommandHelper.RunSingleLineCommand(workingCopyOrRepo, cmd);
             var versionNumber = line.Trim().Split('-').FirstOrDefault();
             if (versionNumber != null)
             {
@@ -56,11 +56,11 @@ namespace Bluewire.Tools.GitRepository
             throw new RepositoryStructureException($"Unable to determine the active version number for the commit. The commit description could not be parsed: {line}");
         }
 
-        public async Task<TagDetails> ResolveBaseTagForVersion(Common.GitWrapper.GitRepository repository, string versionNumber)
+        public async Task<TagDetails> ResolveBaseTagForVersion(IGitFilesystemContext workingCopyOrRepo, string versionNumber)
         {
             try
             {
-                return await gitSession.ReadTagDetails(repository, new Ref(versionNumber));
+                return await gitSession.ReadTagDetails(workingCopyOrRepo, new Ref(versionNumber));
             }
             catch (GitException ex)
             {
@@ -68,20 +68,20 @@ namespace Bluewire.Tools.GitRepository
             }
         }
 
-        public async Task<TagDetails> ResolveBaseTagForCommit(Common.GitWrapper.GitRepository repository, Ref commit)
+        public async Task<TagDetails> ResolveBaseTagForCommit(IGitFilesystemContext workingCopyOrRepo, Ref commit)
         {
-            var versionNumber = await GetActiveVersionNumber(repository, commit);
-            return await ResolveBaseTagForVersion(repository, versionNumber);
+            var versionNumber = await GetActiveVersionNumber(workingCopyOrRepo, commit);
+            return await ResolveBaseTagForVersion(workingCopyOrRepo, versionNumber);
         }
 
-        public async Task<Ref> ResolveTagOrTipOfBranchForVersion(IGitFilesystemContext repository, SemanticVersion semanticVersion)
+        public async Task<Ref> ResolveTagOrTipOfBranchForVersion(IGitFilesystemContext workingCopyOrRepo, SemanticVersion semanticVersion)
         {
             var branchSemantics = new BranchSemantics();
             var endLocalBranchNames = branchSemantics.GetVersionLatestBranchNames(semanticVersion);
             foreach (var endLocalBranchName in endLocalBranchNames)
             {
                 var endRef = await GetEndRef(endLocalBranchName);
-                if (await gitSession.RefExists(repository, endRef)) return endRef;
+                if (await gitSession.RefExists(workingCopyOrRepo, endRef)) return endRef;
             }
             return null;
 
@@ -92,7 +92,7 @@ namespace Bluewire.Tools.GitRepository
                     // This is only applicable for versions which predate the use of backport/* branches, where the
                     // beta version terminates at maint/*.
                     var maintTag = new Ref($"tags/maint/{semanticVersion.Major}.{semanticVersion.Minor}");
-                    if (await gitSession.TagExists(repository, maintTag))
+                    if (await gitSession.TagExists(workingCopyOrRepo, maintTag))
                     {
                         return RefHelper.GetRemoteRef(new Ref(maintTag));
                     }
@@ -111,12 +111,12 @@ namespace Bluewire.Tools.GitRepository
         /// If pruning does not take place, it is possible that some branches may share an integration point with master.
         /// By default, pruning will always occur if more than one branch is found.
         /// </remarks>
-        public async Task<StructuredBranch[]> FindContainingBranches(Common.GitWrapper.GitRepository repository, BranchType[] types, Ref hash, int pruneThreshold = 1)
+        public async Task<StructuredBranch[]> FindContainingBranches(IGitFilesystemContext workingCopyOrRepo, BranchType[] types, Ref hash, int pruneThreshold = 1)
         {
             // Optimisation: only have Git explore the branches we care about.
             var branchFilter = new BranchSemantics().GetRemoteBranchFilters(types.Concat(new [] { BranchType.Master }).ToArray());
 
-            var containingBranches = await gitSession.ListBranches(repository, new ListBranchesOptions { Contains = hash, Remote = true, BranchFilter = branchFilter });
+            var containingBranches = await gitSession.ListBranches(workingCopyOrRepo, new ListBranchesOptions { Contains = hash, Remote = true, BranchFilter = branchFilter });
 
             StructuredBranch? masterBranch;
             var recognisedBranches = ParseRecognisedBranches(types, containingBranches, out masterBranch);
@@ -133,12 +133,12 @@ namespace Bluewire.Tools.GitRepository
             // found more than 'pruneThreshold' branches.
             if (recognisedBranches.Length <= pruneThreshold) return recognisedBranches;
 
-            var commonAncestor = await ResolveBaseTagForCommit(repository, hash);
+            var commonAncestor = await ResolveBaseTagForCommit(workingCopyOrRepo, hash);
 
             var integrationPointLocator = new BranchIntegrationPointLocator(gitSession);
-            var integrationPoint = await integrationPointLocator.FindCommit(repository, commonAncestor.ResolvedRef, new Ref(masterBranch.ToString()), hash);
+            var integrationPoint = await integrationPointLocator.FindCommit(workingCopyOrRepo, commonAncestor.ResolvedRef, new Ref(masterBranch.ToString()), hash);
 
-            var branchesInheritingFromMaster = await gitSession.ListBranches(repository, new ListBranchesOptions { Contains = integrationPoint, Remote = true });
+            var branchesInheritingFromMaster = await gitSession.ListBranches(workingCopyOrRepo, new ListBranchesOptions { Contains = integrationPoint, Remote = true });
 
             StructuredBranch? recognisedMasterBranch;
             var excessBranches = ParseRecognisedBranches(types, branchesInheritingFromMaster, out recognisedMasterBranch);

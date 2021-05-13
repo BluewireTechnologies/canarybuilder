@@ -5,9 +5,6 @@ using Bluewire.Conventions;
 using Bluewire.Tools.GitRepository;
 using System.Collections.Generic;
 using Bluewire.Tools.Builds.Shared;
-using System;
-using System.Linq;
-using Bluewire.Tools.Builds.FindBuild;
 
 namespace Bluewire.Tools.Builds.FindCommits
 {
@@ -20,7 +17,7 @@ namespace Bluewire.Tools.Builds.FindCommits
             this.semVer = SemanticVersion.FromString(semVer);
         }
 
-        public async Task<Build[]> ResolveCommits(GitSession session, Common.GitWrapper.GitRepository repository)
+        public async Task<Build[]> ResolveCommits(GitSession session, IGitFilesystemContext workingCopyOrRepo)
         {
 
             // We expect only BuildNumberOutOfRangeException and BuildNumberNotFoundException exceptions.
@@ -30,7 +27,7 @@ namespace Bluewire.Tools.Builds.FindCommits
             {
                 try
                 {
-                    var commit = await FindRemoteCommit(session, repository, semVer);
+                    var commit = await FindRemoteCommit(session, workingCopyOrRepo, semVer);
                     if (commit != null)
                     {
                         return new Build[1] { new Build() { Commit = commit, SemanticVersion = semVer } };
@@ -48,7 +45,7 @@ namespace Bluewire.Tools.Builds.FindCommits
                 var implicitSemVer = new SemanticVersion(semVer.Major, semVer.Minor, semVer.Build, semTag);
                 try
                 {
-                    var commit = await FindRemoteCommit(session, repository, implicitSemVer);
+                    var commit = await FindRemoteCommit(session, workingCopyOrRepo, implicitSemVer);
                     if (commit != null)
                     {
                         refs.Add(new Build() { Commit = commit, SemanticVersion = implicitSemVer });
@@ -63,7 +60,7 @@ namespace Bluewire.Tools.Builds.FindCommits
             return BuildUtils.DeduplicateAndPrioritiseResult(refs.ToArray());
         }
 
-        private async Task<Ref> FindRemoteCommit(GitSession session, IGitFilesystemContext repository, SemanticVersion semVer)
+        private async Task<Ref> FindRemoteCommit(GitSession session, IGitFilesystemContext workingCopyOrRepo, SemanticVersion semVer)
         {
             var resolver = new TopologicalBuildNumberResolver(session);
             var branchSemantics = new BranchSemantics();
@@ -72,13 +69,13 @@ namespace Bluewire.Tools.Builds.FindCommits
             if (string.IsNullOrEmpty(startBranchName)) return null;
 
             var startRef = new Ref(startBranchName);
-            var endRef = await new RepositoryStructureInspector(session).ResolveTagOrTipOfBranchForVersion(repository, semVer);
+            var endRef = await new RepositoryStructureInspector(session).ResolveTagOrTipOfBranchForVersion(workingCopyOrRepo, semVer);
 
             // It's less likely that the end ref will exist
             if (endRef == null) return null;
-            if (!await session.RefExists(repository, startRef)) return null;
+            if (!await session.RefExists(workingCopyOrRepo, startRef)) return null;
 
-            return await resolver.FindCommit(repository, startRef, endRef, semVer.Build);
+            return await resolver.FindCommit(workingCopyOrRepo, startRef, endRef, semVer.Build);
         }
     }
 }
