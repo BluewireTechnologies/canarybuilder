@@ -37,6 +37,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bluewire.Tools.Runner", "Bl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bluewire.Tools.Runner.IntegrationTests", "Bluewire.Tools.Runner.IntegrationTests\Bluewire.Tools.Runner.IntegrationTests.csproj", "{A4214FB7-545D-4653-9F0C-970443C13C46}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bluewire.Stash.Tool", "Bluewire.Stash.Tool\Bluewire.Stash.Tool.csproj", "{1F1ADDB6-60EC-46EC-A3BB-E003CBEE366C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bluewire.Stash", "Bluewire.Stash\Bluewire.Stash.csproj", "{EE3D39F6-F314-4F7E-B5EE-81D52C559C30}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bluewire.Stash.UnitTests", "Bluewire.Stash.UnitTests\Bluewire.Stash.UnitTests.csproj", "{61918DAD-4338-4970-B825-4AF2347C0878}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Stash.IntegrationTests", "Bluewire.Stash.IntegrationTests\Bluewire.Stash.IntegrationTests.csproj", "{84D6A4DE-8ACF-422C-B7BB-040B2594CB1B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -111,6 +119,22 @@ Global
 		{A4214FB7-545D-4653-9F0C-970443C13C46}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4214FB7-545D-4653-9F0C-970443C13C46}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4214FB7-545D-4653-9F0C-970443C13C46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F1ADDB6-60EC-46EC-A3BB-E003CBEE366C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F1ADDB6-60EC-46EC-A3BB-E003CBEE366C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F1ADDB6-60EC-46EC-A3BB-E003CBEE366C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F1ADDB6-60EC-46EC-A3BB-E003CBEE366C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE3D39F6-F314-4F7E-B5EE-81D52C559C30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE3D39F6-F314-4F7E-B5EE-81D52C559C30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE3D39F6-F314-4F7E-B5EE-81D52C559C30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE3D39F6-F314-4F7E-B5EE-81D52C559C30}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61918DAD-4338-4970-B825-4AF2347C0878}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61918DAD-4338-4970-B825-4AF2347C0878}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61918DAD-4338-4970-B825-4AF2347C0878}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61918DAD-4338-4970-B825-4AF2347C0878}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84D6A4DE-8ACF-422C-B7BB-040B2594CB1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84D6A4DE-8ACF-422C-B7BB-040B2594CB1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84D6A4DE-8ACF-422C-B7BB-040B2594CB1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84D6A4DE-8ACF-422C-B7BB-040B2594CB1B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
