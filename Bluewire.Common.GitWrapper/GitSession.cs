@@ -512,6 +512,8 @@ namespace Bluewire.Common.GitWrapper
                     if (options.ShowMerges == LogShowMerges.Never) args.Add("--no-merges");
                     else if (options.ShowMerges == LogShowMerges.Only) args.Add("--merges");
 
+                    if (options.AncestryPathOnly) args.Add("--ancestry-path");
+
                     if (options.IncludeAllRefs)
                     {
                         if (refRanges.Length > 0) throw new ArgumentException($"IncludeAllRefs was specified, but so were {refRanges.Length} ref ranges.");
@@ -524,6 +526,25 @@ namespace Bluewire.Common.GitWrapper
                 });
 
             return await CommandHelper.RunCommand(workingCopyOrRepo, command, parser);
+        }
+
+        public async Task<ISet<Ref>> AddAncestry(IGitFilesystemContext workingCopyOrRepo, CommitGraph graph, IRefRange range)
+        {
+            var command = CommandHelper.CreateCommand("rev-list", "--parents", range.ToString());
+
+            var newRefs = new HashSet<Ref>();
+            await CommandHelper.RunCommand(workingCopyOrRepo, command, line =>
+            {
+                var shas = line.Split(' ');
+                var commit = shas.First();
+                if (string.IsNullOrWhiteSpace(commit)) return;
+                var parents = shas.Skip(1).Select(s => new Ref(s)).ToArray();
+                if (graph.Add(new Ref(commit), parents))
+                {
+                    newRefs.Add(new Ref(commit));
+                }
+            });
+            return newRefs;
         }
     }
 }

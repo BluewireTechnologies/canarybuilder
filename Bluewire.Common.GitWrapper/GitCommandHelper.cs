@@ -123,6 +123,18 @@ namespace Bluewire.Common.GitWrapper
         }
 
         /// <summary>
+        /// Helper method. Runs a command which is expected to produce output which can be parsed and collected asynchronously.
+        /// </summary>
+        public async Task RunCommand(IGitFilesystemContext workingCopyOrRepo, Command command, Action<string> collectLine, CancellationToken token = default(CancellationToken))
+        {
+            var asyncStdout = PrepareAsyncEnumerableCommand(workingCopyOrRepo, command, token);
+            await foreach (var line in SelectStandardOutput(asyncStdout).WithCancellation(token))
+            {
+                collectLine(line);
+            }
+        }
+
+        /// <summary>
         /// Waits only for the task to complete, ignoring the manner in which it completes.
         /// Does not rethrow exceptions, etc as t.Wait() would.
         /// </summary>

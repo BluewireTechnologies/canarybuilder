@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Bluewire.Common.GitWrapper.Model
 {
@@ -88,5 +89,8 @@ namespace Bluewire.Common.GitWrapper.Model
             if (parts.Length <= i) throw new ArgumentException($"Ref '{@ref}' is described entirely by the specified prefixes: {String.Join("/", prefixes)}");
             return new Ref(String.Join("/", parts.Skip(i)));
         }
+
+        private static readonly Regex rxSha1 = new Regex("^[a-f0-9]{40}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        public static bool IsSha1Hash(Ref @ref) => rxSha1.IsMatch(@ref.ToString());
     }
 }

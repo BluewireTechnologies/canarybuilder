@@ -83,8 +83,8 @@ namespace Bluewire.Tools.Builds.FindBuild
 
             if (sprintNumber != null) Debug.Assert(sprintNumber == Version.Parse(versionNumber));
 
-            var calculator = new TopologicalBuildNumberCalculator(gitSession);
-            var buildNumber = await calculator.GetBuildNumber(workingCopyOrRepo, baseTag.ResolvedRef, mergeCommit);
+            var calculator = new TopologicalBuildNumberProvider(gitSession, workingCopyOrRepo);
+            var buildNumber = await calculator.GetBuildNumber(baseTag.ResolvedRef, mergeCommit);
             if (buildNumber == null) throw new CannotDetermineBuildNumberException(baseTag.ResolvedRef, mergeCommit);
 
             var branchType = new BranchSemantics().GetBranchType(branch);

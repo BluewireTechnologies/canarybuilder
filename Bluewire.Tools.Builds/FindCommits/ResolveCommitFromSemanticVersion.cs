@@ -19,15 +19,15 @@ namespace Bluewire.Tools.Builds.FindCommits
 
         public async Task<Build[]> ResolveCommits(GitSession session, IGitFilesystemContext workingCopyOrRepo)
         {
+            var provider = new TopologicalBuildNumberProvider(session, workingCopyOrRepo);
 
             // We expect only BuildNumberOutOfRangeException and BuildNumberNotFoundException exceptions.
             // The caller of this method could notify the user that no builds were found but doesn't need the specifics.
-
             if (semVer.IsComplete)
             {
                 try
                 {
-                    var commit = await FindRemoteCommit(session, workingCopyOrRepo, semVer);
+                    var commit = await FindRemoteCommit(session, workingCopyOrRepo, provider, semVer);
                     if (commit != null)
                     {
                         return new Build[1] { new Build() { Commit = commit, SemanticVersion = semVer } };
@@ -45,7 +45,7 @@ namespace Bluewire.Tools.Builds.FindCommits
                 var implicitSemVer = new SemanticVersion(semVer.Major, semVer.Minor, semVer.Build, semTag);
                 try
                 {
-                    var commit = await FindRemoteCommit(session, workingCopyOrRepo, implicitSemVer);
+                    var commit = await FindRemoteCommit(session, workingCopyOrRepo, provider, implicitSemVer);
                     if (commit != null)
                     {
                         refs.Add(new Build() { Commit = commit, SemanticVersion = implicitSemVer });
@@ -60,9 +60,8 @@ namespace Bluewire.Tools.Builds.FindCommits
             return BuildUtils.DeduplicateAndPrioritiseResult(refs.ToArray());
         }
 
-        private async Task<Ref> FindRemoteCommit(GitSession session, IGitFilesystemContext workingCopyOrRepo, SemanticVersion semVer)
+        private async Task<Ref> FindRemoteCommit(GitSession session, IGitFilesystemContext workingCopyOrRepo, TopologicalBuildNumberProvider provider, SemanticVersion semVer)
         {
-            var resolver = new TopologicalBuildNumberResolver(session);
             var branchSemantics = new BranchSemantics();
 
             var startBranchName = new Ref(branchSemantics.GetVersionZeroBranchName(semVer));
@@ -75,7 +74,7 @@ namespace Bluewire.Tools.Builds.FindCommits
             if (endRef == null) return null;
             if (!await session.RefExists(workingCopyOrRepo, startRef)) return null;
 
-            return await resolver.FindCommit(workingCopyOrRepo, startRef, endRef, semVer.Build);
+            return await provider.FindCommit(startRef, endRef, semVer.Build);
         }
     }
 }
