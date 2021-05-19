@@ -81,7 +81,7 @@ namespace Bluewire.Common.GitWrapper
         {
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
-            var command = CommandHelper.CreateCommand("show-ref", "--quiet", @ref);
+            var command = CommandHelper.CreateCommand("rev-parse", "--quiet", "--verify", $"{@ref}^{{commit}}");
 
             var result = await command
                 .RunFrom(workingCopyOrRepo)
