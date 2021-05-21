@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Bluewire.Stash.IntegrationTests.TestInfrastructure;
 using Bluewire.Stash.Tool;
 using Moq;
@@ -118,6 +119,51 @@ namespace Bluewire.Stash.IntegrationTests.Tool
             var model = application.Invocations.OfType<DiagnosticsArguments>().SingleOrDefault();
             Assert.That(model, Is.Not.Null);
             Assert.That(model!.AppEnvironment.StashRoot, Is.EqualTo(new ArgumentValue<string>(@"e:\some\repo\stashes\", ArgumentSource.Argument)));
+        }
+
+        [Test]
+        public void UsesEnvironmentVariableRemoteStashRootIfNoArgumentIsSpecified()
+        {
+            var application = Mock.Of<StubApplication>(a =>
+                    a.GetEnvironmentVariable("REMOTE_STASH_ROOT") == @"https://server.com/stash")
+                .CallBase();
+
+            var app = Program.Configure(application);
+            app.Execute("diagnostics");
+
+            var model = application.Invocations.OfType<DiagnosticsArguments>().SingleOrDefault();
+            Assert.That(model, Is.Not.Null);
+            Assert.That(model!.AppEnvironment.RemoteStashRoot, Is.EqualTo(new ArgumentValue<Uri?>(new Uri("https://server.com/stash/"), ArgumentSource.Environment)));
+        }
+
+        [Test]
+        public void UsesSpecifiedUriForRemoteStashRoot()
+        {
+            var application = Mock.Of<StubApplication>(a =>
+                    a.GetEnvironmentVariable("REMOTE_STASH_ROOT") == @"https://server.com/stash")
+                .CallBase();
+
+            var app = Program.Configure(application);
+            app.Execute("-R", @"https://other.server/test", "diagnostics");
+
+            var model = application.Invocations.OfType<DiagnosticsArguments>().SingleOrDefault();
+            Assert.That(model, Is.Not.Null);
+            Assert.That(model!.AppEnvironment.RemoteStashRoot, Is.EqualTo(new ArgumentValue<Uri?>(new Uri("https://other.server/test/"), ArgumentSource.Argument)));
+        }
+
+        [Test]
+        public void InvalidSpecifiedUriOverridesEnvironmentVariableRemoteStashRoot()
+        {
+            var application = Mock.Of<StubApplication>(a =>
+                    a.GetEnvironmentVariable("REMOTE_STASH_ROOT") == @"https://server.com/stash")
+                .CallBase();
+
+            var app = Program.Configure(application);
+            app.Execute("-R", @":///not.valid.uri", "diagnostics");
+
+            var model = application.Invocations.OfType<DiagnosticsArguments>().SingleOrDefault();
+            Assert.That(model, Is.Not.Null);
+            Assert.That(model!.AppEnvironment.RemoteStashRoot, Is.EqualTo(new ArgumentValue<Uri?>(null, ArgumentSource.Argument)));
         }
     }
 }

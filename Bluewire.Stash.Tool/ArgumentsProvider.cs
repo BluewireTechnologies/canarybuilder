@@ -15,11 +15,12 @@ namespace Bluewire.Stash.Tool
             this.application = application;
         }
 
-        public AppEnvironment GetAppEnvironment(CommandOption<string> gitTopologyPathOption, CommandOption<string> stashRootOption)
+        public AppEnvironment GetAppEnvironment(CommandOption<string> gitTopologyPathOption, CommandOption<string> stashRootOption, CommandOption<string> remoteStashRootOption)
         {
             return new AppEnvironment(
                 GetGitTopologyPath(gitTopologyPathOption),
-                GetStashRoot(stashRootOption));
+                GetStashRoot(stashRootOption),
+                GetRemoteStashRoot(remoteStashRootOption));
         }
 
         private ArgumentValue<string?> GetGitTopologyPath(CommandOption<string> gitTopologyPathOption)
@@ -42,6 +43,15 @@ namespace Bluewire.Stash.Tool
             if (envValue != null) return new ArgumentValue<string>(EnsureTrailingSlash(envValue), ArgumentSource.Environment);
             var defaultValue = Path.Combine(application.GetTemporaryDirectory(), ".stashes");
             return new ArgumentValue<string>(EnsureTrailingSlash(defaultValue), ArgumentSource.Default);
+        }
+
+        private ArgumentValue<Uri?> GetRemoteStashRoot(CommandOption<string> remoteStashRootOption)
+        {
+            var cliValue = remoteStashRootOption.Value();
+            if (cliValue != null) return new ArgumentValue<Uri?>(CreateValidAbsoluteRootUri(cliValue), ArgumentSource.Argument);
+            var envValue = application.GetEnvironmentVariable("REMOTE_STASH_ROOT");
+            if (envValue != null) return new ArgumentValue<Uri?>(CreateValidAbsoluteRootUri(envValue), ArgumentSource.Environment);
+            return new ArgumentValue<Uri?>(null, ArgumentSource.Default);
         }
 
         public ArgumentValue<string> GetStashName(CommandArgument<string> stashNameArgument)
@@ -95,6 +105,12 @@ namespace Bluewire.Stash.Tool
             }
         }
 
+        public ArgumentValue<string?> GetOptionalRemoteStashName(CommandArgument<string> stashNameArgument)
+        {
+            if (stashNameArgument.Value == null) return new ArgumentValue<string?>(null, ArgumentSource.Default);
+            return new ArgumentValue<string?>(stashNameArgument.Value, ArgumentSource.Argument);
+        }
+
         public ArgumentValue<bool> GetFlag(CommandOption flagOption)
         {
             if (!flagOption.Values.Any()) return new ArgumentValue<bool>(false, ArgumentSource.Default);
@@ -118,6 +134,13 @@ namespace Bluewire.Stash.Tool
             if (path.Intersect(Path.GetInvalidPathChars()).Any()) return path;
             if (path.Last() != Path.DirectorySeparatorChar) return path + Path.DirectorySeparatorChar;
             return path;
+        }
+
+        private static Uri? CreateValidAbsoluteRootUri(string uriString)
+        {
+            if (string.IsNullOrWhiteSpace(uriString)) return null;
+            if (!Uri.TryCreate(uriString.TrimEnd('/') + '/', UriKind.Absolute, out var uri)) return null;
+            return uri;
         }
     }
 }

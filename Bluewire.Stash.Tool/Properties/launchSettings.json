@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Bluewire.Stash.Tool": {
+      "commandName": "Project",
+      "commandLineArgs": " -R https://bluewirestashservice20210521130718.azurewebsites.net/ push epro-dev test --version 21.01.2099-beta -vvvv"
+    }
+  }
+}

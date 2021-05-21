@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Bluewire.Conventions;
@@ -46,6 +47,11 @@ namespace Bluewire.Stash.Tool
                 CommandOptionType.SingleValue,
                 o => o.Inherited = true);
 
+            var remoteStashRootOption = app.Option<string>("-R|--remote-stash-root <path>",
+                "Root URI of remote stash server. By default, uses the environment variable REMOTE_STASH_ROOT.",
+                CommandOptionType.SingleValue,
+                o => o.Inherited = true);
+
             var verbosityOption = app.Option("-v|--verbose",
                 "Increase output verbosity.",
                 CommandOptionType.NoValue,
@@ -55,11 +61,25 @@ namespace Bluewire.Stash.Tool
 
             app.Command("diagnostics", c =>
             {
+                var remoteStashNameArgument = c.Argument<string>("remote stash name", "The name of the remote stash to try to list.");
+
                 c.AddName("diag");
-                c.OnExecute(() =>
+                c.OnExecuteAsync(async token =>
                 {
-                    var model = new DiagnosticsArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption));
-                    application.ShowDiagnostics(originalStdout, model);
+                    var model = new DiagnosticsArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption))
+                    {
+                        RemoteStashName = argumentsProvider.GetOptionalRemoteStashName(remoteStashNameArgument),
+                    };
+                    await application.ShowDiagnostics(originalStdout, model, token);
+                });
+            });
+            app.Command("authenticate", c =>
+            {
+                c.AddName("auth");
+                c.OnExecuteAsync(async token =>
+                {
+                    var model = new AuthenticateArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption));
+                    await application.Authenticate(originalStdout, model, token);
                 });
             });
 
@@ -73,7 +93,7 @@ namespace Bluewire.Stash.Tool
 
                 c.OnExecuteAsync(async token =>
                 {
-                    var model = new CommitArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption))
+                    var model = new CommitArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption))
                     {
                         StashName = argumentsProvider.GetStashName(stashNameArgument),
                         SourcePath = argumentsProvider.GetSourcePath(sourcePathArgument),
@@ -95,7 +115,7 @@ namespace Bluewire.Stash.Tool
 
                 c.OnExecuteAsync(async token =>
                 {
-                    var model = new CheckoutArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption))
+                    var model = new CheckoutArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption))
                     {
                         StashName = argumentsProvider.GetStashName(stashNameArgument),
                         DestinationPath = argumentsProvider.GetDestinationPath(destinationPathArgument),
@@ -112,7 +132,7 @@ namespace Bluewire.Stash.Tool
 
                 c.OnExecuteAsync(async token =>
                 {
-                    var model = new ListArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption))
+                    var model = new ListArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption))
                     {
                         StashName = argumentsProvider.GetStashName(stashNameArgument),
                         Verbosity = argumentsProvider.GetVerbosityLevel(verbosityOption),
@@ -130,7 +150,7 @@ namespace Bluewire.Stash.Tool
 
                 c.OnExecuteAsync(async token =>
                 {
-                    var model = new ShowArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption))
+                    var model = new ShowArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption))
                     {
                         StashName = argumentsProvider.GetStashName(stashNameArgument),
                         Version = argumentsProvider.GetVersionMarker(semanticVersionOption, commitHashOption),
@@ -150,7 +170,7 @@ namespace Bluewire.Stash.Tool
 
                 c.OnExecuteAsync(async token =>
                 {
-                    var model = new DeleteArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption))
+                    var model = new DeleteArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption))
                     {
                         StashName = argumentsProvider.GetStashName(stashNameArgument),
                         Version = argumentsProvider.GetRequiredVersionMarker(semanticVersionOption, commitHashOption, versionMarkerOption),
@@ -167,13 +187,59 @@ namespace Bluewire.Stash.Tool
 
                 c.OnExecuteAsync(async token =>
                 {
-                    var model = new GCArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption))
+                    var model = new GCArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption))
                     {
                         StashName = argumentsProvider.GetStashName(stashNameArgument),
                         Aggressive = argumentsProvider.GetFlag(aggressiveOption),
                         Verbosity = argumentsProvider.GetVerbosityLevel(verbosityOption),
                     };
                     await application.GarbageCollect(app.Error, model, token);
+                });
+            });
+
+            app.Command("push", c =>
+            {
+                var stashNameArgument = c.Argument<string>("stash name", "The name of the stash to copy from.", o => o.IsRequired());
+                var remoteStashNameArgument = c.Argument<string>("remote stash name", "The name of the remote stash to copy into.");
+                var semanticVersionOption = c.Option<SemanticVersion?>("--version <version>", "The version to copy.", CommandOptionType.SingleValue);
+                var commitHashOption = c.Option<string>("--hash <hash>", "The commit hash to copy.", CommandOptionType.SingleValue);
+                var versionMarkerOption = c.Option<VersionMarker?>("--identifier <identifier>", "The version identifier to copy.", CommandOptionType.SingleValue);
+                var ignoreIfExists = c.Option("-i|--ignore", "If the stash already exists on the remote, treat as success.", CommandOptionType.NoValue);
+
+                c.OnExecuteAsync(async token =>
+                {
+                    var model = new PushArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption))
+                    {
+                        StashName = argumentsProvider.GetStashName(stashNameArgument),
+                        RemoteStashName = argumentsProvider.GetStashName(remoteStashNameArgument),
+                        Version = argumentsProvider.GetRequiredVersionMarker(semanticVersionOption, commitHashOption, versionMarkerOption),
+                        IgnoreIfExists = argumentsProvider.GetFlag(ignoreIfExists),
+                        Verbosity = argumentsProvider.GetVerbosityLevel(verbosityOption),
+                    };
+                    await application.Push(app.Error, model, token);
+                });
+            });
+
+            app.Command("pull", c =>
+            {
+                var stashNameArgument = c.Argument<string>("stash name", "The name of the stash to copy into.", o => o.IsRequired());
+                var remoteStashNameArgument = c.Argument<string>("remote stash name", "The name of the remote stash to copy from.");
+                var semanticVersionOption = c.Option<SemanticVersion?>("--version <version>", "The version to copy.", CommandOptionType.SingleValue);
+                var commitHashOption = c.Option<string>("--hash <hash>", "The commit hash to copy.", CommandOptionType.SingleValue);
+                var versionMarkerOption = c.Option<VersionMarker?>("--identifier <identifier>", "The version identifier to copy.", CommandOptionType.SingleValue);
+                var ignoreIfExists = c.Option("-i|--ignore", "If the stash already exists locally, treat as success.", CommandOptionType.NoValue);
+
+                c.OnExecuteAsync(async token =>
+                {
+                    var model = new PullArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption))
+                    {
+                        StashName = argumentsProvider.GetStashName(stashNameArgument),
+                        RemoteStashName = argumentsProvider.GetStashName(remoteStashNameArgument),
+                        Version = argumentsProvider.GetVersionMarker(semanticVersionOption, commitHashOption, versionMarkerOption),
+                        IgnoreIfExists = argumentsProvider.GetFlag(ignoreIfExists),
+                        Verbosity = argumentsProvider.GetVerbosityLevel(verbosityOption),
+                    };
+                    await application.Pull(app.Error, model, token);
                 });
             });
 
@@ -193,10 +259,15 @@ namespace Bluewire.Stash.Tool
             public string GetTemporaryDirectory() => Path.GetTempPath();
             public string? GetEnvironmentVariable(string name) => Environment.GetEnvironmentVariable(name);
 
-            public void ShowDiagnostics(TextWriter stdout, DiagnosticsArguments model)
+            public async Task ShowDiagnostics(TextWriter stdout, DiagnosticsArguments model, CancellationToken token)
             {
-                stdout.WriteLine($"Git topology:       {model.AppEnvironment.GitTopologyPath}");
-                stdout.WriteLine($"Stash root:         {model.AppEnvironment.StashRoot}");
+                await new DiagnosticsCommand().Execute(stdout, model, token);
+            }
+
+            public async Task Authenticate(TextWriter stdout, AuthenticateArguments model, CancellationToken token)
+            {
+                var auth = await AuthenticationProvider.Create();
+                await auth.Authenticate(token);
             }
 
             public async Task Commit(TextWriter stderr, CommitArguments model, CancellationToken token)
@@ -227,6 +298,16 @@ namespace Bluewire.Stash.Tool
             public async Task GarbageCollect(TextWriter stderr, GCArguments model, CancellationToken token)
             {
                 await new GCCommand().Execute(model, new VerboseLogger(stderr, model.Verbosity.Value), token);
+            }
+
+            public async Task Push(TextWriter stderr, PushArguments model, CancellationToken token)
+            {
+                await new PushCommand().Execute(model, new VerboseLogger(stderr, model.Verbosity.Value), token);
+            }
+
+            public async Task Pull(TextWriter stderr, PullArguments model, CancellationToken token)
+            {
+                await new PullCommand().Execute(model, new VerboseLogger(stderr, model.Verbosity.Value), token);
             }
         }
     }
