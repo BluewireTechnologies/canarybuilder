@@ -266,7 +266,7 @@ namespace Bluewire.Stash.Tool
 
             public async Task Authenticate(TextWriter stdout, AuthenticateArguments model, CancellationToken token)
             {
-                var auth = await AuthenticationProvider.Create();
+                var auth = await model.AppEnvironment.Authentication.Create();
                 await auth.Authenticate(token);
             }
 

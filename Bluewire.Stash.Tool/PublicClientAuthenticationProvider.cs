@@ -11,7 +11,7 @@ using Microsoft.Identity.Client.Extensions.Msal;
 
 namespace Bluewire.Stash.Tool
 {
-    public class AuthenticationProvider
+    public class PublicClientAuthenticationProvider : IAuthenticationProvider
     {
         private static PublicClientApplicationOptions GetOptions()
         {
@@ -23,7 +23,7 @@ namespace Bluewire.Stash.Tool
             };
         }
 
-        public static async Task<AuthenticationProvider> Create()
+        public static async Task<PublicClientAuthenticationProvider> Create()
         {
             var appConfiguration = GetOptions();
 
@@ -54,12 +54,12 @@ namespace Bluewire.Stash.Tool
             var cacheHelper = await MsalCacheHelper.CreateAsync(storageProperties);
             cacheHelper.RegisterCache(app.UserTokenCache);
 
-            return new AuthenticationProvider(app);
+            return new PublicClientAuthenticationProvider(app);
         }
 
         private readonly IPublicClientApplication app;
 
-        private AuthenticationProvider(IPublicClientApplication app)
+        private PublicClientAuthenticationProvider(IPublicClientApplication app)
         {
             this.app = app;
         }
