@@ -15,12 +15,15 @@ namespace Bluewire.Stash.Tool
             this.application = application;
         }
 
-        public AppEnvironment GetAppEnvironment(CommandOption<string> gitTopologyPathOption, CommandOption<string> stashRootOption, CommandOption<string> remoteStashRootOption)
+        public AppEnvironment GetAppEnvironment(CommandOption<string> gitTopologyPathOption, CommandOption<string> stashRootOption, CommandOption<string> remoteStashRootOption, CommandOption<string> clientSecretOption)
         {
             return new AppEnvironment(
                 GetGitTopologyPath(gitTopologyPathOption),
                 GetStashRoot(stashRootOption),
-                GetRemoteStashRoot(remoteStashRootOption));
+                GetRemoteStashRoot(remoteStashRootOption))
+            {
+                Authentication = GetAuthentication(clientSecretOption)
+            };
         }
 
         private ArgumentValue<string?> GetGitTopologyPath(CommandOption<string> gitTopologyPathOption)
@@ -52,6 +55,13 @@ namespace Bluewire.Stash.Tool
             var envValue = application.GetEnvironmentVariable("REMOTE_STASH_ROOT");
             if (envValue != null) return new ArgumentValue<Uri?>(CreateValidAbsoluteRootUri(envValue), ArgumentSource.Environment);
             return new ArgumentValue<Uri?>(null, ArgumentSource.Default);
+        }
+
+        private IAuthentication GetAuthentication(CommandOption<string> clientSecretOption)
+        {
+            var secret = clientSecretOption.Value();
+            if (secret == null) return new PublicClientAuthentication();
+            return new ClientSecretAuthentication(secret);
         }
 
         public ArgumentValue<string> GetStashName(CommandArgument<string> stashNameArgument)

@@ -25,7 +25,14 @@ namespace Bluewire.Stash.Tool
         {
             var authResult = await model.AppEnvironment.Authentication.Test(stdout, token);
             if (authResult == null) return;
-            stdout.WriteLine($"Trying to access remote using account {authResult.Account.Username}...");
+            if (authResult.Account == null)
+            {
+                stdout.WriteLine("Trying to access remote as confidential client...");
+            }
+            else
+            {
+                stdout.WriteLine($"Trying to access remote using account {authResult.Account.Username}...");
+            }
 
             try
             {
