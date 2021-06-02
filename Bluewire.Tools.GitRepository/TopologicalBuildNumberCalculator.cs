@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Bluewire.Common.GitWrapper;
 using Bluewire.Common.GitWrapper.Model;
@@ -8,6 +9,9 @@ namespace Bluewire.Tools.GitRepository
     /// <summary>
     /// Calculate a build number based on the number of commits between the subject commit and a start commit.
     /// </summary>
+    /// <remarks>
+    /// Reference implementation of the optimised algorithm used in TopologicalBuildNumberProvider.
+    /// </remarks>
     public class TopologicalBuildNumberCalculator
     {
         private readonly GitSession session;

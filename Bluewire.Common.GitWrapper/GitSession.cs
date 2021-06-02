@@ -23,6 +23,26 @@ namespace Bluewire.Common.GitWrapper
             CommandHelper = new GitCommandHelper(git, logger);
         }
 
+        public async Task<GitWorkingCopy> FindWorkingCopyContaining(string path)
+        {
+            if (!Path.IsPathRooted(path)) throw new ArgumentException($"Not an absolute path: {path}");
+            if (File.Exists(path)) path = Path.GetDirectoryName(path);
+            if (!Directory.Exists(path)) throw new ArgumentException($"Directory does not exist: {path}");
+
+            var command = CommandHelper.CreateCommand("rev-parse", "--show-toplevel");
+
+            var result = await command
+                .WithWorkingDirectory(path)
+                .LogMinorInvocation(logger, out var log)
+                .ExecuteBufferedAsync()
+                .LogResult(log);
+
+            if (result.ExitCode != 0) return null;
+            var rootPath = GitHelpers.ExpectOneLine(command, result);
+            if (String.IsNullOrEmpty(rootPath)) return null;
+            return new GitWorkingCopy(Path.GetFullPath(rootPath));
+        }
+
         public async Task<Ref> GetCurrentBranch(GitWorkingCopy workingCopy)
         {
             var command = CommandHelper.CreateCommand("rev-parse", "--abbrev-ref", "HEAD");
@@ -61,7 +81,7 @@ namespace Bluewire.Common.GitWrapper
         {
             if (@ref == null) throw new ArgumentNullException(nameof(@ref));
 
-            var command = CommandHelper.CreateCommand("show-ref", "--quiet", @ref);
+            var command = CommandHelper.CreateCommand("rev-parse", "--quiet", "--verify", $"{@ref}^{{commit}}");
 
             var result = await command
                 .RunFrom(workingCopyOrRepo)
@@ -445,6 +465,13 @@ namespace Bluewire.Common.GitWrapper
             return await CommandHelper.RunTestCommand(workingCopy, command);
         }
 
+        public async Task<bool> IsFirstParentAncestor(IGitFilesystemContext workingCopyOrRepo, Ref maybeFirstParentAncestor, Ref reference)
+        {
+            var command = CommandHelper.CreateCommand("rev-list", "--first-parent", reference, "--not", $"{maybeFirstParentAncestor}^@", "--");
+            var commits = await CommandHelper.RunCommand(workingCopyOrRepo, command, new GitListCommitsParser());
+            return commits.Contains(maybeFirstParentAncestor);
+        }
+
         /// <summary>
         /// List revisions on the first-parent ancestry chain between 'start' and 'end'.
         /// </summary>
@@ -485,6 +512,8 @@ namespace Bluewire.Common.GitWrapper
                     if (options.ShowMerges == LogShowMerges.Never) args.Add("--no-merges");
                     else if (options.ShowMerges == LogShowMerges.Only) args.Add("--merges");
 
+                    if (options.AncestryPathOnly) args.Add("--ancestry-path");
+
                     if (options.IncludeAllRefs)
                     {
                         if (refRanges.Length > 0) throw new ArgumentException($"IncludeAllRefs was specified, but so were {refRanges.Length} ref ranges.");
@@ -497,6 +526,25 @@ namespace Bluewire.Common.GitWrapper
                 });
 
             return await CommandHelper.RunCommand(workingCopyOrRepo, command, parser);
+        }
+
+        public async Task<ISet<Ref>> AddAncestry(IGitFilesystemContext workingCopyOrRepo, CommitGraph graph, IRefRange range)
+        {
+            var command = CommandHelper.CreateCommand("rev-list", "--parents", range.ToString());
+
+            var newRefs = new HashSet<Ref>();
+            await CommandHelper.RunCommand(workingCopyOrRepo, command, line =>
+            {
+                var shas = line.Split(' ');
+                var commit = shas.First();
+                if (string.IsNullOrWhiteSpace(commit)) return;
+                var parents = shas.Skip(1).Select(s => new Ref(s)).ToArray();
+                if (graph.Add(new Ref(commit), parents))
+                {
+                    newRefs.Add(new Ref(commit));
+                }
+            });
+            return newRefs;
         }
     }
 }

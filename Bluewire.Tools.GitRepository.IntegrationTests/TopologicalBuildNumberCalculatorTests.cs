@@ -11,7 +11,6 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
     {
         private GitSession session;
         private GitWorkingCopy workingCopy;
-        private TopologicalBuildNumberCalculator sut;
 
         [SetUp]
         public async Task SetUp()
@@ -19,14 +18,12 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
             session = await Default.GitSession();
             workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
             await session.Commit(workingCopy, "Initial commit", CommitOptions.AllowEmptyCommit);
-
-            sut = new TopologicalBuildNumberCalculator(session);
         }
 
         [Test]
         public async Task StartCommitHasBuildNumberOfZero()
         {
-            var buildNumber = await sut.GetBuildNumber(workingCopy, Ref.Head, Ref.Head);
+            var buildNumber = await GetBuildNumber(Ref.Head, Ref.Head);
             Assert.That(buildNumber, Is.EqualTo(0));
         }
 
@@ -37,7 +34,7 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
 
             await session.Commit(workingCopy, "Commit 1", CommitOptions.AllowEmptyCommit);
 
-            var buildNumber = await sut.GetBuildNumber(workingCopy, start, Ref.Head);
+            var buildNumber = await GetBuildNumber(start, Ref.Head);
             Assert.That(buildNumber, Is.EqualTo(1));
         }
 
@@ -53,7 +50,7 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
 
             await session.Merge(workingCopy, new MergeOptions { FastForward = MergeFastForward.Never }, new Ref("test-branch"));
 
-            var buildNumber = await sut.GetBuildNumber(workingCopy, Ref.Head.Parent(), Ref.Head);
+            var buildNumber = await GetBuildNumber(Ref.Head.Parent(), Ref.Head);
             Assert.That(buildNumber, Is.EqualTo(4));
         }
 
@@ -70,8 +67,19 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
 
             await session.Merge(workingCopy, new MergeOptions { FastForward = MergeFastForward.Never }, new Ref("test-branch"));
 
-            var buildNumber = await sut.GetBuildNumber(workingCopy, Ref.Head.Parent(), Ref.Head);
+            var buildNumber = await GetBuildNumber(Ref.Head.Parent(), Ref.Head);
             Assert.That(buildNumber, Is.EqualTo(4));
+        }
+
+        private async Task<int?> GetBuildNumber(Ref start, Ref end)
+        {
+            var reference = await new TopologicalBuildNumberCalculator(session).GetBuildNumber(workingCopy, start, end);
+
+            var sut = new TopologicalBuildNumberProvider(session, workingCopy);
+            var buildNumber = await sut.GetBuildNumber(start, end);
+
+            Assert.That(buildNumber, Is.EqualTo(reference));
+            return buildNumber;
         }
     }
 }

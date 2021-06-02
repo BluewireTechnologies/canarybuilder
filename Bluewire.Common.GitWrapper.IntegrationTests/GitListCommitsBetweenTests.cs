@@ -40,6 +40,7 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
             var firstParents = await session.ListCommitsBetween(workingCopy, startTag, MasterBranch, new ListCommitsOptions { FirstParentOnly = true });
 
             Assert.That(firstParents, Does.Not.Contains(branchCommit));
+            Assert.That(await session.IsFirstParentAncestor(workingCopy, branchCommit, MasterBranch), Is.False);
         }
 
         [Test]
@@ -70,6 +71,7 @@ namespace Bluewire.Common.GitWrapper.IntegrationTests
             var firstParents = await session.ListCommitsBetween(workingCopy, startTag, MasterBranch);
 
             Assert.That(firstParents, Contains.Item(mergeCommit));
+            Assert.That(await session.IsFirstParentAncestor(workingCopy, mergeCommit, MasterBranch), Is.True);
         }
     }
 }

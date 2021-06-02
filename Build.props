@@ -24,6 +24,7 @@
         <OutputBinaries Include="Driver\vswhere.exe" />
         <OutputBinaryProjects Include="Bluewire.Tools.Runner\Bluewire.Tools.Runner.csproj" />
         <OutputBinaryProjects Include="RefCleaner\RefCleaner.csproj" />
+        <OutputBinaryProjects Include="Bluewire.Stash.Tool\Bluewire.Stash.Tool.csproj" />
     </ItemGroup>
     <PropertyGroup>
         <DotCoverConfigurationFile>DotCover.coverage.xml</DotCoverConfigurationFile>

@@ -8,11 +8,11 @@ using NUnit.Framework;
 namespace Bluewire.Tools.GitRepository.IntegrationTests
 {
     [TestFixture]
-    public class TopologicalBuildNumberResolverTests
+    public class TopologicalBuildNumberProviderTests
     {
         private GitSession session;
         private GitWorkingCopy workingCopy;
-        private TopologicalBuildNumberResolver sut;
+        private TopologicalBuildNumberProvider sut;
         private RepoStructureBuilder builder;
         private Ref startTag;
         private Ref start;
@@ -26,10 +26,10 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
             workingCopy = await session.Init(Default.TemporaryDirectory, "repository");
             await session.Commit(workingCopy, "Initial commit", CommitOptions.AllowEmptyCommit);
 
-            sut = new TopologicalBuildNumberResolver(session);
             builder = new RepoStructureBuilder(session, workingCopy);
             startTag = await session.CreateTag(workingCopy, "start", Ref.Head, "");
             start = await session.ResolveRef(workingCopy, startTag);
+            sut = new TopologicalBuildNumberProvider(session, workingCopy);
         }
 
         [Test]
@@ -37,7 +37,7 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
         {
             await builder.AddCommitsToBranch("master", 1);
 
-            Assert.ThrowsAsync<BuildNumberOutOfRangeException>(async () => await sut.FindCommit(workingCopy, startTag, MasterBranch, -1));
+            Assert.ThrowsAsync<BuildNumberOutOfRangeException>(async () => await sut.FindCommit(start, MasterBranch, -1));
         }
 
         [Test]
@@ -45,7 +45,7 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
         {
             await builder.AddCommitsToBranch("master", 1);
 
-            Assert.ThrowsAsync<BuildNumberOutOfRangeException>(async () => await sut.FindCommit(workingCopy, startTag, MasterBranch, 2));
+            Assert.ThrowsAsync<BuildNumberOutOfRangeException>(async () => await sut.FindCommit(start, MasterBranch, 2));
         }
 
         [Test]
@@ -53,7 +53,7 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
         {
             await builder.AddCommitsToBranch("master", 1);
 
-            var resolved = await sut.FindCommit(workingCopy, startTag, MasterBranch, 0);
+            var resolved = await sut.FindCommit(start, MasterBranch, 0);
 
             Assert.That(resolved, Is.EqualTo(start));
         }
@@ -63,7 +63,7 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
         {
             await builder.AddCommitsToBranch("master", 8);
 
-            var resolved = await sut.FindCommit(workingCopy, startTag, MasterBranch, 8);
+            var resolved = await sut.FindCommit(start, MasterBranch, 8);
 
             var end = await session.ResolveRef(workingCopy, MasterBranch);
             Assert.That(resolved, Is.EqualTo(end));
@@ -76,7 +76,7 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
             await builder.AddCommitsToBranch("master", 8);
             await session.Merge(workingCopy, new Ref("branch"));
 
-            Assert.ThrowsAsync<BuildNumberNotFoundException>(() => sut.FindCommit(workingCopy, startTag, MasterBranch, 9));
+            Assert.ThrowsAsync<BuildNumberNotFoundException>(() => sut.FindCommit(start, MasterBranch, 9));
         }
 
         [Test]
@@ -88,7 +88,7 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
             var buildNumber8 = await session.ResolveRef(workingCopy, MasterBranch);
             await session.Merge(workingCopy, new Ref("branch"));
 
-            var resolved = await sut.FindCommit(workingCopy, startTag, MasterBranch, 8);
+            var resolved = await sut.FindCommit(start, MasterBranch, 8);
 
             Assert.That(resolved, Is.EqualTo(buildNumber8));
         }
@@ -104,7 +104,7 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
 
             await builder.AddCommitsToBranch("master", 3);
 
-            var resolved = await sut.FindCommit(workingCopy, startTag, MasterBranch, 12);
+            var resolved = await sut.FindCommit(start, MasterBranch, 12);
 
             Assert.That(resolved, Is.EqualTo(mergeCommit));
         }

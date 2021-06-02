@@ -21,7 +21,7 @@ $
 (?<major>\d{2})\.
 (?<minor>\d{2})\.
 (?<build>\d+)
-(- (?<semtag>[A-Za-z]+))?
+(- (?<semtag>[A-Za-z\.\+0-9]+))?
 $
 ", RegexOptions.IgnorePatternWhitespace | RegexOptions.IgnoreCase);
 

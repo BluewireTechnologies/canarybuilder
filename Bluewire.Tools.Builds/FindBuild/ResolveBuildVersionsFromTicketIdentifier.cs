@@ -18,9 +18,9 @@ namespace Bluewire.Tools.Builds.FindBuild
             this.ticketIdentifier = ticketIdentifier;
         }
 
-        public async Task<SemanticVersion[]> ResolveBuildVersions(GitSession session, Common.GitWrapper.GitRepository repository)
+        public async Task<SemanticVersion[]> ResolveBuildVersions(GitSession session, IGitFilesystemContext workingCopyOrRepo)
         {
-            var hashes = await ResolveToHashes(session, repository);
+            var hashes = await ResolveToHashes(session, workingCopyOrRepo);
 
             // Tracing target branches can be expensive, so we should try to cull the hash list first.
             // If A is an ancestor of B, then the set of branches containing A must be a superset of the set of
@@ -31,14 +31,14 @@ namespace Bluewire.Tools.Builds.FindBuild
             var basemostHashes = hashes.ToList();
             foreach (var hash in hashes)
             {
-                if (await IsChildOfAny(session, repository, basemostHashes.ToArray(), hash))
+                if (await IsChildOfAny(session, workingCopyOrRepo, basemostHashes.ToArray(), hash))
                 {
                     basemostHashes.Remove(hash);
                 }
             }
 
-            var resolver = new TargetBranchResolver(session, repository);
-            var finder = new BuildVersionFinder(session, repository);
+            var resolver = new TargetBranchResolver(session, workingCopyOrRepo);
+            var finder = new BuildVersionFinder(session, workingCopyOrRepo);
 
             var buildVersions = new List<SemanticVersion>();
             foreach (var hash in basemostHashes)
@@ -49,36 +49,36 @@ namespace Bluewire.Tools.Builds.FindBuild
             return buildVersions.Distinct().ToArray();
         }
 
-        private async Task<Ref[]> ResolveToHashes(GitSession session, Common.GitWrapper.GitRepository repository)
+        private async Task<Ref[]> ResolveToHashes(GitSession session, IGitFilesystemContext workingCopyOrRepo)
         {
             var branchFilter = $"*{ticketIdentifier}*"; // Assume that ticket identifiers don't contain wildcard characters.
             var pattern = $"\\b{Regex.Escape(ticketIdentifier)}\\b";
 
-            var commitsReferencingTickets = await session.ReadLog(repository, new LogOptions { MatchMessage = new Regex(pattern), IncludeAllRefs = true });
-            var branchNamesReferencingTickets = await session.ListBranches(repository, new ListBranchesOptions { BranchFilter = new[] { branchFilter }, Remote = true });
-            var branchTipsReferencingTickets = await ResolveAllRefs(session, repository, branchNamesReferencingTickets);
+            var commitsReferencingTickets = await session.ReadLog(workingCopyOrRepo, new LogOptions { MatchMessage = new Regex(pattern), IncludeAllRefs = true });
+            var branchNamesReferencingTickets = await session.ListBranches(workingCopyOrRepo, new ListBranchesOptions { BranchFilter = new[] { branchFilter }, Remote = true });
+            var branchTipsReferencingTickets = await ResolveAllRefs(session, workingCopyOrRepo, branchNamesReferencingTickets);
 
             var uniqueHashes = commitsReferencingTickets.Select(l => l.Ref).Concat(branchTipsReferencingTickets).Distinct().ToArray();
             if (uniqueHashes.Length == 0) throw new NoCommitsReferenceTicketIdentifierException(ticketIdentifier);
             return uniqueHashes;
         }
 
-        private async Task<Ref[]> ResolveAllRefs(GitSession session, Common.GitWrapper.GitRepository repository, Ref[] refNames)
+        private async Task<Ref[]> ResolveAllRefs(GitSession session, IGitFilesystemContext workingCopyOrRepo, Ref[] refNames)
         {
             var list = new List<Ref>();
             foreach (var refName in refNames)
             {
-                list.Add(await session.ResolveRef(repository, refName));
+                list.Add(await session.ResolveRef(workingCopyOrRepo, refName));
             }
             return list.ToArray();
         }
 
-        private async Task<bool> IsChildOfAny(GitSession session, Common.GitWrapper.GitRepository repository, Ref[] hashes, Ref subject)
+        private async Task<bool> IsChildOfAny(GitSession session, IGitFilesystemContext workingCopyOrRepo, Ref[] hashes, Ref subject)
         {
             foreach (var hash in hashes)
             {
                 if (subject == hash) continue;
-                if (await session.IsAncestor(repository, hash, subject)) return true;
+                if (await session.IsAncestor(workingCopyOrRepo, hash, subject)) return true;
             }
             return false;
         }

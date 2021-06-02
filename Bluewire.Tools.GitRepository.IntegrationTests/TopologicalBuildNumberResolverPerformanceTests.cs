@@ -34,27 +34,11 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
         }
 
         [Test]
-        public async Task BinarySearch()
+        public async Task GraphSearch()
         {
-            var sut = new TopologicalBuildNumberResolver(session)
-            {
-                SearchImplementation = new TopologicalBuildNumberResolver.BinarySearcherImpl()
-            };
+            var sut = new TopologicalBuildNumberProvider(session, workingCopy);
 
-            var commit = await sut.FindCommit(workingCopy, startTag, MasterBranch, 230);
-
-            Assert.That(commit, Is.EqualTo(buildNumber230));
-        }
-
-        [Test]
-        public async Task LinearSearch()
-        {
-            var sut = new TopologicalBuildNumberResolver(session)
-            {
-                SearchImplementation = new TopologicalBuildNumberResolver.LinearSearcherImpl()
-            };
-
-            var commit = await sut.FindCommit(workingCopy, startTag, MasterBranch, 230);
+            var commit = await sut.FindCommit(startTag, MasterBranch, 230);
 
             Assert.That(commit, Is.EqualTo(buildNumber230));
         }

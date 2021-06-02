@@ -17,22 +17,22 @@ namespace Bluewire.Tools.Builds.FindBuild
             this.pullRequestNumber = pullRequestNumber;
         }
 
-        public async Task<SemanticVersion[]> ResolveBuildVersions(GitSession session, Common.GitWrapper.GitRepository repository)
+        public async Task<SemanticVersion[]> ResolveBuildVersions(GitSession session, IGitFilesystemContext workingCopyOrRepo)
         {
-            var hash = await ResolveToSingleCommit(session, repository);
+            var hash = await ResolveToSingleCommit(session, workingCopyOrRepo);
 
-            var resolver = new TargetBranchResolver(session, repository);
+            var resolver = new TargetBranchResolver(session, workingCopyOrRepo);
             var targetBranches = await resolver.IdentifyTargetBranchesOfCommit(hash);
 
-            var finder = new BuildVersionFinder(session, repository);
+            var finder = new BuildVersionFinder(session, workingCopyOrRepo);
             return await finder.GetBuildVersionsFromCommit(hash, targetBranches);
         }
 
-        private async Task<Ref> ResolveToSingleCommit(GitSession session, Common.GitWrapper.GitRepository repository)
+        private async Task<Ref> ResolveToSingleCommit(GitSession session, IGitFilesystemContext workingCopyOrRepo)
         {
             var pattern = $"^Merge pull request #{pullRequestNumber}\\b";
 
-            var prMerges = await session.ReadLog(repository, new LogOptions { MatchMessage = new Regex(pattern), IncludeAllRefs = true });
+            var prMerges = await session.ReadLog(workingCopyOrRepo, new LogOptions { MatchMessage = new Regex(pattern), IncludeAllRefs = true });
 
             if (prMerges.Length == 1) return prMerges.Single().Ref;
             if (prMerges.Length == 0) throw new PullRequestMergeNotFoundException(pullRequestNumber);
