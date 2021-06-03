@@ -52,9 +52,9 @@ namespace Bluewire.Stash.Tool
             var prototype = new SemanticVersion(versionBaseTag.Name, buildNumber.Value, BranchType.None);
             var possibleVersions = new []
             {
-                prototype.WithTag(BranchType.Beta.SemanticTag),
-                prototype.WithTag(BranchType.ReleaseCandidate.SemanticTag),
                 prototype.WithTag(BranchType.Release.SemanticTag),
+                prototype.WithTag(BranchType.ReleaseCandidate.SemanticTag),
+                prototype.WithTag(BranchType.Beta.SemanticTag),
             };
             foreach (var probe in possibleVersions)
             {

@@ -107,10 +107,11 @@ namespace Bluewire.Tools.GitRepository
         public async Task<bool> IsFirstParentAncestor(Ref baseRef, Ref probe, Ref tip)
         {
             var resolvedBaseRef = await topology.ResolveRef(baseRef);
+            var resolvedProbe = await topology.ResolveRef(probe);
             var resolvedTip = await topology.ResolveRef(tip);
             await topology.LoadAncestryPaths(resolvedBaseRef, resolvedTip);
             var graph = topology.GetChildCommitsGraphFromResolved(resolvedBaseRef);
-            return graph.FirstParentAncestry(tip, baseRef).Contains(probe);
+            return graph.FirstParentAncestry(resolvedTip, resolvedBaseRef).Contains(resolvedProbe);
         }
     }
 }

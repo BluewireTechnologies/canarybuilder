@@ -71,6 +71,24 @@ namespace Bluewire.Tools.GitRepository.IntegrationTests
             Assert.That(buildNumber, Is.EqualTo(4));
         }
 
+        [Test]
+        public async Task CanIdentifyParentBaseCommitAsFirstParentAncestor()
+        {
+            await session.CreateBranchAndCheckout(workingCopy, "test-branch");
+            await session.Commit(workingCopy, "Branch Commit 1", CommitOptions.AllowEmptyCommit);
+            await session.Commit(workingCopy, "Branch Commit 2", CommitOptions.AllowEmptyCommit);
+            await session.Commit(workingCopy, "Branch Commit 3", CommitOptions.AllowEmptyCommit);
+
+            await session.Checkout(workingCopy, new Ref("master"));
+            await session.Commit(workingCopy, "Start Commit", CommitOptions.AllowEmptyCommit);
+
+            await session.Merge(workingCopy, new MergeOptions { FastForward = MergeFastForward.Never }, new Ref("test-branch"));
+
+            var sut = new TopologicalBuildNumberProvider(session, workingCopy);
+            var isFirstParent = await sut.IsFirstParentAncestor(Ref.Head.Parent(), Ref.Head.Parent(), Ref.Head);
+            Assert.That(isFirstParent, Is.True);
+        }
+
         private async Task<int?> GetBuildNumber(Ref start, Ref end)
         {
             var reference = await new TopologicalBuildNumberCalculator(session).GetBuildNumber(workingCopy, start, end);
