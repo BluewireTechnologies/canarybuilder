@@ -7,13 +7,13 @@ using Bluewire.Conventions;
 namespace Bluewire.Stash
 {
     /// <summary>
-    /// Topological resolver which can assume fast local access to the stash repository.
+    /// Topological resolver which requires only lists of available stashes.
     /// </summary>
-    public class LocalStashResolver
+    public class StashResolver
     {
-        private readonly ILocalStashRepository repository;
+        private readonly IStashRepository repository;
 
-        public LocalStashResolver(ILocalStashRepository repository)
+        public StashResolver(IStashRepository repository)
         {
             this.repository = repository;
         }

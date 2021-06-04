@@ -20,6 +20,14 @@ namespace Bluewire.Stash
             return path;
         }
 
+        public virtual string ValidateRelativePath(string path, string argumentName)
+        {
+            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException("Value cannot be null or whitespace.", argumentName);
+            if (path.Intersect(Path.GetInvalidPathChars()).Any()) throw new ArgumentException($"Path contains invalid characters: {path}", argumentName);
+            if (Path.IsPathRooted(path)) throw new ArgumentException($"Not a relative path: {path}", argumentName);
+            return path;
+        }
+
         public virtual bool FileExists(string fullPath) =>
             File.Exists(ValidateFullPath(fullPath, nameof(fullPath)));
 
@@ -57,6 +65,14 @@ namespace Bluewire.Stash
             var destination = ValidateFullPath(destinationFullPath, nameof(destinationFullPath));
             EnsureContainingDirectoryExists(destination);
             File.Move(source, destination);
+        }
+
+        public virtual void MoveDirectory(string sourceFullPath, string destinationFullPath)
+        {
+            var source = ValidateFullPath(sourceFullPath, nameof(sourceFullPath));
+            var destination = ValidateFullPath(destinationFullPath, nameof(destinationFullPath));
+            EnsureContainingDirectoryExists(destination);
+            Directory.Move(source, destination);
         }
 
         public virtual async Task<IDisposable> AcquireTemporaryPath(string tempPath, CancellationToken cancellationToken = default)
@@ -194,6 +210,35 @@ namespace Bluewire.Stash
                 // Can't happen?
                 throw new NotSupportedException(node.GetType().FullName);
             }
+        }
+
+        public async Task<ObjectInfo?> GetInfo(string fullPath)
+        {
+            var path = ValidateFullPath(fullPath, nameof(fullPath));
+            if (Directory.Exists(path))
+            {
+                var info = new DirectoryInfo(path);
+                return new ObjectInfo
+                {
+                    CreationTime = new DateTimeOffset(info.CreationTimeUtc, TimeSpan.Zero),
+                };
+            }
+            if (File.Exists(path))
+            {
+                var info = new FileInfo(path);
+                return new ObjectInfo
+                {
+                    CreationTime = new DateTimeOffset(info.CreationTimeUtc, TimeSpan.Zero),
+                    LengthBytes = info.Length,
+                };
+            }
+            return null;
+        }
+
+        public class ObjectInfo
+        {
+            public DateTimeOffset CreationTime { get; set; }
+            public long? LengthBytes { get; set; }
         }
     }
 }

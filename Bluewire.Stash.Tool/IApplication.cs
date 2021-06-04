@@ -9,12 +9,15 @@ namespace Bluewire.Stash.Tool
         string GetCurrentDirectory();
         string GetTemporaryDirectory();
         string? GetEnvironmentVariable(string name);
-        void ShowDiagnostics(TextWriter stdout, DiagnosticsArguments model);
+        Task ShowDiagnostics(TextWriter stdout, DiagnosticsArguments model, CancellationToken token);
+        Task Authenticate(TextWriter stdout, AuthenticateArguments model, CancellationToken token);
         Task Commit(TextWriter stderr, CommitArguments model, CancellationToken token);
         Task Checkout(TextWriter stderr, CheckoutArguments model, CancellationToken token);
         Task List(TextWriter stdout, TextWriter stderr, ListArguments model, CancellationToken token);
         Task Show(TextWriter stdout, TextWriter stderr, ShowArguments model, CancellationToken token);
         Task Delete(TextWriter stderr, DeleteArguments model, CancellationToken token);
         Task GarbageCollect(TextWriter stderr, GCArguments model, CancellationToken token);
+        Task Push(TextWriter stderr, PushArguments model, CancellationToken token);
+        Task Pull(TextWriter stderr, PullArguments model, CancellationToken token);
     }
 }

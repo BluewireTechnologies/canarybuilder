@@ -10,7 +10,7 @@ using NUnit.Framework;
 namespace Bluewire.Stash.UnitTests
 {
     [TestFixture]
-    public class LocalStashResolverTests
+    public class StashResolverTests
     {
         [Test]
         public async Task CanResolveInitialVersionStashForReleaseVersion_UsingTopology()
@@ -39,7 +39,7 @@ namespace Bluewire.Stash.UnitTests
                 },
             };
 
-            var sut = new LocalStashResolver(stashRepository);
+            var sut = new StashResolver(stashRepository);
             var version = await sut.FindClosestAncestor(commitTopology, new ResolvedVersionMarker(SemanticVersion.FromString("20.21.3-release"), "release"));
 
             Assert.That(version, Is.EqualTo(stashRepository.Stashes.Keys.Single()));
@@ -71,7 +71,7 @@ namespace Bluewire.Stash.UnitTests
                 },
             };
 
-            var sut = new LocalStashResolver(stashRepository);
+            var sut = new StashResolver(stashRepository);
             var version = await sut.FindClosestAncestor(commitTopology, new ResolvedVersionMarker(SemanticVersion.FromString("20.21.2-alpha.gsomething"), "alpha"));
 
             Assert.That(version, Is.EqualTo(stashRepository.Stashes.Keys.Single()));
@@ -89,7 +89,7 @@ namespace Bluewire.Stash.UnitTests
                 },
             };
 
-            var sut = new LocalStashResolver(stashRepository);
+            var sut = new StashResolver(stashRepository);
             var version = await sut.FindClosestAncestor(new ResolvedVersionMarker(SemanticVersion.FromString("20.21.3-release"), "release"));
 
             Assert.That(version, Is.EqualTo(stashRepository.Stashes.Keys.Single()));
@@ -105,16 +105,9 @@ namespace Bluewire.Stash.UnitTests
             public void Dispose() { }
         }
 
-        class MockLocalStashRepository : ILocalStashRepository
+        class MockLocalStashRepository : IStashRepository
         {
             public IDictionary<VersionMarker, IStash> Stashes { get; } = new Dictionary<VersionMarker, IStash>(VersionMarker.EqualityComparer);
-
-            public Task<IStash?> FindClosestAncestor(VersionMarker marker) => throw new NotImplementedException();
-            public Task<IStash?> FindClosestAncestor(ICommitTopology topology, VersionMarker marker) => throw new NotImplementedException();
-            public Task<IStash> GetOrCreateExact(VersionMarker marker) => throw new NotImplementedException();
-            public Task<IStash> GetOrCreate(VersionMarker marker) => throw new NotImplementedException();
-            public Task Delete(VersionMarker marker) => throw new NotImplementedException();
-            public IAsyncEnumerable<string> CleanUpTemporaryObjects(CancellationToken token) => throw new NotImplementedException();
 
             public async IAsyncEnumerable<VersionMarker> List()
             {
@@ -127,12 +120,6 @@ namespace Bluewire.Stash.UnitTests
             public async Task<VersionMarker[]> List(SemanticVersion majorMinor)
             {
                 return Stashes.Keys.Where(k => k.SemanticVersion?.Major == majorMinor.Major && k.SemanticVersion?.Minor == majorMinor.Minor).ToArray();
-            }
-
-            public async Task<IStash?> TryGet(VersionMarker marker)
-            {
-                if (Stashes.TryGetValue(marker, out var stash)) return stash;
-                return null;
             }
         }
 

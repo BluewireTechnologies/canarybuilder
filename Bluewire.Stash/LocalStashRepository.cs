@@ -35,7 +35,7 @@ namespace Bluewire.Stash
 
         public async Task<IStash?> FindClosestAncestor(VersionMarker marker)
         {
-            var resolver = new LocalStashResolver(this);
+            var resolver = new StashResolver(this);
             var stashMarker = await resolver.FindClosestAncestor(marker);
             if (!stashMarker.IsValid) return null;
             return await TryGet(stashMarker);
@@ -43,7 +43,7 @@ namespace Bluewire.Stash
 
         public async Task<IStash?> FindClosestAncestor(ICommitTopology topology, VersionMarker marker)
         {
-            var resolver = new LocalStashResolver(this);
+            var resolver = new StashResolver(this);
             var resolved = await topology.FullyResolve(marker);
             if (resolved == null) return null;  // Commit cannot be resolved?
 
