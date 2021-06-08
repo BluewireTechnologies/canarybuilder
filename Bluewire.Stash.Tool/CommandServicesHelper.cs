@@ -66,11 +66,11 @@ namespace Bluewire.Stash.Tool
             return null;
         }
 
-        public async Task<IRemoteStashRepository> GetRemoteStashRepository(Uri? uri, string? remoteStashName, CancellationToken token)
+        public async Task<IRemoteStashRepository> GetRemoteStashRepository(IAuthentication authentication, Uri? uri, string? remoteStashName, CancellationToken token)
         {
             if (uri == null) throw new ApplicationException("No remote stash root URI specified.");
             if (remoteStashName == null) throw new ApplicationException("No remote stash name specified.");
-            var authenticationProvider = await AuthenticationProvider.Create();
+            var authenticationProvider = await authentication.Create();
             var authResult = await authenticationProvider.Authenticate(token);
             return new HttpRemoteStashRepository(uri, remoteStashName, authResult);
         }

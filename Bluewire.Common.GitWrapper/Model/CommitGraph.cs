@@ -87,8 +87,8 @@ namespace Bluewire.Common.GitWrapper.Model
             while (parentage.TryGetValue(current, out var parents) && parents.Any())
             {
                 current = parents.First();
-                if (Equals(current, stop)) yield break;
                 yield return current;
+                if (Equals(current, stop)) yield break;
             }
         }
     }

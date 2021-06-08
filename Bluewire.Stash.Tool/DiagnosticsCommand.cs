@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Identity.Client;
 
 namespace Bluewire.Stash.Tool
 {
@@ -28,32 +23,17 @@ namespace Bluewire.Stash.Tool
 
         private async Task TestRemote(TextWriter stdout, DiagnosticsArguments model, CancellationToken token)
         {
-            var auth = await AuthenticationProvider.Create();
-            var accounts = await auth.ListCachedAccounts();
-            if (!accounts.Any())
+            var authResult = await model.AppEnvironment.Authentication.Test(stdout, token);
+            if (authResult == null) return;
+            if (authResult.Account == null)
             {
-                stdout.WriteLine("No cached accounts.");
-                return;
+                stdout.WriteLine("Trying to access remote as confidential client...");
+            }
+            else
+            {
+                stdout.WriteLine($"Trying to access remote using account {authResult.Account.Username}...");
             }
 
-            stdout.WriteLine("Cached accounts:");
-            foreach (var account in accounts)
-            {
-                stdout.WriteLine($" * {account}");
-            }
-
-            var authResult = await TryAuthenticate(stdout, auth, token);
-            if (authResult == null)
-            {
-                stdout.WriteLine("Cached credentials are no longer valid. Please use the 'authenticate' command to renew them.");
-                return;
-            }
-            stdout.WriteLine($"Trying to access remote using account {authResult.Account.Username}...");
-            await TestRemote(stdout, model, authResult, token);
-        }
-
-        private async Task TestRemote(TextWriter stdout, DiagnosticsArguments model, AuthenticationResult authResult, CancellationToken token)
-        {
             try
             {
                 var content = await HttpRemoteStashRepository.Ping(model.AppEnvironment.RemoteStashRoot.Value!, authResult, token);
@@ -77,18 +57,6 @@ namespace Bluewire.Stash.Tool
                 count++;
             }
             stdout.WriteLine($"Remote stash {model.RemoteStashName.Value} reported {count} entries.");
-        }
-
-        private async Task<AuthenticationResult?> TryAuthenticate(TextWriter stdout, AuthenticationProvider auth, CancellationToken token)
-        {
-            try
-            {
-                return await auth.AuthenticateCached(token);
-            }
-            catch (MsalUiRequiredException)
-            {
-                return null;
-            }
         }
     }
 }

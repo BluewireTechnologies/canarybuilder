@@ -67,7 +67,7 @@ namespace Bluewire.Stash.Tool
 
             var repositoryPath = Path.Combine(model.AppEnvironment.StashRoot.Value, model.StashName.Value);
             services.StashRepository = new LocalStashRepository(repositoryPath);
-            services.RemoteStashRepository = await CommandServicesHelper.GetRemoteStashRepository(model.AppEnvironment.RemoteStashRoot.Value, model.RemoteStashName.Value, token);
+            services.RemoteStashRepository = await CommandServicesHelper.GetRemoteStashRepository(model.AppEnvironment.Authentication, model.AppEnvironment.RemoteStashRoot.Value, model.RemoteStashName.Value, token);
 
             services.GitSession = await CommandServicesHelper.PrepareGitSession(logger);
             services.GitFilesystemContext = await CommandServicesHelper.TryFindGitFilesystemContext(services.GitSession, model.AppEnvironment.GitTopologyPath, logger);

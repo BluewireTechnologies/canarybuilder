@@ -14,5 +14,6 @@ namespace Bluewire.Stash.Tool
         public ArgumentValue<string?> GitTopologyPath { get; }
         public ArgumentValue<string> StashRoot { get; }
         public ArgumentValue<Uri?> RemoteStashRoot { get; }
+        public IAuthentication Authentication { get; set; } = new PublicClientAuthentication();
     }
 }

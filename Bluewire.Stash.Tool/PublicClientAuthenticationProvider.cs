@@ -11,21 +11,16 @@ using Microsoft.Identity.Client.Extensions.Msal;
 
 namespace Bluewire.Stash.Tool
 {
-    public class AuthenticationProvider
+    public class PublicClientAuthenticationProvider : IAuthenticationProvider
     {
-        private static PublicClientApplicationOptions GetOptions()
+        public static async Task<PublicClientAuthenticationProvider> Create()
         {
-            return new PublicClientApplicationOptions
+            var appConfiguration = new PublicClientApplicationOptions
             {
-                Instance = ConfigurationManager.AppSettings["AzureAd.Instance"],
-                TenantId = ConfigurationManager.AppSettings["AzureAd.TenantId"],
-                ClientId = ConfigurationManager.AppSettings["AzureAd.ClientId"],
+                Instance = AuthenticationSettings.Instance,
+                TenantId = AuthenticationSettings.TenantId,
+                ClientId = AuthenticationSettings.ClientId,
             };
-        }
-
-        public static async Task<AuthenticationProvider> Create()
-        {
-            var appConfiguration = GetOptions();
 
             // Building the AAD authority, https://login.microsoftonline.com/<tenant>
             var authority = new Uri(new Uri(appConfiguration.Instance), appConfiguration.TenantId);
@@ -54,12 +49,12 @@ namespace Bluewire.Stash.Tool
             var cacheHelper = await MsalCacheHelper.CreateAsync(storageProperties);
             cacheHelper.RegisterCache(app.UserTokenCache);
 
-            return new AuthenticationProvider(app);
+            return new PublicClientAuthenticationProvider(app);
         }
 
         private readonly IPublicClientApplication app;
 
-        private AuthenticationProvider(IPublicClientApplication app)
+        private PublicClientAuthenticationProvider(IPublicClientApplication app)
         {
             this.app = app;
         }
@@ -70,15 +65,13 @@ namespace Bluewire.Stash.Tool
             return accounts.Select(a => a.Username).ToArray();
         }
 
-        private readonly string[] scopes = { "a03f7280-a152-4b55-af50-95cda50b0009/access_as_user" };
-
         public async Task<AuthenticationResult> AuthenticateCached(CancellationToken token)
         {
             var accounts = await app.GetAccountsAsync();
 
             // Try to acquire an access token from the cache. If an interaction is required,
             // MsalUiRequiredException will be thrown.
-            return await app.AcquireTokenSilent(scopes, accounts.FirstOrDefault())
+            return await app.AcquireTokenSilent(AuthenticationSettings.PublicScopes, accounts.FirstOrDefault())
                 .ExecuteAsync(token);
         }
 
@@ -95,7 +88,7 @@ namespace Bluewire.Stash.Tool
             {
                 // Acquiring an access token interactively. MSAL will cache it so we can use AcquireTokenSilent
                 // on future calls.
-                return await app.AcquireTokenInteractive(scopes)
+                return await app.AcquireTokenInteractive(AuthenticationSettings.PublicScopes)
                     .WithUseEmbeddedWebView(true)
                     .ExecuteAsync(token);
             }
