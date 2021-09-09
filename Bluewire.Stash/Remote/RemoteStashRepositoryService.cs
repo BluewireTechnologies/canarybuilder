@@ -33,7 +33,7 @@ namespace Bluewire.Stash.Remote
         public async IAsyncEnumerable<string> CleanUpTemporaryObjects(IBlobCleaner blobCleaner, [EnumeratorCancellation] CancellationToken token)
         {
             var maxAge = TimeSpan.FromHours(4);
-            await foreach (var path in LocalFileSystem.EnumerateAbsolutePaths(GetTempPath()).WithCancellation(token))
+            await foreach (var path in LocalFileSystem.EnumerateAbsolutePaths(GetTempPath(), false).WithCancellation(token))
             {
                 var info = await LocalFileSystem.GetInfo(path);
                 if (info == null) continue;
@@ -63,7 +63,7 @@ namespace Bluewire.Stash.Remote
                 {
                     // Pending transaction. Clean up referenced blobs before deleting files.
                     var anyFailures = false;
-                    await foreach (var subPath in LocalFileSystem.EnumerateAbsolutePaths(tempPath))
+                    await foreach (var subPath in LocalFileSystem.EnumerateAbsolutePaths(tempPath, true))
                     {
                         if (!LocalFileSystem.FileExists(subPath)) continue;    // Directory.
                         if (await blobCleaner.TryCleanUp(LocalFileSystem, subPath))

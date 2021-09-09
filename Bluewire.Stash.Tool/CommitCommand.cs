@@ -38,7 +38,7 @@ namespace Bluewire.Stash.Tool
 
             using (var stash = await services.StashRepository.GetOrCreateExact(targetMarker))
             {
-                await foreach (var relativePath in LocalFileSystem.EnumerateRelativePaths(model.SourcePath.Value).WithCancellation(token))
+                await foreach (var relativePath in LocalFileSystem.EnumerateRelativePaths(model.SourcePath.Value, true).WithCancellation(token))
                 {
                     var absolutePath = Path.Combine(model.SourcePath.Value, relativePath);
                     using (var stream = LocalFileSystem.OpenForRead(absolutePath))

@@ -168,25 +168,25 @@ namespace Bluewire.Stash
             }
         }
 
-        public async IAsyncEnumerable<string> EnumerateAbsolutePaths(string rootPath)
+        public async IAsyncEnumerable<string> EnumerateAbsolutePaths(string rootPath, bool recursive)
         {
             // Could probably accept a glob argument as well in future, and use FlexiGlob for walking the hierarchy.
 
             var container = new DirectoryInfo(ValidateFullPath(rootPath, nameof(rootPath)));
             if (!container.Exists) yield break;
-            foreach (var file in container.EnumerateFiles("*", SearchOption.AllDirectories))
+            foreach (var file in container.EnumerateFiles("*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))
             {
                 yield return file.FullName;
             }
         }
 
-        public async IAsyncEnumerable<string> EnumerateRelativePaths(string rootPath)
+        public async IAsyncEnumerable<string> EnumerateRelativePaths(string rootPath, bool recursive)
         {
             // Could probably accept a glob argument as well in future, and use FlexiGlob for walking the hierarchy.
 
             var container = new DirectoryInfo(ValidateFullPath(rootPath, nameof(rootPath)));
             if (!container.Exists) yield break;
-            foreach (var file in container.EnumerateFiles("*", SearchOption.AllDirectories))
+            foreach (var file in container.EnumerateFiles("*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))
             {
                 yield return GetRelativePath(file, container);
             }

@@ -22,7 +22,7 @@ namespace Bluewire.Stash.Tool
 
             if (LocalFileSystem.DirectoryExists(model.DestinationPath.Value))
             {
-                await foreach (var _ in LocalFileSystem.EnumerateRelativePaths(model.DestinationPath.Value).WithCancellation(token))
+                await foreach (var _ in LocalFileSystem.EnumerateRelativePaths(model.DestinationPath.Value, true).WithCancellation(token))
                 {
                     throw new Exception($"Directory exists and is not empty: {model.DestinationPath.Value}");
                 }

@@ -145,7 +145,7 @@ namespace Bluewire.Stash
 
         public IAsyncEnumerable<string> List(CancellationToken token = default)
         {
-            return LocalFileSystem.EnumerateRelativePaths(finalPath);
+            return LocalFileSystem.EnumerateRelativePaths(finalPath, true);
         }
 
         public async Task Delete()

@@ -203,7 +203,7 @@ namespace Bluewire.Stash
 
         public async IAsyncEnumerable<string> CleanUpTemporaryObjects([EnumeratorCancellation] CancellationToken token)
         {
-            await foreach (var path in LocalFileSystem.EnumerateAbsolutePaths(StashTemporaryDirectory).WithCancellation(token))
+            await foreach (var path in LocalFileSystem.EnumerateAbsolutePaths(StashTemporaryDirectory, false).WithCancellation(token))
             {
                 if (await TryCleanUp(path))
                 {
@@ -212,7 +212,7 @@ namespace Bluewire.Stash
             }
         }
 
-        [DebuggerNonUserCode]
+        //[DebuggerNonUserCode]
         private async Task<bool> TryCleanUp(string tempPath)
         {
             try
