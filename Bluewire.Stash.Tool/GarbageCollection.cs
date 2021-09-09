@@ -20,6 +20,12 @@ namespace Bluewire.Stash.Tool
             return job;
         }
 
+        public async Task RunAndWait(ILocalStashRepository repository)
+        {
+            var job = new GCJob(repository, logger);
+            await job.Start();
+        }
+
         class GCJob : IDisposable
         {
             private readonly ILocalStashRepository repository;

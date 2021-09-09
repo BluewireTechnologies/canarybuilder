@@ -63,7 +63,7 @@ namespace Bluewire.Stash.Remote
         public IAsyncEnumerable<string> ListFiles(VersionMarker entry, CancellationToken token = default)
         {
             var queryPath = GetEntryPath(entry);
-            return LocalFileSystem.EnumerateRelativePaths(queryPath);
+            return LocalFileSystem.EnumerateRelativePaths(queryPath, true);
         }
 
         public async Task<bool> Exists(VersionMarker entry, CancellationToken token = default)
