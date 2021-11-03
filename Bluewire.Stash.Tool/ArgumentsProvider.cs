@@ -44,7 +44,7 @@ namespace Bluewire.Stash.Tool
             if (cliValue != null) return new ArgumentValue<string>(EnsureTrailingSlash(cliValue), ArgumentSource.Argument);
             var envValue = application.GetEnvironmentVariable("STASH_ROOT");
             if (envValue != null) return new ArgumentValue<string>(EnsureTrailingSlash(envValue), ArgumentSource.Environment);
-            var defaultValue = Path.Combine(application.GetTemporaryDirectory(), ".stashes");
+            var defaultValue = Path.Combine(application.GetUserDataDirectory(), ".stashes");
             return new ArgumentValue<string>(EnsureTrailingSlash(defaultValue), ArgumentSource.Default);
         }
 

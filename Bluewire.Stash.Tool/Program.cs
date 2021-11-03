@@ -43,7 +43,7 @@ namespace Bluewire.Stash.Tool
                 o => o.Inherited = true);
 
             var stashRootOption = app.Option<string>("-S|--stash-root <path>",
-                "Directory in which local stashes should be kept. By default, uses the environment variable STASH_ROOT or %TEMP%/.stash.",
+                "Directory in which local stashes should be kept. By default, uses the environment variable STASH_ROOT or %LOCALAPPDATA%/Bluewire.Stash.Tool/.stashes.",
                 CommandOptionType.SingleValue,
                 o => o.Inherited = true);
 
@@ -262,6 +262,7 @@ namespace Bluewire.Stash.Tool
         {
             public string GetCurrentDirectory() => Directory.GetCurrentDirectory();
             public string GetTemporaryDirectory() => Path.GetTempPath();
+            public string GetUserDataDirectory() => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Bluewire.Stash.Tool");
             public string? GetEnvironmentVariable(string name) => Environment.GetEnvironmentVariable(name);
 
             public async Task ShowDiagnostics(TextWriter stdout, DiagnosticsArguments model, CancellationToken token)

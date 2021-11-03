@@ -8,6 +8,7 @@ namespace Bluewire.Stash.Tool
     {
         string GetCurrentDirectory();
         string GetTemporaryDirectory();
+        string GetUserDataDirectory();
         string? GetEnvironmentVariable(string name);
         Task ShowDiagnostics(TextWriter stdout, DiagnosticsArguments model, CancellationToken token);
         Task Authenticate(TextWriter stdout, AuthenticateArguments model, CancellationToken token);
