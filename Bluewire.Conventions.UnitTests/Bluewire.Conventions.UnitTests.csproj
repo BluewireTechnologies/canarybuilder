@@ -10,7 +10,7 @@
     <ProjectReference Include="..\Bluewire.Conventions\Bluewire.Conventions.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="JetBrains.dotCover.CommandLineTools" Version="2020.1.3">
+    <PackageReference Include="JetBrains.dotCover.CommandLineTools" Version="2021.2.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

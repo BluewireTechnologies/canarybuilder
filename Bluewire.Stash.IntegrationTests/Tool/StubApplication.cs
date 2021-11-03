@@ -10,6 +10,7 @@ namespace Bluewire.Stash.IntegrationTests.Tool
     {
         public virtual string GetCurrentDirectory() => @"z:\not set";
         public virtual string GetTemporaryDirectory() => @"z:\not set";
+        public virtual string GetUserDataDirectory() => @"z:\not set";
         public virtual string? GetEnvironmentVariable(string name) => @"z:\not set";
 
         public async Task ShowDiagnostics(TextWriter stdout, DiagnosticsArguments model, CancellationToken token) => Invocations.Add(model);

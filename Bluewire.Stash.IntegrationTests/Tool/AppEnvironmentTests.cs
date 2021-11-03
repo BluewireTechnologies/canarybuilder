@@ -74,10 +74,11 @@ namespace Bluewire.Stash.IntegrationTests.Tool
         }
 
         [Test]
-        public void UsesTemporaryDirectoryStashRootIfNoEnvironmentVariableOrArgumentIsSpecified()
+        public void UsesUserDataDirectoryStashRootIfNoEnvironmentVariableOrArgumentIsSpecified()
         {
             var application = Mock.Of<StubApplication>(a =>
                     a.GetTemporaryDirectory() == @"c:\temp" &&
+                    a.GetUserDataDirectory() == @"c:\Users\someone\AppData\Local\Bluewire.Stash.Tool" &&
                     a.GetEnvironmentVariable("STASH_ROOT") == null)
                 .CallBase();
 
@@ -86,7 +87,7 @@ namespace Bluewire.Stash.IntegrationTests.Tool
 
             var model = application.Invocations.OfType<DiagnosticsArguments>().SingleOrDefault();
             Assert.That(model, Is.Not.Null);
-            Assert.That(model!.AppEnvironment.StashRoot, Is.EqualTo(new ArgumentValue<string>(@"c:\temp\.stashes\", ArgumentSource.Default)));
+            Assert.That(model!.AppEnvironment.StashRoot, Is.EqualTo(new ArgumentValue<string>(@"c:\Users\someone\AppData\Local\Bluewire.Stash.Tool\.stashes\", ArgumentSource.Default)));
         }
 
         [Test]
