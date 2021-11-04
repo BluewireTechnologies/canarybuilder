@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Web;
 using Atlassian.Jira;
 using CanaryCollector.Collectors;
 
@@ -31,7 +32,7 @@ namespace CanaryCollector.Remote.Jira
             // This means we will be returned account IDs rather than any user information. We don't require user information in this tool.
             settings.EnableUserPrivacyMode = true;
 
-            var jiraConnection = Atlassian.Jira.Jira.CreateRestClient(jiraUri.ToString(), credentials.UserName, credentials.Password, settings);
+            var jiraConnection = Atlassian.Jira.Jira.CreateRestClient(jiraUri.ToString(), HttpUtility.UrlDecode(credentials.UserName), credentials.Password, settings);
             return new JiraTicketProvider(jiraConnection);
         }
     }
