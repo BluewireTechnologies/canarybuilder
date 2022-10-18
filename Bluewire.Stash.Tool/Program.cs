@@ -210,6 +210,7 @@ namespace Bluewire.Stash.Tool
                 var commitHashOption = c.Option<string>("--hash <hash>", "The commit hash to copy.", CommandOptionType.SingleValue);
                 var versionMarkerOption = c.Option<VersionMarker?>("--identifier <identifier>", "The version identifier to copy.", CommandOptionType.SingleValue);
                 var ignoreIfExists = c.Option("-i|--ignore", "If the stash already exists on the remote, treat as success.", CommandOptionType.NoValue);
+                var overwriteIfExists = c.Option("--overwrite", "If the stash already exists on the remote, replace it.", CommandOptionType.NoValue);
 
                 c.OnExecuteAsync(async token =>
                 {
@@ -218,7 +219,7 @@ namespace Bluewire.Stash.Tool
                         StashName = argumentsProvider.GetStashName(stashNameArgument),
                         RemoteStashName = argumentsProvider.GetStashName(remoteStashNameArgument),
                         Version = argumentsProvider.GetRequiredVersionMarker(semanticVersionOption, commitHashOption, versionMarkerOption),
-                        IgnoreIfExists = argumentsProvider.GetFlag(ignoreIfExists),
+                        ExistsRemotelyBehaviour = argumentsProvider.GetExistsBehaviour(ignoreIfExists, overwriteIfExists),
                         Verbosity = argumentsProvider.GetVerbosityLevel(verbosityOption),
                     };
                     await application.Push(app.Error, model, token);
@@ -233,6 +234,7 @@ namespace Bluewire.Stash.Tool
                 var commitHashOption = c.Option<string>("--hash <hash>", "The commit hash to copy.", CommandOptionType.SingleValue);
                 var versionMarkerOption = c.Option<VersionMarker?>("--identifier <identifier>", "The version identifier to copy.", CommandOptionType.SingleValue);
                 var ignoreIfExists = c.Option("-i|--ignore", "If the stash already exists locally, treat as success.", CommandOptionType.NoValue);
+                var overwriteIfExists = c.Option("--overwrite", "If the stash already exists locally, delete it and re-download it.", CommandOptionType.NoValue);
 
                 c.OnExecuteAsync(async token =>
                 {
@@ -241,7 +243,7 @@ namespace Bluewire.Stash.Tool
                         StashName = argumentsProvider.GetStashName(stashNameArgument),
                         RemoteStashName = argumentsProvider.GetStashName(remoteStashNameArgument),
                         Version = argumentsProvider.GetVersionMarker(semanticVersionOption, commitHashOption, versionMarkerOption),
-                        IgnoreIfExists = argumentsProvider.GetFlag(ignoreIfExists),
+                        ExistsLocallyBehaviour = argumentsProvider.GetExistsBehaviour(ignoreIfExists, overwriteIfExists),
                         Verbosity = argumentsProvider.GetVerbosityLevel(verbosityOption),
                     };
                     await application.Pull(app.Error, model, token);

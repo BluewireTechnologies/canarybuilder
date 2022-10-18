@@ -14,5 +14,6 @@ namespace Bluewire.Stash.Remote
         IAsyncEnumerable<VersionMarker> List(CancellationToken token = default);
         IAsyncEnumerable<string> ListFiles(VersionMarker entry, CancellationToken token = default);
         Task<bool> Exists(VersionMarker entry, CancellationToken token = default);
+        Task Delete(VersionMarker entry, CancellationToken token = default);
     }
 }

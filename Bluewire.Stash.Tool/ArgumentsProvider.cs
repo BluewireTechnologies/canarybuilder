@@ -127,6 +127,14 @@ namespace Bluewire.Stash.Tool
             return new ArgumentValue<bool>(true, ArgumentSource.Argument);
         }
 
+        public ArgumentValue<ExistsBehaviour> GetExistsBehaviour(CommandOption ignoreOption, CommandOption overwriteOption)
+        {
+            // '--overwrite' takes precedence over '--ignore'
+            if (overwriteOption.Values.Any()) return new ArgumentValue<ExistsBehaviour>(ExistsBehaviour.Overwrite, ArgumentSource.Argument);
+            if (ignoreOption.Values.Any()) return new ArgumentValue<ExistsBehaviour>(ExistsBehaviour.Ignore, ArgumentSource.Argument);
+            return new ArgumentValue<ExistsBehaviour>(ExistsBehaviour.Error, ArgumentSource.Default);
+        }
+
         public ArgumentValue<int> GetVerbosityLevel(CommandOption verbosityOption)
         {
             if (!verbosityOption.Values.Any()) return new ArgumentValue<int>(0, ArgumentSource.Default);

@@ -21,7 +21,7 @@ namespace Bluewire.Stash.Tool
             logger.WriteLine(VerbosityLevels.ShowArguments, $"Stash name:         {model.StashName}");
             logger.WriteLine(VerbosityLevels.ShowArguments, $"Remote stash name:  {model.RemoteStashName}");
             logger.WriteLine(VerbosityLevels.ShowArguments, $"Version:            {model.Version}");
-            logger.WriteLine(VerbosityLevels.ShowArguments, $"Ignore if exists:   {model.IgnoreIfExists}");
+            logger.WriteLine(VerbosityLevels.ShowArguments, $"If exists locally:  {model.ExistsLocallyBehaviour}");
 
             var services = await SetUpServices(model, logger, token);
             using var gc = new GarbageCollection(logger).RunBackground(services.StashRepository);
@@ -40,13 +40,16 @@ namespace Bluewire.Stash.Tool
 
             logger.WriteLine(VerbosityLevels.DescribeActions, $"Found matching stash: {stashVersionMarker}");
 
-            var localStash = await services.StashRepository.GetOrCreate(stashVersionMarker.Value);
-            if (await services.StashRepository.TryGet(stashVersionMarker.Value) != null)
+            var existsLocally = await services.StashRepository.TryGet(stashVersionMarker.Value) != null;
+            if (existsLocally)
             {
                 logger.WriteLine(VerbosityLevels.DescribeActions, $"The stash {stashVersionMarker.Value} already exists locally.");
-                if (!model.IgnoreIfExists.Value) throw new ApplicationException($"The stash {stashVersionMarker.Value} already exists locally.");
-                return;
+                if (model.ExistsLocallyBehaviour.Value == ExistsBehaviour.Error) throw new ApplicationException($"The stash {stashVersionMarker.Value} already exists locally.");
+                if (model.ExistsLocallyBehaviour.Value == ExistsBehaviour.Ignore) return;
+                await services.StashRepository.Delete(stashVersionMarker.Value);
             }
+
+            var localStash = await services.StashRepository.GetOrCreate(stashVersionMarker.Value);
 
             await foreach (var relativePath in services.RemoteStashRepository.ListFiles(stashVersionMarker.Value, token))
             {

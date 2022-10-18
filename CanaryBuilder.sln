@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29409.12
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32825.248
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CanaryBuilder", "CanaryBuilder\CanaryBuilder.csproj", "{D6E6BA6E-3981-4ACD-A204-E619BCA672DE}"
 EndProject
@@ -45,7 +45,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bluewire.Stash.UnitTests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bluewire.Stash.IntegrationTests", "Bluewire.Stash.IntegrationTests\Bluewire.Stash.IntegrationTests.csproj", "{84D6A4DE-8ACF-422C-B7BB-040B2594CB1B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bluewire.Stash.Service", "Bluewire.Stash.Service\Bluewire.Stash.Service.csproj", "{274596B7-3F4C-45B1-A2A2-38239AB32CE6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bluewire.Stash.Service", "Bluewire.Stash.Service\Bluewire.Stash.Service.csproj", "{274596B7-3F4C-45B1-A2A2-38239AB32CE6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
