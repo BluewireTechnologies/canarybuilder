@@ -40,5 +40,7 @@ namespace Bluewire.Stash.Tool
             return await app.AcquireTokenForClient(AuthenticationSettings.ConfidentialScopes)
                 .ExecuteAsync(token);
         }
+
+        public Task Clear() => Task.CompletedTask;
     }
 }

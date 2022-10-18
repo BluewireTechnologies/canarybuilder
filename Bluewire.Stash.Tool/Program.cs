@@ -81,9 +81,13 @@ namespace Bluewire.Stash.Tool
             app.Command("authenticate", c =>
             {
                 c.AddName("auth");
+                var renewOption = c.Option("--renew", "Clear existing token (if cached) and re-authenticate.", CommandOptionType.NoValue);
                 c.OnExecuteAsync(async token =>
                 {
-                    var model = new AuthenticateArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption, clientSecretOption));
+                    var model = new AuthenticateArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption, clientSecretOption))
+                    {
+                        Renew = argumentsProvider.GetFlag(renewOption),
+                    };
                     await application.Authenticate(originalStdout, model, token);
                 });
             });
@@ -275,6 +279,7 @@ namespace Bluewire.Stash.Tool
             public async Task Authenticate(TextWriter stdout, AuthenticateArguments model, CancellationToken token)
             {
                 var auth = await model.AppEnvironment.Authentication.Create();
+                if (model.Renew.Value) await auth.Clear();
                 await auth.Authenticate(token);
             }
 
