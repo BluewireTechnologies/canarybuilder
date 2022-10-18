@@ -20,6 +20,7 @@ namespace Bluewire.Stash.IntegrationTests.Tool
         public async Task List(TextWriter stdout, TextWriter stderr, ListArguments model, CancellationToken token) => Invocations.Add(model);
         public async Task Show(TextWriter stdout, TextWriter stderr, ShowArguments model, CancellationToken token) => Invocations.Add(model);
         public async Task Delete(TextWriter stderr, DeleteArguments model, CancellationToken token) => Invocations.Add(model);
+        public async Task RemoteDelete(TextWriter stderr, RemoteDeleteArguments model, CancellationToken token) => Invocations.Add(model);
         public async Task GarbageCollect(TextWriter stderr, GCArguments model, CancellationToken token) => Invocations.Add(model);
         public async Task Push(TextWriter stderr, PushArguments model, CancellationToken token) => Invocations.Add(model);
         public async Task Pull(TextWriter stderr, PullArguments model, CancellationToken token) => Invocations.Add(model);

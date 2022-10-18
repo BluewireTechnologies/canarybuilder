@@ -189,6 +189,25 @@ namespace Bluewire.Stash.Tool
                 });
             });
 
+            app.Command("remote-delete", c =>
+            {
+                var remoteStashNameArgument = c.Argument<string>("remote stash name", "The name of the remote stash to use.", o => o.IsRequired());
+                var semanticVersionOption = c.Option<SemanticVersion?>("--version <version>", "The version to delete.", CommandOptionType.SingleValue);
+                var commitHashOption = c.Option<string>("--hash <hash>", "The commit hash to delete.", CommandOptionType.SingleValue);
+                var versionMarkerOption = c.Option<VersionMarker?>("--identifier <identifier>", "The version identifier to delete.", CommandOptionType.SingleValue);
+
+                c.OnExecuteAsync(async token =>
+                {
+                    var model = new RemoteDeleteArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption, clientSecretOption))
+                    {
+                        RemoteStashName = argumentsProvider.GetStashName(remoteStashNameArgument),
+                        Version = argumentsProvider.GetRequiredVersionMarker(semanticVersionOption, commitHashOption, versionMarkerOption),
+                        Verbosity = argumentsProvider.GetVerbosityLevel(verbosityOption),
+                    };
+                    await application.RemoteDelete(app.Error, model, token);
+                });
+            });
+
             app.Command("gc", c =>
             {
                 var stashNameArgument = c.Argument<string>("stash name", "The name of the stash to use.", o => o.IsRequired());
@@ -306,6 +325,11 @@ namespace Bluewire.Stash.Tool
             public async Task Delete(TextWriter stderr, DeleteArguments model, CancellationToken token)
             {
                 await new DeleteCommand().Execute(model, new VerboseLogger(stderr, model.Verbosity.Value), token);
+            }
+
+            public async Task RemoteDelete(TextWriter stderr, RemoteDeleteArguments model, CancellationToken token)
+            {
+                await new RemoteDeleteCommand().Execute(model, new VerboseLogger(stderr, model.Verbosity.Value), token);
             }
 
             public async Task GarbageCollect(TextWriter stderr, GCArguments model, CancellationToken token)
