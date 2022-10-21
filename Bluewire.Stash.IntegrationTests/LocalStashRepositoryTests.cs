@@ -110,7 +110,7 @@ namespace Bluewire.Stash.IntegrationTests
         }
 
         [Test]
-        public async Task CanListStashesForMajorMinorVersion()
+        public async Task CanListPossibleAncestorsForVersion()
         {
             var stashRepository = new LocalStashRepository(Default.TemporaryDirectory);
 
@@ -119,7 +119,7 @@ namespace Bluewire.Stash.IntegrationTests
             await CreateEmptyStash(stashRepository, new VersionMarker(SemanticVersion.FromString("20.20.12-beta")));
             await CreateEmptyStash(stashRepository, new VersionMarker("commit3"));
 
-            var list = await stashRepository.List(SemanticVersion.FromString("20.20.0"));
+            var list = await stashRepository.ListPossibleAncestors(SemanticVersion.FromString("20.21.0"));
 
             Assert.That(list,
                 Is.EqualTo(new []

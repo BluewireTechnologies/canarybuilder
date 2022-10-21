@@ -95,6 +95,58 @@ namespace Bluewire.Stash.UnitTests
             Assert.That(version, Is.EqualTo(stashRepository.Stashes.Keys.Single()));
         }
 
+        [Test]
+        public async Task CanResolvePreviousInitialVersionStashForReleaseVersion_WithoutTopology()
+        {
+            var initialStash = new MockStash();
+            var stashRepository = new MockLocalStashRepository
+            {
+                Stashes =
+                {
+                    [new VersionMarker(SemanticVersion.FromString("20.21.0-beta"))] = initialStash,
+                },
+            };
+
+            var sut = new StashResolver(stashRepository);
+            var version = await sut.FindClosestAncestor(new ResolvedVersionMarker(SemanticVersion.FromString("21.01.3-release"), "release"));
+
+            Assert.That(version, Is.EqualTo(stashRepository.Stashes.Keys.Single()));
+        }
+
+        [Test]
+        public async Task CanResolvePreviousInitialVersionStashForReleaseVersion_UsingTopology()
+        {
+            var initialStash = new MockStash();
+            var stashRepository = new MockLocalStashRepository
+            {
+                Stashes =
+                {
+                    [new VersionMarker(SemanticVersion.FromString("20.21.0-beta"))] = initialStash,
+                },
+            };
+            var commitTopology = new MockCommitTopology
+            {
+                Commits =
+                {
+                    new Commit { Hash = "last version", SemanticVersion = SemanticVersion.FromString("20.20.100-beta") },
+                    new Commit { Hash = "initial", ParentHash = "last version", SemanticVersion = SemanticVersion.FromString("20.21.0-beta") },
+                    new Commit { Hash = "update", ParentHash = "initial", SemanticVersion = SemanticVersion.FromString("20.21.1-beta") },
+                    new Commit { Hash = "alpha", ParentHash = "update", SemanticVersion = SemanticVersion.FromString("20.21.2-alpha.gsomething") },
+                    new Commit { Hash = "this-version", ParentHash = "update", SemanticVersion = SemanticVersion.FromString("21.01.0-beta") },
+                    new Commit { Hash = "release", ParentHash = "this-version", SemanticVersion = SemanticVersion.FromString("21.01.3-release") },
+                },
+                LastVersions =
+                {
+                    ["20.20"] = new ResolvedVersionMarker(SemanticVersion.FromString("20.20.100-beta"), "last version"),
+                },
+            };
+
+            var sut = new StashResolver(stashRepository);
+            var version = await sut.FindClosestAncestor(commitTopology, new ResolvedVersionMarker(SemanticVersion.FromString("21.01.3-release"), "release"));
+
+            Assert.That(version, Is.EqualTo(stashRepository.Stashes.Keys.Single()));
+        }
+
         class MockStash : IStash
         {
             public VersionMarker VersionMarker => throw new NotImplementedException();
@@ -116,11 +168,6 @@ namespace Bluewire.Stash.UnitTests
                     yield return version;
                 }
             }
-
-            public async Task<VersionMarker[]> List(SemanticVersion majorMinor)
-            {
-                return Stashes.Keys.Where(k => k.SemanticVersion?.Major == majorMinor.Major && k.SemanticVersion?.Minor == majorMinor.Minor).ToArray();
-            }
         }
 
         class MockCommitTopology : ICommitTopology
@@ -128,9 +175,12 @@ namespace Bluewire.Stash.UnitTests
             public ICollection<Commit> Commits { get; } = new List<Commit>();
             public IDictionary<string, ResolvedVersionMarker> LastVersions { get; } = new Dictionary<string, ResolvedVersionMarker>();
 
-            public Task<ResolvedVersionMarker?> FullyResolve(VersionMarker marker)
+            public async Task<ResolvedVersionMarker?> FullyResolve(VersionMarker marker)
             {
-                throw new NotImplementedException();
+                if (marker.IsComplete) return marker.Checked;
+                var resolved = Commits.FirstOrDefault(c => c.SemanticVersion == marker.SemanticVersion) ?? Commits.FirstOrDefault(c => c.Hash == marker.CommitHash);
+                if (resolved == null) return null;
+                return new ResolvedVersionMarker(resolved.SemanticVersion, resolved.Hash);
             }
 
             public async Task<bool> IsAncestor(ResolvedVersionMarker reference, ResolvedVersionMarker subject)

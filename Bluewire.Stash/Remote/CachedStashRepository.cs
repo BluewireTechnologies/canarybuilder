@@ -24,17 +24,12 @@ namespace Bluewire.Stash.Remote
             {
                 list.Add(marker);
             }
-            return new CachedStashRepository(list);
+            return new CachedStashRepository(list.OrderByDescending(v => v.SemanticVersion, SemanticVersion.MajorMinorBuildComparer).ToList());
         }
 
         public async IAsyncEnumerable<VersionMarker> List()
         {
             foreach (var marker in list) yield return marker;
-        }
-
-        public async Task<VersionMarker[]> List(SemanticVersion majorMinor)
-        {
-            return list.Where(k => k.SemanticVersion?.Major == majorMinor.Major && k.SemanticVersion?.Minor == majorMinor.Minor).ToArray();
         }
 
         public async Task<VersionMarker?> FindClosestAncestor(VersionMarker marker)
