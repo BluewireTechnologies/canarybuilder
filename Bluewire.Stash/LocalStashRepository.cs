@@ -170,19 +170,6 @@ namespace Bluewire.Stash
             }
         }
 
-        public async Task<VersionMarker[]> List(SemanticVersion majorMinor)
-        {
-            var versions = new List<VersionMarker>();
-            foreach (var stash in EnumerateStashesMatching($"*_{majorMinor.Major}.{majorMinor.Minor}.*"))
-            {
-                // Paranoia: check that the parsed versions match too.
-                if (!StringComparer.OrdinalIgnoreCase.Equals(stash.VersionMarker.SemanticVersion?.Major, majorMinor.Major)) continue;
-                if (!StringComparer.OrdinalIgnoreCase.Equals(stash.VersionMarker.SemanticVersion?.Minor, majorMinor.Minor)) continue;
-                versions.Add(stash.VersionMarker);
-            }
-            return versions.OrderByDescending(v => v.SemanticVersion, SemanticVersion.MajorMinorBuildComparer).ToArray();
-        }
-
         public async Task Delete(VersionMarker marker)
         {
             var existing = await TryGet(marker);

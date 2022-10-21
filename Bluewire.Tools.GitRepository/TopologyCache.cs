@@ -87,7 +87,7 @@ namespace Bluewire.Tools.GitRepository
             if (!existingRefsCache.TryGetValue(subject, out var exists))
             {
                 exists = await Session.RefExists(WorkingCopyOrRepo, subject);
-                existingBranchesCache.Add(subject, exists);
+                existingRefsCache.Add(subject, exists);
             }
             return exists;
         }

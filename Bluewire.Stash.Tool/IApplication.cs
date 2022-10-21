@@ -17,6 +17,7 @@ namespace Bluewire.Stash.Tool
         Task List(TextWriter stdout, TextWriter stderr, ListArguments model, CancellationToken token);
         Task Show(TextWriter stdout, TextWriter stderr, ShowArguments model, CancellationToken token);
         Task Delete(TextWriter stderr, DeleteArguments model, CancellationToken token);
+        Task RemoteDelete(TextWriter stderr, RemoteDeleteArguments model, CancellationToken token);
         Task GarbageCollect(TextWriter stderr, GCArguments model, CancellationToken token);
         Task Push(TextWriter stderr, PushArguments model, CancellationToken token);
         Task Pull(TextWriter stderr, PullArguments model, CancellationToken token);

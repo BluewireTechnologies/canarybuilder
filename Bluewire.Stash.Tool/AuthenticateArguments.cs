@@ -8,5 +8,7 @@
         }
 
         public AppEnvironment AppEnvironment { get; }
+
+        public ArgumentValue<bool> Renew { get; set; }
     }
 }

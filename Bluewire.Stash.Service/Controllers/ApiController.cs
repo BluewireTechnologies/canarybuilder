@@ -127,6 +127,21 @@ namespace Bluewire.Stash.Service.Controllers
             return NotFound();
         }
 
+        [HttpDelete]
+        [Authorize(Roles = "Stash.Admin")]
+        [Route("delete/{name}/{entry}")]
+        public async Task<IActionResult> Delete(string name, string entry)
+        {
+            var stash = service.GetNamed(name);
+            var marker = ParseEntry(entry);
+            if (await stash.Exists(marker))
+            {
+                await stash.Delete(marker);
+                return Ok();
+            }
+            return NotFound();
+        }
+
         [HttpPost]
         [Authorize]
         [Route("ping")]

@@ -31,7 +31,7 @@ namespace Bluewire.Stash
 
         public async Task<VersionMarker> FindClosestAncestor(ICommitTopology topology, ResolvedVersionMarker marker)
         {
-            var candidates = await repository.List(marker.SemanticVersion);
+            var candidates = await repository.ListPossibleAncestors(marker.SemanticVersion);
 
             if (candidates.Any())
             {

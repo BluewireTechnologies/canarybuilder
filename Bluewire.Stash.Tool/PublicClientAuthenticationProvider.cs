@@ -94,6 +94,15 @@ namespace Bluewire.Stash.Tool
             }
         }
 
+        public async Task Clear()
+        {
+            var accounts = await app.GetAccountsAsync();
+            foreach (var account in accounts)
+            {
+                await app.RemoveAsync(account);
+            }
+        }
+
         public static class CacheSettings
         {
             private static readonly string cacheFilePath =

@@ -135,6 +135,17 @@ namespace Bluewire.Stash.Tool
             return true;
         }
 
+        public async Task Delete(VersionMarker entry, CancellationToken token = default)
+        {
+            var uri = new Uri(rootUri, $"delete/{Uri.EscapeDataString(name)}/{ConvertVersionMarkerToUriSegment(entry)}");
+            var message = CreateMessage(HttpMethod.Delete, uri, authResult);
+
+            using (var response = await httpClient.SendAsync(message, token))
+            {
+                response.EnsureSuccessStatusCode();
+            }
+        }
+
         public static async Task<string> Ping(Uri rootUri, AuthenticationResult authResult, CancellationToken token = default)
         {
             var uri = new Uri(rootUri, "ping");

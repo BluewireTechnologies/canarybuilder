@@ -72,6 +72,13 @@ namespace Bluewire.Stash.Remote
             return LocalFileSystem.DirectoryExists(queryPath);
         }
 
+        public Task Delete(VersionMarker entry, CancellationToken token = default)
+        {
+            // Move the stash to a temporary directory and let the background process clean up its files.
+            LocalFileSystem.MoveDirectory(GetEntryPath(entry), GetTransactionPath(Guid.NewGuid()));
+            return Task.CompletedTask;
+        }
+
         private string MapToDirectoryName(VersionMarker entry)
         {
             return VersionMarkerStringConverter.ForDirectoryName().ToString(entry);

@@ -81,9 +81,13 @@ namespace Bluewire.Stash.Tool
             app.Command("authenticate", c =>
             {
                 c.AddName("auth");
+                var renewOption = c.Option("--renew", "Clear existing token (if cached) and re-authenticate.", CommandOptionType.NoValue);
                 c.OnExecuteAsync(async token =>
                 {
-                    var model = new AuthenticateArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption, clientSecretOption));
+                    var model = new AuthenticateArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption, clientSecretOption))
+                    {
+                        Renew = argumentsProvider.GetFlag(renewOption),
+                    };
                     await application.Authenticate(originalStdout, model, token);
                 });
             });
@@ -185,6 +189,25 @@ namespace Bluewire.Stash.Tool
                 });
             });
 
+            app.Command("remote-delete", c =>
+            {
+                var remoteStashNameArgument = c.Argument<string>("remote stash name", "The name of the remote stash to use.", o => o.IsRequired());
+                var semanticVersionOption = c.Option<SemanticVersion?>("--version <version>", "The version to delete.", CommandOptionType.SingleValue);
+                var commitHashOption = c.Option<string>("--hash <hash>", "The commit hash to delete.", CommandOptionType.SingleValue);
+                var versionMarkerOption = c.Option<VersionMarker?>("--identifier <identifier>", "The version identifier to delete.", CommandOptionType.SingleValue);
+
+                c.OnExecuteAsync(async token =>
+                {
+                    var model = new RemoteDeleteArguments(argumentsProvider.GetAppEnvironment(gitTopologyPathOption, stashRootOption, remoteStashRootOption, clientSecretOption))
+                    {
+                        RemoteStashName = argumentsProvider.GetStashName(remoteStashNameArgument),
+                        Version = argumentsProvider.GetRequiredVersionMarker(semanticVersionOption, commitHashOption, versionMarkerOption),
+                        Verbosity = argumentsProvider.GetVerbosityLevel(verbosityOption),
+                    };
+                    await application.RemoteDelete(app.Error, model, token);
+                });
+            });
+
             app.Command("gc", c =>
             {
                 var stashNameArgument = c.Argument<string>("stash name", "The name of the stash to use.", o => o.IsRequired());
@@ -210,6 +233,7 @@ namespace Bluewire.Stash.Tool
                 var commitHashOption = c.Option<string>("--hash <hash>", "The commit hash to copy.", CommandOptionType.SingleValue);
                 var versionMarkerOption = c.Option<VersionMarker?>("--identifier <identifier>", "The version identifier to copy.", CommandOptionType.SingleValue);
                 var ignoreIfExists = c.Option("-i|--ignore", "If the stash already exists on the remote, treat as success.", CommandOptionType.NoValue);
+                var overwriteIfExists = c.Option("--overwrite", "If the stash already exists on the remote, replace it.", CommandOptionType.NoValue);
 
                 c.OnExecuteAsync(async token =>
                 {
@@ -218,7 +242,7 @@ namespace Bluewire.Stash.Tool
                         StashName = argumentsProvider.GetStashName(stashNameArgument),
                         RemoteStashName = argumentsProvider.GetStashName(remoteStashNameArgument),
                         Version = argumentsProvider.GetRequiredVersionMarker(semanticVersionOption, commitHashOption, versionMarkerOption),
-                        IgnoreIfExists = argumentsProvider.GetFlag(ignoreIfExists),
+                        ExistsRemotelyBehaviour = argumentsProvider.GetExistsBehaviour(ignoreIfExists, overwriteIfExists),
                         Verbosity = argumentsProvider.GetVerbosityLevel(verbosityOption),
                     };
                     await application.Push(app.Error, model, token);
@@ -233,6 +257,7 @@ namespace Bluewire.Stash.Tool
                 var commitHashOption = c.Option<string>("--hash <hash>", "The commit hash to copy.", CommandOptionType.SingleValue);
                 var versionMarkerOption = c.Option<VersionMarker?>("--identifier <identifier>", "The version identifier to copy.", CommandOptionType.SingleValue);
                 var ignoreIfExists = c.Option("-i|--ignore", "If the stash already exists locally, treat as success.", CommandOptionType.NoValue);
+                var overwriteIfExists = c.Option("--overwrite", "If the stash already exists locally, delete it and re-download it.", CommandOptionType.NoValue);
 
                 c.OnExecuteAsync(async token =>
                 {
@@ -241,7 +266,7 @@ namespace Bluewire.Stash.Tool
                         StashName = argumentsProvider.GetStashName(stashNameArgument),
                         RemoteStashName = argumentsProvider.GetStashName(remoteStashNameArgument),
                         Version = argumentsProvider.GetVersionMarker(semanticVersionOption, commitHashOption, versionMarkerOption),
-                        IgnoreIfExists = argumentsProvider.GetFlag(ignoreIfExists),
+                        ExistsLocallyBehaviour = argumentsProvider.GetExistsBehaviour(ignoreIfExists, overwriteIfExists),
                         Verbosity = argumentsProvider.GetVerbosityLevel(verbosityOption),
                     };
                     await application.Pull(app.Error, model, token);
@@ -273,6 +298,7 @@ namespace Bluewire.Stash.Tool
             public async Task Authenticate(TextWriter stdout, AuthenticateArguments model, CancellationToken token)
             {
                 var auth = await model.AppEnvironment.Authentication.Create();
+                if (model.Renew.Value) await auth.Clear();
                 await auth.Authenticate(token);
             }
 
@@ -299,6 +325,11 @@ namespace Bluewire.Stash.Tool
             public async Task Delete(TextWriter stderr, DeleteArguments model, CancellationToken token)
             {
                 await new DeleteCommand().Execute(model, new VerboseLogger(stderr, model.Verbosity.Value), token);
+            }
+
+            public async Task RemoteDelete(TextWriter stderr, RemoteDeleteArguments model, CancellationToken token)
+            {
+                await new RemoteDeleteCommand().Execute(model, new VerboseLogger(stderr, model.Verbosity.Value), token);
             }
 
             public async Task GarbageCollect(TextWriter stderr, GCArguments model, CancellationToken token)
