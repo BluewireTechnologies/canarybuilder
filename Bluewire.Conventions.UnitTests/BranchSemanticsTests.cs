@@ -40,7 +40,7 @@ namespace Bluewire.Conventions.UnitTests
         {
             var sut = new BranchSemantics();
 
-            Assert.Throws<InvalidOperationException>(() =>
+            Assert.Throws<ArgumentException>(() =>
             {
                 var semVer = new SemanticVersion("17", "05", 123, null);
                 sut.GetVersionLatestBranchNames(semVer);
@@ -52,7 +52,7 @@ namespace Bluewire.Conventions.UnitTests
         {
             var sut = new BranchSemantics();
 
-            Assert.Throws<InvalidOperationException>(() =>
+            Assert.Throws<ArgumentException>(() =>
             {
                 var semVer = new SemanticVersion("17", "05", 123, "");
                 sut.GetVersionLatestBranchNames(semVer);

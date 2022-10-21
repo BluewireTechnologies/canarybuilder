@@ -45,6 +45,7 @@ namespace Bluewire.Conventions
         // Assumes sementics defined in BranchType.cs
         private IEnumerable<string> GetVersionLatestBranchNamesInternal(SemanticVersion semVer)
         {
+            if (string.IsNullOrEmpty(semVer.SemanticTag)) throw new ArgumentException($"No semantic tag specified: {semVer}");
             switch (semVer.SemanticTag)
             {
                 case "beta":
