@@ -19,11 +19,12 @@
       <Version>2.0.12</Version>
     </PackageReference>
     <PackageReference Include="Moq">
-      <Version>4.13.1</Version>
+      <Version>4.20.70</Version>
     </PackageReference>
     <PackageReference Include="NUnit">
-      <Version>3.12.0</Version>
+      <Version>3.14.0</Version>
     </PackageReference>
   </ItemGroup>
+  <Import Project="CanaryBuilder.IntegrationTests.targets" />
   <Import Project="..\StyleCopAnalyzers.props" />
 </Project>
