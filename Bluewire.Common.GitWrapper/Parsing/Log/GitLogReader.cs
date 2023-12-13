@@ -61,18 +61,36 @@ namespace Bluewire.Common.GitWrapper.Parsing.Log
                 string matched;
                 if (TryParseHeader("Merge: ", reader.Current, out matched))
                 {
-                    if (entry.MergeParents == null) entry.MergeParents = matched.Split().Where(r => r.Length > 0).Select(r => new Ref(r)).ToArray();
-                    else errors.Add(new UnexpectedGitOutputFormatDetails { Line = reader.Current, Explanations = { "Duplicate 'Merge:' header." } });
+                    if (entry.MergeParents == null)
+                    {
+                        entry.MergeParents = matched.Split().Where(r => r.Length > 0).Select(r => new Ref(r)).ToArray();
+                    }
+                    else
+                    {
+                        errors.Add(new UnexpectedGitOutputFormatDetails { Line = reader.Current, Explanations = { "Duplicate 'Merge:' header." } });
+                    }
                 }
                 else if (TryParseHeader("Author: ", reader.Current, out matched))
                 {
-                    if (entry.Author == null) entry.Author = matched;
-                    else errors.Add(new UnexpectedGitOutputFormatDetails { Line = reader.Current, Explanations = { "Duplicate 'Author:' header." } });
+                    if (entry.Author == null)
+                    {
+                        entry.Author = matched;
+                    }
+                    else
+                    {
+                        errors.Add(new UnexpectedGitOutputFormatDetails { Line = reader.Current, Explanations = { "Duplicate 'Author:' header." } });
+                    }
                 }
                 else if (TryParseHeader("Date: ", reader.Current, out matched))
                 {
-                    if (entry.Date == null) entry.Date = matched;
-                    else errors.Add(new UnexpectedGitOutputFormatDetails { Line = reader.Current, Explanations = { "Duplicate 'Date:' header." } });
+                    if (entry.Date == null)
+                    {
+                        entry.Date = matched;
+                    }
+                    else
+                    {
+                        errors.Add(new UnexpectedGitOutputFormatDetails { Line = reader.Current, Explanations = { "Duplicate 'Date:' header." } });
+                    }
                 }
                 if (!await reader.MoveNext()) return false;
             }

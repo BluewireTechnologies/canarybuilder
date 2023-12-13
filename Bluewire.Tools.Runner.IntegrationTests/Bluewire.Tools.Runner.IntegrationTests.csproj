@@ -17,5 +17,6 @@
       <Version>9.2.2</Version>
     </PackageReference>
   </ItemGroup>
+  <Import Project="Bluewire.Tools.Runner.IntegrationTests.targets" />
   <Import Project="..\StyleCopAnalyzers.props" />
 </Project>

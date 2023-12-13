@@ -100,9 +100,6 @@ function Interpret-PathRelativeToFile {
         [Parameter(Mandatory=$True)]
         [string]$referenceFilePath,
         
-        [Parameter(Mandatory=$True, ValueFromPipeline=$True)]
-        [string[]]$pipePaths,
-        
         [Parameter(ValueFromRemainingArguments=$true)]
         [string[]]$paths
     )
@@ -111,10 +108,6 @@ function Interpret-PathRelativeToFile {
         $referenceDir = $file.Directory;
     }
     PROCESS {
-        if($pipePaths.Length -gt 0)
-        {
-            $paths = $pipePaths;
-        }
         foreach($_ in $paths)
         {
             
@@ -136,13 +129,15 @@ filter Fixup-ProjectFileImports([string]$globalPropsFile, [string]$globalTargets
     $projectFileXml = [xml](Get-Content $projectFile);
     
     $imports = @($projectFileXml.Project.Import);
+    $projectFileXmlDocument = $projectFileXml.Project.OwnerDocument;
     
     $unconditionalImports = $imports | where { -not $_.Condition; };
     $msImports = @($unconditionalImports | where { $_.Project -match "\bMicrosoft\b"; });
-    $defaultImport = $msImports[0];
-    if(!$defaultImport)
+    $xamarinImports = @($unconditionalImports | where { $_.Project -match "\bXamarin\b"; });
+    $defaultImport = ($msImports + $xamarinImports)[0];
+    if(!$defaultImport -and !$projectFileXml.Project.Sdk)
     {
-        Write-Host -ForegroundColor Yellow "WARNING: Unable to find default import in $(${projectFile}.FullName)";
+        Write-Host -ForegroundColor Yellow "WARNING: Unable to find default import or Sdk attribute in $(${projectFile}.FullName)";
         return;
     }
     
@@ -159,8 +154,7 @@ filter Fixup-ProjectFileImports([string]$globalPropsFile, [string]$globalTargets
     {
         function _CreateImport($path)
         {
-            $doc = $defaultImport.OwnerDocument;
-            $importNode = $doc.CreateElement("Import",  $doc.DocumentElement.NamespaceURI);
+            $importNode = $projectFileXmlDocument.CreateElement("Import", $projectFileXmlDocument.DocumentElement.NamespaceURI);
             $importNode.SetAttribute("Project", $path);
             return $importNode;
         }
@@ -172,7 +166,14 @@ filter Fixup-ProjectFileImports([string]$globalPropsFile, [string]$globalTargets
             {
                 $relativeBefore = Make-RelativeTo $projectFile $before;
                 $importNode = _CreateImport $relativeBefore;
-                $defaultImport.ParentNode.InsertBefore($importNode, $defaultImport) | Out-Null;
+                if ($defaultImport)
+                {
+                    $defaultImport.ParentNode.InsertBefore($importNode, $defaultImport) | Out-Null;
+                }
+                else
+                {
+                    $projectFileXml.Project.AppendChild($importNode) | Out-Null;
+                }
                 Write-Host "   Added $relativeBefore";
                 $changed.Value = $true;
             }
@@ -185,7 +186,14 @@ filter Fixup-ProjectFileImports([string]$globalPropsFile, [string]$globalTargets
             {
                 $relativeAfter = Make-RelativeTo $projectFile $after;
                 $importNode = _CreateImport $relativeAfter;
-                $defaultImport.ParentNode.InsertAfter($importNode, $defaultImport) | Out-Null;
+                if ($defaultImport)
+                {
+                    $defaultImport.ParentNode.InsertAfter($importNode, $defaultImport) | Out-Null;
+                }
+                else
+                {
+                    $projectFileXml.Project.AppendChild($importNode) | Out-Null;
+                }
                 Write-Host "   Added $relativeAfter";
                 $changed.Value = $true;
             }
