@@ -26,8 +26,14 @@ namespace Bluewire.Common.GitWrapper.Parsing
                     string matched;
                     if (TryParseHeader("object ", line.Current, out matched))
                     {
-                        if (details.ResolvedRef == null) details.ResolvedRef = new Ref(matched.Trim());
-                        else errors.Add(new UnexpectedGitOutputFormatDetails { Line = line.Current, Explanations = { "Duplicate 'object' header." } });
+                        if (details.ResolvedRef == null)
+                        {
+                            details.ResolvedRef = new Ref(matched.Trim());
+                        }
+                        else
+                        {
+                            errors.Add(new UnexpectedGitOutputFormatDetails { Line = line.Current, Explanations = { "Duplicate 'object' header." } });
+                        }
                     }
                     else if (TryParseHeader("tag ", line.Current, out matched))
                     {
@@ -36,7 +42,10 @@ namespace Bluewire.Common.GitWrapper.Parsing
                             details.Name = matched.Trim();
                             details.Ref = RefHelper.PutInHierarchy("tags", new Ref(matched.Trim()));
                         }
-                        else errors.Add(new UnexpectedGitOutputFormatDetails { Line = line.Current, Explanations = { "Duplicate 'tag' header." } });
+                        else
+                        {
+                            errors.Add(new UnexpectedGitOutputFormatDetails { Line = line.Current, Explanations = { "Duplicate 'tag' header." } });
+                        }
                     }
                     else if (String.IsNullOrWhiteSpace(line.Current))
                     {

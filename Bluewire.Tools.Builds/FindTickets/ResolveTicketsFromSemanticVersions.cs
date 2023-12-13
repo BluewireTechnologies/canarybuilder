@@ -23,9 +23,13 @@ namespace Bluewire.Tools.Builds.FindTickets
         public async Task<string[]> ResolveTickets(GitSession session, IGitFilesystemContext workingCopyOrRepo)
         {
             if (string.IsNullOrEmpty(startRef?.ToString()))
+            {
                 throw new InvalidOperationException("Starting Ref (commit) must be supplied");
+            }
             if (string.IsNullOrEmpty(endRef?.ToString()))
+            {
                 throw new InvalidOperationException("Ending Ref (commit) must be supplied");
+            }
 
             var includeCommits = await session.ReadLog(workingCopyOrRepo, new LogOptions(), new Difference(startRef, endRef));
             var excludeCommits = await session.ReadLog(workingCopyOrRepo, new LogOptions(), new Difference(endRef, startRef));

@@ -431,8 +431,14 @@ namespace Bluewire.Common.GitWrapper
             var command = CommandHelper.CreateCommand("merge")
                 .AddArguments(args =>
                 {
-                    if (options.FastForward == MergeFastForward.Never) args.Add("--no-ff");
-                    else if (options.FastForward == MergeFastForward.Only) args.Add("--ff-only");
+                    if (options.FastForward == MergeFastForward.Never)
+                    {
+                        args.Add("--no-ff");
+                    }
+                    else if (options.FastForward == MergeFastForward.Only)
+                    {
+                        args.Add("--ff-only");
+                    }
                     args.Add(refs.Select(r => r.ToString()));
                 });
 
@@ -509,8 +515,14 @@ namespace Bluewire.Common.GitWrapper
                 .AddArguments(args =>
                 {
                     if (options.MatchMessage != null) args.Add("--grep", options.MatchMessage.ToString());
-                    if (options.ShowMerges == LogShowMerges.Never) args.Add("--no-merges");
-                    else if (options.ShowMerges == LogShowMerges.Only) args.Add("--merges");
+                    if (options.ShowMerges == LogShowMerges.Never)
+                    {
+                        args.Add("--no-merges");
+                    }
+                    else if (options.ShowMerges == LogShowMerges.Only)
+                    {
+                        args.Add("--merges");
+                    }
 
                     if (options.AncestryPathOnly) args.Add("--ancestry-path");
 
