@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -83,6 +84,25 @@ namespace Bluewire.Common.GitWrapper
 
             return GitHelpers.ExpectOneLine(command, result);
         }
+
+         /// <summary>
+         /// Helper method. Runs a command which is expected to emit a binary stream on STDOUT.
+         /// </summary>
+         public async Task RunStreamOutputCommand(IGitFilesystemContext workingCopyOrRepo, Command command, Stream targetStream)
+         {
+             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
+
+             var result = await command
+                 .RunFrom(workingCopyOrRepo)
+                 .CaptureErrors(out var checker)
+                 .LogInvocation(Logger, out var log)
+                 // Replace the output pipe to prevent logging binaries.
+                 .WithStandardOutputPipe(PipeTarget.ToStream(targetStream))
+                 .ExecuteAsync()
+                 .LogResult(log);
+
+             checker.CheckSuccess(result);
+         }
 
         /// <summary>
         /// Helper method. Runs a command which is expected to produce output which can be parsed asynchronously.

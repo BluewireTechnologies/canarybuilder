@@ -20,6 +20,12 @@ namespace Bluewire.Common.GitWrapper
             return log?.LogOutputs(command) ?? command;
         }
 
+        public static Command LogInvocationErrorsOnly(this Command command, IConsoleInvocationLogger logger, out IConsoleInvocationLogScope log)
+        {
+            log = logger?.Create();
+            return log?.LogOutputs(command) ?? command;
+        }
+
         public static Command LogMinorInvocation(this Command command, IConsoleInvocationLogger logger, out IConsoleInvocationLogScope log)
         {
             log = logger?.CreateMinor();
