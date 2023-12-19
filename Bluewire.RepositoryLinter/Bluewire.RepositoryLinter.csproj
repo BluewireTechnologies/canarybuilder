@@ -1,15 +1,12 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <TargetFrameworks>net48;net6</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
+
   <ItemGroup>
-    <None Remove="*.ncrunchproject" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj" />
-  </ItemGroup>
-  <ItemGroup>
+    <PackageReference Include="Bluewire.Common.Console.NUnit3" Version="10.0.0" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="NUnit">
@@ -18,5 +15,10 @@
     <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
     <PackageReference Include="TeamCity.VSTest.TestAdapter" Version="1.0.39" />
   </ItemGroup>
-  <Import Project="..\StyleCopAnalyzers.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\Bluewire.Common.GitWrapper\Bluewire.Common.GitWrapper.csproj" />
+    <ProjectReference Include="..\Bluewire.Conventions\Bluewire.Conventions.csproj" />
+  </ItemGroup>
+
 </Project>

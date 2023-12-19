@@ -558,5 +558,86 @@ namespace Bluewire.Common.GitWrapper
             });
             return newRefs;
         }
+
+        /// <summary>
+        /// List paths which exist within the specified tree-ish.
+        /// </summary>
+        public async Task<PathItem[]> ListPaths(IGitFilesystemContext workingCopyOrRepo, Ref treeish, ListPathsOptions options = default(ListPathsOptions))
+        {
+            if (treeish == null) throw new ArgumentNullException(nameof(treeish));
+
+            var command = CommandHelper.CreateCommand("ls-tree")
+                .AddArguments(args =>
+                {
+                    switch (options.Mode)
+                    {
+                        case ListPathsOptions.ListPathsMode.OneLevel:
+                            break;
+                        case ListPathsOptions.ListPathsMode.Recursive:
+                            args.Add("-r");
+                            args.Add("-t");
+                            break;
+                        case ListPathsOptions.ListPathsMode.RecursiveFilesOnly:
+                            args.Add("-r");
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                    args.Add("--format=%(objecttype) %(objectname) %(path)");
+                    args.Add(treeish);
+                });
+            return await CommandHelper.RunCommand(workingCopyOrRepo, command, new GitListPathsParser(options));
+        }
+
+        class GitListPathsParser : GitLineOutputParser<PathItem>
+        {
+            private readonly ListPathsOptions options;
+
+            public GitListPathsParser(ListPathsOptions options)
+            {
+                this.options = options;
+            }
+
+            public override bool Parse(string line, out PathItem entry)
+            {
+                entry = default;
+                var parts = line.Split(new [] { ' ' }, 3);
+                if (!new ObjectTypeParser().TryParse(parts.ElementAtOrDefault(0), out var type)) return false;
+
+                var name = parts.ElementAtOrDefault(1);
+                if (string.IsNullOrWhiteSpace(name)) return false;
+
+                var path = parts.ElementAtOrDefault(2);
+                if (string.IsNullOrWhiteSpace(path)) return false;
+
+                if (options.PathFilter != null)
+                {
+                    if (!options.PathFilter(path)) return false;
+                }
+                entry = new PathItem
+                {
+                    ObjectType = type,
+                    ObjectName = new Ref(name),
+                    Path = path,
+                };
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Get the content of the specified blob and write it to a stream.
+        /// </summary>
+        public async Task ReadBlob(IGitFilesystemContext workingCopyOrRepo, Ref objectName, Stream targetStream)
+        {
+            if (objectName == null) throw new ArgumentNullException(nameof(objectName));
+
+            var command = CommandHelper.CreateCommand("cat-file")
+                .AddArguments(args =>
+                {
+                    args.Add("-p");
+                    args.Add(objectName);
+                });
+            await CommandHelper.RunStreamOutputCommand(workingCopyOrRepo, command, targetStream);
+        }
     }
 }

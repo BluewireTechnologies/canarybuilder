@@ -47,6 +47,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bluewire.Stash.IntegrationT
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bluewire.Stash.Service", "Bluewire.Stash.Service\Bluewire.Stash.Service.csproj", "{274596B7-3F4C-45B1-A2A2-38239AB32CE6}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bluewire.RepositoryLinter", "Bluewire.RepositoryLinter\Bluewire.RepositoryLinter.csproj", "{3ABC6014-0390-4A13-BF1D-1A7881C9432A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -141,6 +143,10 @@ Global
 		{274596B7-3F4C-45B1-A2A2-38239AB32CE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{274596B7-3F4C-45B1-A2A2-38239AB32CE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{274596B7-3F4C-45B1-A2A2-38239AB32CE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3ABC6014-0390-4A13-BF1D-1A7881C9432A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3ABC6014-0390-4A13-BF1D-1A7881C9432A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3ABC6014-0390-4A13-BF1D-1A7881C9432A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3ABC6014-0390-4A13-BF1D-1A7881C9432A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
