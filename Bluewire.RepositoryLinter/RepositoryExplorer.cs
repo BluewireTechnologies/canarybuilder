@@ -14,14 +14,15 @@ namespace Bluewire.RepositoryLinter
 {
     public struct BranchRules
     {
-        public static BranchRules All => new BranchRules { CheckTargetFrameworks = true, CheckPreReleasePackages = true, CheckMinimumPackageVersions = true };
+        public static BranchRules All => new BranchRules { CheckTargetFrameworks = true, CheckPreReleasePackages = true, CheckMinimumPackageVersions = true, CheckMaximumPackageVersions = true };
         public static BranchRules None => default;
 
-        public bool HasAnyRules => CheckTargetFrameworks || CheckPreReleasePackages || CheckMinimumPackageVersions;
+        public bool HasAnyRules => CheckTargetFrameworks || CheckPreReleasePackages || CheckMinimumPackageVersions || CheckMaximumPackageVersions;
 
         public bool CheckTargetFrameworks { get; init; }
         public bool CheckPreReleasePackages { get; init; }
         public bool CheckMinimumPackageVersions { get; init; }
+        public bool CheckMaximumPackageVersions { get; init; }
     }
 
     public class RepositoryExplorer
