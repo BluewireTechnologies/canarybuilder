@@ -122,4 +122,12 @@ public class Constants
         ["Bluewire.IntervalTree"] = new Version(4, 0, 0),
     }.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
 
+    public static readonly ImmutableDictionary<string, Version> MaximumPackageVersions = new Dictionary<string, Version>
+    {
+        // Primarily for the Epro repository: build agents do not have the latest C# compiler.
+        ["Microsoft.CodeAnalysis.CSharp"] = new Version(4, 7, 0),
+        ["Microsoft.CodeAnalysis.CSharp.Workspaces"] = new Version(4, 7, 0),
+        ["Microsoft.CodeAnalysis.CSharp.Workspaces.MSBuild"] = new Version(4, 7, 0),
+    }.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+
 }
