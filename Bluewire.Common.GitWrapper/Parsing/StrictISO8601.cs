@@ -7,10 +7,16 @@ namespace RefCleaner.Collectors
     {
         public const string Pattern = "yyyy-MM-ddTHH:mm:sszzzz";
 
+        private static readonly string[] patterns =
+        {
+            Pattern,
+            "yyyy-MM-ddTHH:mm:ss'Z'",
+        };
+
         public static DateTimeOffset? TryParseExact(string str, UnexpectedGitOutputFormatDetails error = null)
         {
             DateTimeOffset datestamp;
-            if (!DateTimeOffset.TryParseExact(str, Pattern, null, System.Globalization.DateTimeStyles.None, out datestamp))
+            if (!DateTimeOffset.TryParseExact(str, patterns, null, System.Globalization.DateTimeStyles.None, out datestamp))
             {
                 error?.Explanations.Add($"Datestamp wasn't recognised as a strict-ISO date: {str}");
                 return null;
