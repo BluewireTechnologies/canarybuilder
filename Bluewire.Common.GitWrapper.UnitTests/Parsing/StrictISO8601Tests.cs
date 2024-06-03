@@ -18,5 +18,13 @@ namespace Bluewire.Common.GitWrapper.UnitTests.Parsing
             var str = "2016-06-01T14:37:32+01:00";
             Assert.That(StrictISO8601.TryParseExact(str), Is.EqualTo(datestamp));
         }
+
+        [Test]
+        public void ParsesValidUTCDatestamp()
+        {
+            var datestamp = new DateTimeOffset(2020, 01, 20, 16, 16, 25, TimeSpan.Zero);
+            var str = "2020-01-20T16:16:25Z";
+            Assert.That(StrictISO8601.TryParseExact(str), Is.EqualTo(datestamp));
+        }
     }
 }
