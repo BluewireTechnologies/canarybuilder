@@ -50,6 +50,7 @@ namespace Bluewire.RepositoryLinter
                 failures.AddRange(new TargetFrameworkVersionsAreBlessedRule(subject).GetFailures(branchCase.Branch, branchCase.Projects));
                 failures.AddRange(new PackagesAreUpToDateRule(subject).GetFailures(branchCase.Branch, branchCase.Projects));
                 failures.AddRange(new PackagesAreSupportedByBuildAgentsRule(subject).GetFailures(branchCase.Branch, branchCase.Projects));
+                failures.AddRange(new SemVerProjectsHaveLocalVersionPrefixRule(subject).GetFailures(branchCase.Branch, branchCase.Projects));
 
                 if (!failures.Any()) continue;
 
@@ -129,6 +130,23 @@ namespace Bluewire.RepositoryLinter
             await foreach (var branchCase in explorer.GetProjectFiles(session, x => x.CheckMaximumPackageVersions))
             {
                 var failures = new PackagesAreSupportedByBuildAgentsRule(subject).GetFailures(branchCase.Branch, branchCase.Projects).ToArray();
+                ReportForSingleRule(branchCase.Branch, failures);
+                failureCount += failures.Length;
+            }
+            Assert.That(failureCount, Is.Zero);
+        }
+
+        [Explicit]
+        [TestCaseSource(typeof(Constants), nameof(Constants.Repositories))]
+        public async Task SemVerProjectsHaveLocalVersionPrefix(SubjectRepository subject)
+        {
+            var workingCopy = GetWorkingCopy(subject);
+            var explorer = new RepositoryExplorer(workingCopy, subject);
+
+            var failureCount = 0;
+            await foreach (var branchCase in explorer.GetProjectFiles(session, x => x.CheckMaximumPackageVersions))
+            {
+                var failures = new SemVerProjectsHaveLocalVersionPrefixRule(subject).GetFailures(branchCase.Branch, branchCase.Projects).ToArray();
                 ReportForSingleRule(branchCase.Branch, failures);
                 failureCount += failures.Length;
             }

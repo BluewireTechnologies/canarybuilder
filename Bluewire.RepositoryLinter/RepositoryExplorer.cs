@@ -14,15 +14,16 @@ namespace Bluewire.RepositoryLinter
 {
     public struct BranchRules
     {
-        public static BranchRules All => new BranchRules { CheckTargetFrameworks = true, CheckPreReleasePackages = true, CheckMinimumPackageVersions = true, CheckMaximumPackageVersions = true };
+        public static BranchRules All => new BranchRules { CheckTargetFrameworks = true, CheckPreReleasePackages = true, CheckMinimumPackageVersions = true, CheckMaximumPackageVersions = true, CheckSemVerProjectsHaveLocalVersionPrefix = true };
         public static BranchRules None => default;
 
-        public bool HasAnyRules => CheckTargetFrameworks || CheckPreReleasePackages || CheckMinimumPackageVersions || CheckMaximumPackageVersions;
+        public bool HasAnyRules => CheckTargetFrameworks || CheckPreReleasePackages || CheckMinimumPackageVersions || CheckMaximumPackageVersions || CheckSemVerProjectsHaveLocalVersionPrefix;
 
         public bool CheckTargetFrameworks { get; init; }
         public bool CheckPreReleasePackages { get; init; }
         public bool CheckMinimumPackageVersions { get; init; }
         public bool CheckMaximumPackageVersions { get; init; }
+        public bool CheckSemVerProjectsHaveLocalVersionPrefix { get; init; }
     }
 
     public class RepositoryExplorer
@@ -82,6 +83,8 @@ namespace Bluewire.RepositoryLinter
                     Path = path,
                     TargetFrameworks = targetFrameworks.ToImmutableArray(),
                     Packages = packageReferences.Select(ReadPackageReference).ToImmutableArray(),
+                    Properties = propertyGroups.Elements().Select(ReadProjectProperty).ToImmutableArray(),
+                    LocalPropertyNames = xml.Element("Project")?.Attribute("TreatAsLocalProperty")?.Value?.Split(";")?.ToImmutableArray() ?? ImmutableArray<string>.Empty,
                 };
             }
             catch (Exception ex)
@@ -110,6 +113,11 @@ namespace Bluewire.RepositoryLinter
             }
             throw new ArgumentException("PackageReference element has no Version element or attribute.");
         }
+
+        private ProjectProperty ReadProjectProperty(XElement element)
+        {
+            return new ProjectProperty(element.Name.LocalName, element.Value, element.Attribute("Condition")?.Value);
+        }
     }
 
     public class ProjectFile
@@ -117,6 +125,8 @@ namespace Bluewire.RepositoryLinter
         public string Path { get; init; } = null!;
         public ImmutableArray<string> TargetFrameworks { get; init; } = ImmutableArray<string>.Empty;
         public ImmutableArray<PackageReference> Packages { get; init; } = ImmutableArray<PackageReference>.Empty;
+        public ImmutableArray<ProjectProperty> Properties { get; init; } = ImmutableArray<ProjectProperty>.Empty;
+        public ImmutableArray<string> LocalPropertyNames { get; init; } = ImmutableArray<string>.Empty;
         public Exception? Exception { get; init; }
     }
 
@@ -130,5 +140,19 @@ namespace Bluewire.RepositoryLinter
 
         public string Name { get; }
         public string Version { get; }
+    }
+
+    public class ProjectProperty
+    {
+        public ProjectProperty(string name, string value, string? condition = null)
+        {
+            Name = name;
+            Value = value;
+            Condition = condition;
+        }
+
+        public string Name { get; }
+        public string Value { get; }
+        public string? Condition { get; }
     }
 }

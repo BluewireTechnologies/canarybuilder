@@ -76,6 +76,7 @@ public class Constants
         "netstandard2.1",
         "net6",
         "net6.0",
+        "net6.0-windows10.0.18362.0",
     }.ToImmutableHashSet();
 
     public static readonly ImmutableDictionary<string, Version> MinimumPackageVersions = new Dictionary<string, Version>
