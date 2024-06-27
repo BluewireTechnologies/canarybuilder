@@ -32,6 +32,7 @@ namespace Bluewire.Common.GitWrapper
         {
             return Cli.Wrap(Git.GetExecutableFilePath())
                 .WithValidation(CommandResultValidation.None)
+                .WithStandardOutputPipe(PipeTarget.ToDelegate(x => { }))
                 .AddArguments(gitCommand)
                 .AddArguments(arguments);
         }
