@@ -46,6 +46,7 @@ namespace Bluewire.RepositoryLinter
             await foreach (var branchCase in explorer.GetProjectFiles(session, x => x.HasAnyRules))
             {
                 var failures = new List<Failure>();
+                failures.AddRange(new ProjectCouldBeExploredRule(subject).GetFailures(branchCase.Branch, branchCase.Projects));
                 failures.AddRange(new NoPreReleasePackagesRule(subject).GetFailures(branchCase.Branch, branchCase.Projects));
                 failures.AddRange(new TargetFrameworkVersionsAreBlessedRule(subject).GetFailures(branchCase.Branch, branchCase.Projects));
                 failures.AddRange(new PackagesAreUpToDateRule(subject).GetFailures(branchCase.Branch, branchCase.Projects));
@@ -64,6 +65,23 @@ namespace Bluewire.RepositoryLinter
                     }
                 }
                 failureCount += failures.Count;
+            }
+            Assert.That(failureCount, Is.Zero);
+        }
+
+        [Explicit]
+        [TestCaseSource(typeof(Constants), nameof(Constants.Repositories))]
+        public async Task ProjectCouldBeExplored(SubjectRepository subject)
+        {
+            var workingCopy = GetWorkingCopy(subject);
+            var explorer = new RepositoryExplorer(workingCopy, subject);
+
+            var failureCount = 0;
+            await foreach (var branchCase in explorer.GetProjectFiles(session, x => x.ReportLoadFailures))
+            {
+                var failures = new ProjectCouldBeExploredRule(subject).GetFailures(branchCase.Branch, branchCase.Projects).ToArray();
+                ReportForSingleRule(branchCase.Branch, failures);
+                failureCount += failures.Length;
             }
             Assert.That(failureCount, Is.Zero);
         }

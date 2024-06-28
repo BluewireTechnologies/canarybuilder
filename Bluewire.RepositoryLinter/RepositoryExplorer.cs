@@ -14,11 +14,21 @@ namespace Bluewire.RepositoryLinter
 {
     public struct BranchRules
     {
-        public static BranchRules All => new BranchRules { CheckTargetFrameworks = true, CheckPreReleasePackages = true, CheckMinimumPackageVersions = true, CheckMaximumPackageVersions = true, CheckSemVerProjectsHaveLocalVersionPrefix = true };
+        public static BranchRules All =>
+            new BranchRules
+            {
+                ReportLoadFailures = true,
+                CheckTargetFrameworks = true,
+                CheckPreReleasePackages = true,
+                CheckMinimumPackageVersions = true,
+                CheckMaximumPackageVersions = true,
+                CheckSemVerProjectsHaveLocalVersionPrefix = true
+            };
         public static BranchRules None => default;
 
-        public bool HasAnyRules => CheckTargetFrameworks || CheckPreReleasePackages || CheckMinimumPackageVersions || CheckMaximumPackageVersions || CheckSemVerProjectsHaveLocalVersionPrefix;
+        public bool HasAnyRules => ReportLoadFailures || CheckTargetFrameworks || CheckPreReleasePackages || CheckMinimumPackageVersions || CheckMaximumPackageVersions || CheckSemVerProjectsHaveLocalVersionPrefix;
 
+        public bool ReportLoadFailures { get; init; }
         public bool CheckTargetFrameworks { get; init; }
         public bool CheckPreReleasePackages { get; init; }
         public bool CheckMinimumPackageVersions { get; init; }
@@ -82,7 +92,7 @@ namespace Bluewire.RepositoryLinter
                 {
                     Path = path,
                     TargetFrameworks = targetFrameworks.ToImmutableArray(),
-                    Packages = packageReferences.Select(ReadPackageReference).ToImmutableArray(),
+                    Packages = ReadPackageReferences(packageReferences).ToImmutableArray(),
                     Properties = propertyGroups.Elements().Select(ReadProjectProperty).ToImmutableArray(),
                     LocalPropertyNames = xml.Element("Project")?.Attribute("TreatAsLocalProperty")?.Value?.Split(";")?.ToImmutableArray() ?? ImmutableArray<string>.Empty,
                 };
@@ -97,10 +107,39 @@ namespace Bluewire.RepositoryLinter
             }
         }
 
-        private PackageReference ReadPackageReference(XElement element)
+        private IEnumerable<PackageReference> ReadPackageReferences(IEnumerable<XElement> packageReferences)
+        {
+            foreach (var element in packageReferences)
+            {
+                var name = element.Attribute("Include")?.Value;
+                if (name == null)
+                {
+                    if (element.Attribute("Update") != null) continue;
+                    throw new ArgumentException("PackageReference element has no Include or Update attribute.");
+                }
+                var versionElement = element.Element("Version");
+                if (versionElement?.Value != null)
+                {
+                    yield return new PackageReference(name, versionElement.Value);
+                    continue;
+                }
+                var versionAttribute = element.Attribute("Version");
+                if (versionAttribute?.Value != null)
+                {
+                    yield return new PackageReference(name, versionAttribute.Value);
+                    continue;
+                }
+                throw new ArgumentException("PackageReference element has no Version element or attribute.");
+            }
+        }
+
+        private PackageReference? ReadPackageReference(XElement element)
         {
             var name = element.Attribute("Include")?.Value;
-            if (name == null) throw new ArgumentException("PackageReference element has no Include attribute.");
+            if (name == null)
+            {
+                throw new ArgumentException("PackageReference element has no Include or Update attribute.");
+            }
             var versionElement = element.Element("Version");
             if (versionElement?.Value != null)
             {
