@@ -22,11 +22,12 @@ namespace Bluewire.RepositoryLinter
                 CheckPreReleasePackages = true,
                 CheckMinimumPackageVersions = true,
                 CheckMaximumPackageVersions = true,
-                CheckSemVerProjectsHaveLocalVersionPrefix = true
+                CheckSemVerProjectsHaveLocalVersionPrefix = true,
+                CheckOctopusVariablesMatchDocumentation = true,
             };
         public static BranchRules None => default;
 
-        public bool HasAnyRules => ReportLoadFailures || CheckTargetFrameworks || CheckPreReleasePackages || CheckMinimumPackageVersions || CheckMaximumPackageVersions || CheckSemVerProjectsHaveLocalVersionPrefix;
+        public bool HasAnyRules => ReportLoadFailures || CheckTargetFrameworks || CheckPreReleasePackages || CheckMinimumPackageVersions || CheckMaximumPackageVersions || CheckSemVerProjectsHaveLocalVersionPrefix || CheckOctopusVariablesMatchDocumentation;
 
         public bool ReportLoadFailures { get; init; }
         public bool CheckTargetFrameworks { get; init; }
@@ -34,6 +35,7 @@ namespace Bluewire.RepositoryLinter
         public bool CheckMinimumPackageVersions { get; init; }
         public bool CheckMaximumPackageVersions { get; init; }
         public bool CheckSemVerProjectsHaveLocalVersionPrefix { get; init; }
+        public bool CheckOctopusVariablesMatchDocumentation { get; init; }
     }
 
     public class RepositoryExplorer
@@ -55,29 +57,60 @@ namespace Bluewire.RepositoryLinter
 
             foreach (var branch in filteredBranches)
             {
-                var projectFiles = await session.ListPaths(workingCopyOrRepo, branch,
+                var files = await session.ListPaths(workingCopyOrRepo, branch,
                     new ListPathsOptions
                     {
                         Mode = ListPathsOptions.ListPathsMode.RecursiveFilesOnly,
-                        PathFilter = x => StringComparer.OrdinalIgnoreCase.Equals(Path.GetExtension(x), ".csproj"),
+                        PathFilter = x => IsProjectFile(x) || IsReadMeFile(x) || IsConfigurationFile(x) || IsDeploymentScript(x),
                     });
 
-                var projectDetails = await Task.WhenAll(projectFiles.Select(x => ReadProjectFile(session, x)).ToArray());
+                var projectFiles = files.Where(x => IsProjectFile(x.Path));
+                var readmeFiles = files.Where(x => IsReadMeFile(x.Path));
+                var configurationFiles = files.Where(x => IsConfigurationFile(x.Path));
+                var deploymentScripts = files.Where(x => IsDeploymentScript(x.Path));
+
+                var projectDetails = await Task.WhenAll(projectFiles
+                    .Select(x => ReadProjectFile(
+                        session,
+                        x,
+                        readmeFiles.Where(y => IsInProject(x, y)),
+                        configurationFiles.Where(y => IsInProject(x, y)),
+                        deploymentScripts.Where(y => IsInProject(x, y))))
+                    .ToArray());
                 yield return new (branch, projectDetails.ToImmutableArray());
+            }
+
+            bool IsProjectFile(string path) => StringComparer.OrdinalIgnoreCase.Equals(Path.GetExtension(path), ".csproj");
+            bool IsReadMeFile(string path) => StringComparer.OrdinalIgnoreCase.Equals(Path.GetFileName(path), "README.md");
+            bool IsConfigurationFile(string path)
+            {
+                if (StringComparer.OrdinalIgnoreCase.Equals(Path.GetExtension(path), ".config")) return true;
+                if (StringComparer.OrdinalIgnoreCase.Equals(Path.GetExtension(path), ".xml"))
+                {
+                    if (path.Contains("/Config/", StringComparison.OrdinalIgnoreCase)) return true;
+                }
+                return false;
+            }
+            bool IsDeploymentScript(string path) => StringComparer.OrdinalIgnoreCase.Equals(Path.GetExtension(path), ".ps1");
+
+            bool IsInProject(PathItem project, PathItem item)
+            {
+                var projectDirectory = Path.GetDirectoryName(project.Path) + '/';
+                return item.Path.StartsWith(projectDirectory, StringComparison.OrdinalIgnoreCase);
             }
         }
 
-        private async Task<ProjectFile> ReadProjectFile(GitSession session, PathItem projectFile)
+        private async Task<ProjectFile> ReadProjectFile(GitSession session, PathItem projectFile, IEnumerable<PathItem> readmeFiles, IEnumerable<PathItem> configurationFiles, IEnumerable<PathItem> deploymentScripts)
         {
             using(var ms = new MemoryStream())
             {
                 await session.ReadBlob(workingCopyOrRepo, projectFile.ObjectName, ms);
                 ms.Position = 0;
-                return await ReadProjectFile(projectFile.Path, ms);
+                return await ReadProjectFile(projectFile.Path, ms, readmeFiles, configurationFiles, deploymentScripts);
             }
         }
 
-        private async Task<ProjectFile> ReadProjectFile(string path, Stream stream)
+        private async Task<ProjectFile> ReadProjectFile(string path, Stream stream, IEnumerable<PathItem> readmeFiles, IEnumerable<PathItem> configurationFiles, IEnumerable<PathItem> deploymentScripts)
         {
             try
             {
@@ -88,6 +121,9 @@ namespace Bluewire.RepositoryLinter
                 targetFrameworks.UnionWith(propertyGroups.Elements("TargetFramework").Select(x => x.Value));
 
                 var packageReferences = xml.Elements("Project").Elements("ItemGroup").Elements("PackageReference");
+
+                // Topmost readme file only:
+                var readme = readmeFiles.Select(x => x.Path).Where(x => Path.GetDirectoryName(x) == Path.GetDirectoryName(path)).SingleOrDefault();
                 return new ProjectFile
                 {
                     Path = path,
@@ -95,6 +131,9 @@ namespace Bluewire.RepositoryLinter
                     Packages = ReadPackageReferences(packageReferences).ToImmutableArray(),
                     Properties = propertyGroups.Elements().Select(ReadProjectProperty).ToImmutableArray(),
                     LocalPropertyNames = xml.Element("Project")?.Attribute("TreatAsLocalProperty")?.Value?.Split(";")?.ToImmutableArray() ?? ImmutableArray<string>.Empty,
+                    ReadMePath = readme,
+                    ConfigurationPaths = configurationFiles.Select(x => x.Path).ToImmutableArray(),
+                    DeploymentScriptPaths = deploymentScripts.Select(x => x.Path).ToImmutableArray(),
                 };
             }
             catch (Exception ex)
@@ -146,6 +185,9 @@ namespace Bluewire.RepositoryLinter
         public ImmutableArray<PackageReference> Packages { get; init; } = ImmutableArray<PackageReference>.Empty;
         public ImmutableArray<ProjectProperty> Properties { get; init; } = ImmutableArray<ProjectProperty>.Empty;
         public ImmutableArray<string> LocalPropertyNames { get; init; } = ImmutableArray<string>.Empty;
+        public string? ReadMePath { get; init; }
+        public ImmutableArray<string> ConfigurationPaths { get; init; } = ImmutableArray<string>.Empty;
+        public ImmutableArray<string> DeploymentScriptPaths { get; init; } = ImmutableArray<string>.Empty;
         public Exception? Exception { get; init; }
     }
 
