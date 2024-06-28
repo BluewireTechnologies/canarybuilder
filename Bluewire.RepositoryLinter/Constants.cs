@@ -51,6 +51,7 @@ public class Constants
         new SubjectRepository("speech-tools"),
         new SubjectRepository("third-party-integrations"),
 
+        new SubjectRepository("Bluewire.Build"),
         new SubjectRepository("Bluewire.Common"),
         new SubjectRepository("Bluewire.Common.Console"),
         new SubjectRepository("Bluewire.Dictation"),

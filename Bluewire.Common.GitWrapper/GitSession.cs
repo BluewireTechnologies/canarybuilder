@@ -625,6 +625,38 @@ namespace Bluewire.Common.GitWrapper
         }
 
         /// <summary>
+        /// Get the content of the specified path at the specified commit and write it to a stream.
+        /// </summary>
+        public async Task ReadFile(IGitFilesystemContext workingCopyOrRepo, Ref commit, string filePath, Stream targetStream)
+        {
+            if (commit == null) throw new ArgumentNullException(nameof(commit));
+            if (string.IsNullOrEmpty(filePath)) throw new ArgumentNullException(nameof(filePath));
+
+            var command = CommandHelper.CreateCommand("show")
+                .AddArguments(args =>
+                {
+                    args.Add($"{commit}:{filePath}");
+                });
+            await CommandHelper.RunStreamOutputCommand(workingCopyOrRepo, command, targetStream);
+        }
+
+        /// <summary>
+        /// Check whether the specified path exists in the specified commit.
+        /// </summary>
+        public async Task<bool> FileExists(IGitFilesystemContext workingCopyOrRepo, Ref commit, string filePath)
+        {
+            if (commit == null) throw new ArgumentNullException(nameof(commit));
+            if (string.IsNullOrEmpty(filePath)) throw new ArgumentNullException(nameof(filePath));
+
+            var command = CommandHelper.CreateCommand("show")
+                .AddArguments(args =>
+                {
+                    args.Add($"{commit}:{filePath}");
+                });
+            return await CommandHelper.RunTestCommand(workingCopyOrRepo, command);
+        }
+
+        /// <summary>
         /// Get the content of the specified blob and write it to a stream.
         /// </summary>
         public async Task ReadBlob(IGitFilesystemContext workingCopyOrRepo, Ref objectName, Stream targetStream)

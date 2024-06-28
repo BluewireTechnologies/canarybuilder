@@ -16,7 +16,7 @@ public class SemVerProjectsHaveLocalVersionPrefixRule
 
     public IEnumerable<Failure> GetFailures(Ref branch, ImmutableArray<ProjectFile> projects)
     {
-        if (!subject.GetBranchRules(branch).CheckTargetFrameworks) yield break;
+        if (!subject.GetBranchRules(branch).CheckSemVerProjectsHaveLocalVersionPrefix) yield break;
 
         foreach (var project in projects)
         {
