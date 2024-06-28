@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Bluewire.Common.GitWrapper.Model;
 
@@ -39,7 +40,7 @@ public class PackagesAreUpToDateRule
         }
     }
 
-    private static bool TryParsePackageVersion(PackageReference packageReference, out Version version)
+    private static bool TryParsePackageVersion(PackageReference packageReference, [MaybeNullWhen(false)] out Version version)
     {
         var tagIndex = packageReference.Version.IndexOf('-');
         var versionNumberString = tagIndex < 0 ? packageReference.Version : packageReference.Version.Substring(0, tagIndex);
