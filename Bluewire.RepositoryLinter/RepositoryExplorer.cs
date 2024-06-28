@@ -133,26 +133,6 @@ namespace Bluewire.RepositoryLinter
             }
         }
 
-        private PackageReference? ReadPackageReference(XElement element)
-        {
-            var name = element.Attribute("Include")?.Value;
-            if (name == null)
-            {
-                throw new ArgumentException("PackageReference element has no Include or Update attribute.");
-            }
-            var versionElement = element.Element("Version");
-            if (versionElement?.Value != null)
-            {
-                return new PackageReference(name, versionElement.Value);
-            }
-            var versionAttribute = element.Attribute("Version");
-            if (versionAttribute?.Value != null)
-            {
-                return new PackageReference(name, versionAttribute.Value);
-            }
-            throw new ArgumentException("PackageReference element has no Version element or attribute.");
-        }
-
         private ProjectProperty ReadProjectProperty(XElement element)
         {
             return new ProjectProperty(element.Name.LocalName, element.Value, element.Attribute("Condition")?.Value);
