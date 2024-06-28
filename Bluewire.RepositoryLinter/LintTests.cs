@@ -162,7 +162,7 @@ namespace Bluewire.RepositoryLinter
             var explorer = new RepositoryExplorer(workingCopy, subject);
 
             var failureCount = 0;
-            await foreach (var branchCase in explorer.GetProjectFiles(session, x => x.CheckMaximumPackageVersions))
+            await foreach (var branchCase in explorer.GetProjectFiles(session, x => x.CheckSemVerProjectsHaveLocalVersionPrefix))
             {
                 var failures = new SemVerProjectsHaveLocalVersionPrefixRule(subject).GetFailures(branchCase.Branch, branchCase.Projects).ToArray();
                 ReportForSingleRule(branchCase.Branch, failures);
