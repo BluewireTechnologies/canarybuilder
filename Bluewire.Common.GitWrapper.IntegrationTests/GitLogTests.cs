@@ -50,6 +50,26 @@ with whitespace lines too.
         }
 
         [Test]
+        public async Task CanParseLogMessagesContainingCarriageReturns()
+        {
+            var message = $@"Test commit
+
+Multiple line{'\x0d'} commit message
+";
+            await session.Commit(workingCopy, message, CommitOptions.AllowEmptyCommit);
+            var commitHash = await session.ResolveRef(workingCopy, Ref.Head);
+
+            var logEntries = await session.ReadLog(workingCopy, new LogOptions(), Ref.Head);
+
+            var logEntry = logEntries.Single();
+
+            Assert.That(logEntry.Ref, Is.EqualTo(commitHash));
+            Assert.That(logEntry.Author, Is.Not.Null);
+            Assert.That(logEntry.Date, Is.Not.Null);
+            Assert.That(logEntry.Message, Is.EqualTo(message));
+        }
+
+        [Test]
         public async Task LogEntriesAreReturnedInInverseCommitOrder()
         {
             await session.Commit(workingCopy, "first commit", CommitOptions.AllowEmptyCommit);
