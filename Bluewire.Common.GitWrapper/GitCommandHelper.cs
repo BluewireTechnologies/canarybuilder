@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Bluewire.Common.GitWrapper.Model;
@@ -107,52 +108,48 @@ namespace Bluewire.Common.GitWrapper
 
         /// <summary>
         /// Helper method. Runs a command which is expected to produce output which can be parsed asynchronously.
+        /// The output is expected to be in Unix format, ie. uses LF only as the line-break character.
         /// </summary>
         public async Task<T> RunCommand<T>(IGitFilesystemContext workingCopyOrRepo, Command command, IGitAsyncOutputParser<T> parser, CancellationToken token = default(CancellationToken))
         {
-            var asyncStdout = PrepareAsyncEnumerableCommand(workingCopyOrRepo, command, token);
-            await using (var stdoutEnumerator = SelectStandardOutput(asyncStdout).GetAsyncEnumerator(token))
+            T result = default;
+            var stdoutPipe = PipeTarget.Create(async (s, t) =>
+                result = await parser.Parse(new GitAsyncUnixOutputParserAdapter(Encoding.UTF8)
+                    .Parse(s, t), t)
+                    .ConfigureAwait(false));
+
+            await PrepareTextOutputCommand(workingCopyOrRepo, command, stdoutPipe, token);
+            if (parser.Errors.Any())
             {
-                var result = await parser.Parse(stdoutEnumerator, token);
-                if (parser.Errors.Any())
-                {
-                    throw new UnexpectedGitOutputFormatException(command, parser.Errors.ToArray());
-                }
-                return result;
+                throw new UnexpectedGitOutputFormatException(command, parser.Errors.ToArray());
             }
+            return result;
         }
 
-        internal static async IAsyncEnumerable<string> SelectStandardOutput(IAsyncEnumerable<CommandEvent> enumerable)
-        {
-            await foreach (var item in enumerable)
-            {
-                if (item is StandardOutputCommandEvent typed) yield return typed.Text;
-            }
-        }
-
-        private IAsyncEnumerable<CommandEvent> PrepareAsyncEnumerableCommand(IGitFilesystemContext workingCopyOrRepo, Command command, CancellationToken token = default(CancellationToken))
+        private async Task PrepareTextOutputCommand(IGitFilesystemContext workingCopyOrRepo, Command command, PipeTarget target, CancellationToken token = default(CancellationToken))
         {
             if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
-
-            return command
+            var result = await command
                 .RunFrom(workingCopyOrRepo)
                 .CaptureErrors(out var checker)
+                .WithStandardOutputPipe(target)
                 .LogInvocation(Logger, out var log)
-                .ListenAsync(token)
-                .LogResult(log)
-                .OnExit(r => checker.CheckSuccess(r));
+                .ExecuteAsync(token)
+                .LogResult(log);
+            checker.CheckSuccess(result);
         }
 
         /// <summary>
         /// Helper method. Runs a command which is expected to produce output which can be parsed and collected asynchronously.
+        /// The output is expected to be in Unix format, ie. uses LF only as the line-break character.
         /// </summary>
         public async Task RunCommand(IGitFilesystemContext workingCopyOrRepo, Command command, Action<string> collectLine, CancellationToken token = default(CancellationToken))
         {
-            var asyncStdout = PrepareAsyncEnumerableCommand(workingCopyOrRepo, command, token);
-            await foreach (var line in SelectStandardOutput(asyncStdout).WithCancellation(token))
-            {
-                collectLine(line);
-            }
+            var stdoutPipe = PipeTarget.Create(async (s, t) =>
+                await new GitAsyncUnixOutputParserAdapter(Encoding.UTF8)
+                    .CollectLines(s, collectLine, t)
+                    .ConfigureAwait(false));
+            await PrepareTextOutputCommand(workingCopyOrRepo, command, stdoutPipe, token);
         }
 
         /// <summary>

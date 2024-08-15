@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="VersionPrefix">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <VersionPrefix>5.0.2</VersionPrefix>
+    <VersionPrefix>5.1.2</VersionPrefix>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
