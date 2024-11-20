@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bluewire.Build.DeploymentReadmeParser" Version="1.1.0" />
+    <PackageReference Include="Bluewire.Build.DeploymentReadmeParser" Version="2.0.0" />
     <PackageReference Include="Bluewire.Common.Console.NUnit3" Version="10.0.0" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />

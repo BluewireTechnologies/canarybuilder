@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using Bluewire.Common.GitWrapper.Model;
 using Bluewire.Conventions;
 
@@ -78,6 +79,7 @@ public class Constants
         "net6",
         "net6.0",
         "net6.0-windows10.0.18362.0",
+        "net8",
     }.ToImmutableHashSet();
 
     public static readonly ImmutableDictionary<string, Version> MinimumPackageVersions = new Dictionary<string, Version>
@@ -132,4 +134,13 @@ public class Constants
         ["Microsoft.CodeAnalysis.CSharp.Workspaces.MSBuild"] = new Version(4, 7, 0),
     }.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
 
+    public static ImmutableDictionary<string, string> GetWellKnownDeploymentScriptVariables(ProjectFile project)
+    {
+        var builder = ImmutableDictionary.CreateBuilder<string, string>();
+
+        // Convention: $serviceName is assumed to always be given the project/package/service's name (these must all be the same).
+        builder.Add("serviceName", Path.GetFileNameWithoutExtension(project.Path));
+
+        return builder.ToImmutableDictionary();
+    }
 }
