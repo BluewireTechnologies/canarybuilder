@@ -43,7 +43,8 @@ public partial class OctopusVariablesMatchDocumentationRule
 
             var validator = new Validator(subject, workingCopyOrRepo, session, branch, project);
             validator.VisitConfiguration();
-            validator.VisitDeploymentScripts();
+            var tokenEvaluator = new StringExpandableTokenEvaluator(Constants.GetWellKnownDeploymentScriptVariables(project));
+            validator.VisitDeploymentScripts(tokenEvaluator);
             if (validator.VisitReadMe())
             {
                 validator.CorrelateVariables();
@@ -185,15 +186,15 @@ public partial class OctopusVariablesMatchDocumentationRule
         /// <remarks>
         /// These are only considered to be definitely variables if they also appear in documentation or configuration.
         /// </remarks>
-        public void VisitDeploymentScripts()
+        public void VisitDeploymentScripts(StringExpandableTokenEvaluator tokenEvaluator)
         {
             foreach (var path in project.DeploymentScriptPaths)
             {
-                VisitDeploymentScriptPath(path);
+                VisitDeploymentScriptPath(path, tokenEvaluator);
             }
         }
 
-        private void VisitDeploymentScriptPath(string path)
+        private void VisitDeploymentScriptPath(string path, StringExpandableTokenEvaluator tokenEvaluator)
         {
             try
             {
@@ -209,14 +210,35 @@ public partial class OctopusVariablesMatchDocumentationRule
                         }
                         return;
                     }
-                    MaybeDeploymentVariables.UnionWith(tokens.OfType<VariableToken>().Select(x => x.Name));
-                    MaybeDeploymentVariables.UnionWith(tokens.OfType<StringLiteralToken>().Select(x => x.Value));
-                    MaybeDeploymentVariables.UnionWith(tokens.OfType<StringExpandableToken>().Select(x => x.Value));
+                    MaybeDeploymentVariables.UnionWith(RecursivelyGetTokens<VariableToken>(tokens).Select(x => x.Name));
+                    MaybeDeploymentVariables.UnionWith(RecursivelyGetTokens<StringLiteralToken>(tokens).Select(x => x.Value));
+                    MaybeDeploymentVariables.UnionWith(ExpandTokens(tokenEvaluator, RecursivelyGetTokens<StringExpandableToken>(tokens)));
                 }
             }
             catch (Exception ex)
             {
                 RecordFailure($"Error while parsing PowerShell file '{path}': {ex.Message}");
+            }
+        }
+
+        private static IEnumerable<T> RecursivelyGetTokens<T>(IEnumerable<Token> tokens)
+        {
+            foreach (var token in tokens)
+            {
+                if (token is T ofType) yield return ofType;
+                if (token is StringExpandableToken stringExpandableToken)
+                {
+                    if (stringExpandableToken.NestedTokens == null) continue;
+                    foreach (var nested in RecursivelyGetTokens<T>(stringExpandableToken.NestedTokens)) yield return nested;
+                }
+            }
+        }
+
+        private static IEnumerable<string> ExpandTokens(StringExpandableTokenEvaluator tokenEvaluator, IEnumerable<StringExpandableToken> tokens)
+        {
+            foreach (var token in tokens)
+            {
+                if (tokenEvaluator.TryEvaluate(token, out var text)) yield return text;
             }
         }
 
