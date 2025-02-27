@@ -37,7 +37,7 @@ public class Constants
                 }
 
                 if (!Version.TryParse(branch.Name, out var version)) return BranchRules.None;
-                if (version >= new Version(24, 01)) return new BranchRules { CheckPreReleasePackages = true, CheckTargetFrameworks = true };
+                if (version >= new Version(25, 01)) return new BranchRules { CheckPreReleasePackages = true, CheckTargetFrameworks = true };
                 if (version >= new Version(23, 01)) return new BranchRules { CheckPreReleasePackages = true };
                 return BranchRules.None;
             },
@@ -52,6 +52,7 @@ public class Constants
         new SubjectRepository("speech-tools"),
         new SubjectRepository("third-party-integrations"),
 
+        new SubjectRepository("Bluewire.AI"),
         new SubjectRepository("Bluewire.Build"),
         new SubjectRepository("Bluewire.Common"),
         new SubjectRepository("Bluewire.Common.Console"),
@@ -79,7 +80,12 @@ public class Constants
         "net6",
         "net6.0",
         "net6.0-windows10.0.18362.0",
+        "net472",   // Used by epro-dictation-app. Remove this ASAP.
         "net8",
+        "net8.0",
+        "net8-windows",
+        "net8.0-ios",
+        "net8.0-android",
     }.ToImmutableHashSet();
 
     public static readonly ImmutableDictionary<string, Version> MinimumPackageVersions = new Dictionary<string, Version>
