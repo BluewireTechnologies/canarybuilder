@@ -158,7 +158,7 @@ namespace Bluewire.Tools.GitRepository
                 var type = new BranchSemantics().GetBranchType(parsed);
 
                 // Always retain master if present.
-                if (BranchType.Master.Equals(type))
+                if (parsed.IsMaster())
                 {
                     Debug.Assert(masterBranch == null);
                     masterBranch = parsed;

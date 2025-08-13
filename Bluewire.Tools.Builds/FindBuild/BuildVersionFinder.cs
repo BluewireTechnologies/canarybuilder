@@ -66,7 +66,7 @@ namespace Bluewire.Tools.Builds.FindBuild
             public int Score(StructuredBranch branch)
             {
                 var type = new BranchSemantics().GetBranchType(branch);
-                if (BranchType.Master.Equals(type)) return 5;
+                if (branch.IsMaster()) return 5;
                 if (BranchType.Release.Equals(type)) return 3;
                 if (BranchType.ReleaseCandidate.Equals(type)) return 1;
                 return 0;
