@@ -7,8 +7,9 @@ namespace Bluewire.Conventions
     /// <remarks>
     /// Branch names need to follow a certain format in order to be machine-parseable.
     ///
-    /// [namespace]/[name]-[ticket]-[numeric]-[release]
+    /// [remote]/[namespace]/[name]-[ticket]-[numeric]-[release]
     ///
+    /// [remote] is an (optional) Git remote name.
     /// [namespace] may have multiple levels.
     /// [name] may consist of any number of hyphen-separated terms, though more than four is discouraged.
     /// [ticket] is of the form '{type}-{number}', eg. E-23456.
@@ -17,6 +18,9 @@ namespace Bluewire.Conventions
     ///   * a yyyyMMdd datestamp, or.
     ///   * a yyyyMMdd-HHmm datestamp.
     /// [release] is optional, but if specified must be a dot-separated version number (usually xx.yy).
+    ///
+    /// Note that [remote] cannot be determined without extra information about the Git repository.
+    /// Unless this information has been provided, it will be included as part of [namespace].
     /// </remarks>
     public struct StructuredBranch
     {
@@ -26,6 +30,7 @@ namespace Bluewire.Conventions
         private string ticketIdentifier;
         private string numericSuffix;
         private string targetRelease;
+        private string remoteName;
 
         public string Namespace
         {
@@ -57,6 +62,12 @@ namespace Bluewire.Conventions
             set { targetRelease = SquashEmptyToNull(value); }
         }
 
+        public string RemoteName
+        {
+            get { return remoteName; }
+            set { remoteName = SquashEmptyToNull(value); }
+        }
+
         public override string ToString()
         {
             var mainNameParts = new[] {
@@ -69,8 +80,13 @@ namespace Bluewire.Conventions
             var mainName = String.Join("-", mainNameParts);
 
             if (mainName.Length == 0) return "";
-            if (String.IsNullOrWhiteSpace(Namespace)) return mainName;
-            return $"{Namespace}/{mainName}";
+            var pathNameParts = new []
+            {
+                RemoteName,
+                Namespace,
+                mainName,
+            }.Where(p => !String.IsNullOrWhiteSpace(p));
+            return String.Join("/", pathNameParts);
         }
 
         public static void ValidateBranchName(string raw)
@@ -137,7 +153,36 @@ namespace Bluewire.Conventions
             return true;
         }
 
+        public bool TryAssignRemoteName(string candidateRemoteName, out StructuredBranch withRemote)
+        {
+            withRemote = this;
+            if (Namespace == candidateRemoteName)
+            {
+                withRemote.Namespace = null;
+                withRemote.RemoteName = candidateRemoteName;
+                return true;
+            }
+            var prefixLength = candidateRemoteName.Length + 1;
+            if (Namespace.Length <= prefixLength) return false;
+            if (Namespace[candidateRemoteName.Length] == '/' && Namespace.StartsWith(candidateRemoteName, StringComparison.Ordinal))
+            {
+                var localNamespace = Namespace.Substring(prefixLength);
+                withRemote.Namespace = localNamespace;
+                withRemote.RemoteName = candidateRemoteName;
+                return true;
+            }
+            return false;
+        }
 
+        public bool TryAssignRemoteName(string[] remoteNames, out StructuredBranch withRemote)
+        {
+            foreach (var candidate in remoteNames)
+            {
+                if (TryAssignRemoteName(candidate, out withRemote)) return true;
+            }
+            withRemote = this;
+            return false;
+        }
 
         private static string SquashEmptyToNull(string str)
         {

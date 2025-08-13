@@ -176,6 +176,29 @@ namespace Bluewire.Common.GitWrapper
             return workingCopy;
         }
 
+        public async Task<Remote[]> ListRemotes(IGitFilesystemContext workingCopyOrRepo)
+        {
+            if (workingCopyOrRepo == null) throw new ArgumentNullException(nameof(workingCopyOrRepo));
+
+            var command = CommandHelper.CreateCommand("remote");
+
+            var parser = new GitListRemotesParser();
+            return await CommandHelper.RunCommand(workingCopyOrRepo, command, parser);
+        }
+
+        class GitListRemotesParser : GitLineOutputParser<Remote>
+        {
+            public override bool Parse(string line, out Remote entry)
+            {
+                entry = null;
+                if (string.IsNullOrWhiteSpace(line)) return false;
+
+                var name = line.Trim();
+                entry = new Remote(name);
+                return true;
+            }
+        }
+
         /// <summary>
         /// Clone a repository to the specified directory.
         /// </summary>
