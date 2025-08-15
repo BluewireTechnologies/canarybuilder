@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -44,7 +45,8 @@ namespace Bluewire.Tools.Builds.FindBuild
             foreach (var hash in basemostHashes)
             {
                 var targetBranches = await resolver.IdentifyTargetBranchesOfCommit(hash);
-                buildVersions.AddRange(await finder.GetBuildVersionsFromCommit(hash, targetBranches));
+                var versions = await finder.GetBuildVersionsFromCommit(hash, targetBranches);
+                buildVersions.AddRange(versions);
             }
             return buildVersions.Distinct().ToArray();
         }

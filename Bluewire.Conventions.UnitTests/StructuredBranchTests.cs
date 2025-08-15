@@ -49,6 +49,7 @@ namespace Bluewire.Conventions.UnitTests
         public void CanParse([ValueSource(nameof(Cases))] [ValueSource(nameof(ExtraCases))] Case testCase)
         {
             var parsed = StructuredBranch.Parse(testCase.Raw);
+            Assert.That(parsed.RemoteName, Is.Null);
             Assert.That(parsed.Namespace, Is.EqualTo(testCase.Parsed.Namespace));
             Assert.That(parsed.Name, Is.EqualTo(testCase.Parsed.Name));
             Assert.That(parsed.TicketIdentifier, Is.EqualTo(testCase.Parsed.TicketIdentifier));
@@ -60,6 +61,50 @@ namespace Bluewire.Conventions.UnitTests
         public void CanFormat([ValueSource(nameof(Cases))] Case testCase)
         {
             Assert.That(testCase.Parsed.ToString(), Is.EqualTo(testCase.Raw));
+        }
+
+        [Test]
+        public void CanAssignMatchingRemoteName()
+        {
+            var raw = "origin/feature/fancy-new-foo-E-99998";
+            var parsed = StructuredBranch.Parse(raw);
+
+            Assert.That(parsed.TryAssignRemoteName("origin", out var withRemote), Is.True);
+
+            Assert.That(withRemote.Namespace, Is.EqualTo("feature"));
+            Assert.That(withRemote.RemoteName, Is.EqualTo("origin"));
+
+            // Should be unchanged:
+            Assert.That(parsed.Namespace, Is.EqualTo("origin/feature"));
+            Assert.That(parsed.RemoteName, Is.Null);
+        }
+
+        [Test]
+        public void CanAssignMatchingRemoteName_WhenNamespaceWouldBeEmpty()
+        {
+            var raw = "origin/master";
+            var parsed = StructuredBranch.Parse(raw);
+
+            Assert.That(parsed.TryAssignRemoteName("origin", out var withRemote), Is.True);
+
+            Assert.That(withRemote.Namespace, Is.Null);
+            Assert.That(withRemote.RemoteName, Is.EqualTo("origin"));
+
+            // Should be unchanged:
+            Assert.That(parsed.Namespace, Is.EqualTo("origin"));
+            Assert.That(parsed.RemoteName, Is.Null);
+        }
+
+        [Test]
+        public void CanAssignDifferingRemoteName()
+        {
+            var raw = "origin/feature/fancy-new-foo-E-99998";
+            var parsed = StructuredBranch.Parse(raw);
+
+            Assert.That(parsed.TryAssignRemoteName("upstream", out var withRemote), Is.False);
+
+            Assert.That(withRemote.Namespace, Is.EqualTo("origin/feature"));
+            Assert.That(withRemote.RemoteName, Is.Null);
         }
     }
 }

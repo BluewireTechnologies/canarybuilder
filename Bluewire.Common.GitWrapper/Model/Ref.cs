@@ -28,6 +28,13 @@ namespace Bluewire.Common.GitWrapper.Model
             if (refName.Any(Char.IsWhiteSpace)) throw new ArgumentException($"'{refName}' is not a valid ref because it contains whitespace.", nameof(refName));
         }
 
+        public static bool IsValidName(string refName)
+        {
+            if (String.IsNullOrWhiteSpace(refName)) return false;
+            if (refName.Any(Char.IsWhiteSpace)) return false;
+            return true;
+        }
+
         public override string ToString()
         {
             return refName;

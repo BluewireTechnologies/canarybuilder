@@ -116,10 +116,12 @@ namespace Bluewire.Tools.GitRepository
             // Optimisation: only have Git explore the branches we care about.
             var branchFilter = new BranchSemantics().GetRemoteBranchFilters(types.Concat(new [] { BranchType.Master }).ToArray());
 
+            var remotes = await gitSession.ListRemotes(workingCopyOrRepo);
+
             var containingBranches = await gitSession.ListBranches(workingCopyOrRepo, new ListBranchesOptions { Contains = hash, Remote = true, BranchFilter = branchFilter });
 
             StructuredBranch? masterBranch;
-            var recognisedBranches = ParseRecognisedBranches(types, containingBranches, out masterBranch);
+            var recognisedBranches = ParseRecognisedBranches(types, remotes, containingBranches, out masterBranch);
             if (recognisedBranches.Length <= 1) return recognisedBranches;  // Only a single branch found.
             if (masterBranch == null) return recognisedBranches;            // Not merged to master yet.
 
@@ -141,24 +143,24 @@ namespace Bluewire.Tools.GitRepository
             var branchesInheritingFromMaster = await gitSession.ListBranches(workingCopyOrRepo, new ListBranchesOptions { Contains = integrationPoint, Remote = true });
 
             StructuredBranch? recognisedMasterBranch;
-            var excessBranches = ParseRecognisedBranches(types, branchesInheritingFromMaster, out recognisedMasterBranch);
+            var excessBranches = ParseRecognisedBranches(types, remotes, branchesInheritingFromMaster, out recognisedMasterBranch);
             Debug.Assert(recognisedMasterBranch != null);
             return recognisedBranches.Except(excessBranches).Concat(new [] { masterBranch.Value }).ToArray();
         }
 
-        private static StructuredBranch[] ParseRecognisedBranches(BranchType[] types, Ref[] branches, out StructuredBranch? masterBranch)
+        private static StructuredBranch[] ParseRecognisedBranches(BranchType[] types, Remote[] remotes, Ref[] branches, out StructuredBranch? masterBranch)
         {
             masterBranch = null;
             var parsedBranches = new List<StructuredBranch>();
             foreach (var branch in branches)
             {
-                StructuredBranch parsed;
-                if (!StructuredBranch.TryParse(branch, out parsed)) continue;
+                if (!StructuredBranch.TryParse(branch, out var parsed)) continue;
+                parsed.TryAssignRemoteName(remotes.Select(r => r.Name).ToArray(), out parsed);
 
                 var type = new BranchSemantics().GetBranchType(parsed);
 
                 // Always retain master if present.
-                if (BranchType.Master.Equals(type))
+                if (parsed.IsMaster())
                 {
                     Debug.Assert(masterBranch == null);
                     masterBranch = parsed;
