@@ -36,18 +36,46 @@ public partial class OctopusVariablesMatchDocumentationRule
     {
         if (!subject.GetBranchRules(branch).CheckOctopusVariablesMatchDocumentation) yield break;
 
+        // Stub 'root' path, for purposes of resolving relative paths.
+        const string stubPath = @"z:\";
+        var projectsByPath = projects.ToLookup(p => Path.GetFullPath(Path.Combine(stubPath, p.Path)), StringComparer.OrdinalIgnoreCase);
+
         foreach (var project in projects)
         {
             if (project.ReadMePath == null) continue;
-            if (!project.Packages.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name,  "OctoPack"))) continue; // Not an Octopus package.
-
-            var validator = new Validator(subject, workingCopyOrRepo, session, branch, project);
-            validator.VisitConfiguration();
-            var tokenEvaluator = new StringExpandableTokenEvaluator(Constants.GetWellKnownDeploymentScriptVariables(project));
-            validator.VisitDeploymentScripts(tokenEvaluator);
-            if (validator.VisitReadMe())
+            // Special case: does not use OctoPack.
+            if (!project.Path.Contains("Bluewire.Epro.Web.csproj", StringComparison.OrdinalIgnoreCase))
             {
-                validator.CorrelateVariables();
+                if (!project.Packages.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Name,  "OctoPack"))) continue; // Not an Octopus package.
+            }
+
+            var queue = new Queue<ProjectFile>();
+            queue.Enqueue(project);
+
+            var validator = new Validator(subject, workingCopyOrRepo, session, branch);
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                validator.VisitConfiguration(current);
+                var tokenEvaluator = new StringExpandableTokenEvaluator(Constants.GetWellKnownDeploymentScriptVariables(current));
+                validator.VisitDeploymentScripts(current, tokenEvaluator);
+
+                // Include configuration files etc from dependencies.
+                var currentPath = Path.Combine(stubPath, current.Path);
+                foreach (var dependency in current.Dependencies)
+                {
+                    var dependencyPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(currentPath), dependency));
+                    foreach (var match in projectsByPath[dependencyPath])
+                    {
+                        queue.Enqueue(match);
+                    }
+                }
+            }
+
+            if (validator.VisitReadMe(project))
+            {
+                validator.CorrelateVariables(project);
             }
 
             foreach (var failure in validator.Failures) yield return failure;
@@ -58,17 +86,15 @@ public partial class OctopusVariablesMatchDocumentationRule
     {
         private readonly SubjectRepository subject;
         private readonly Ref branch;
-        private readonly ProjectFile project;
 
         private readonly Parser readmeParser = new Parser();
         private readonly GitDocumentSource source;
 
 
-        public Validator(SubjectRepository subject, IGitFilesystemContext workingCopyOrRepo, GitSession session, Ref branch, ProjectFile project)
+        public Validator(SubjectRepository subject, IGitFilesystemContext workingCopyOrRepo, GitSession session, Ref branch)
         {
             this.subject = subject;
             this.branch = branch;
-            this.project = project;
             source = new GitDocumentSource(workingCopyOrRepo, session, branch);
         }
 
@@ -78,7 +104,7 @@ public partial class OctopusVariablesMatchDocumentationRule
         public HashSet<string> MaybeDeploymentVariables { get; } = new HashSet<string>();
         public HashSet<string> DocumentedVariables { get; } = new HashSet<string>();
 
-        private void RecordFailure(string message)
+        private void RecordFailure(ProjectFile project, string message)
         {
             Failures.Add(new Failure
             {
@@ -93,7 +119,7 @@ public partial class OctopusVariablesMatchDocumentationRule
         /// Parse the README.md to find documentation of Octopus variables.
         /// </summary>
         /// <returns>False if the README.md was present but could not be parsed, or true otherwise.</returns>
-        public bool VisitReadMe()
+        public bool VisitReadMe(ProjectFile project)
         {
             if (project.ReadMePath == null) return true;
 
@@ -107,7 +133,7 @@ public partial class OctopusVariablesMatchDocumentationRule
             }
             catch (Exception ex)
             {
-                RecordFailure(ex.Message);
+                RecordFailure(project, ex.Message);
                 return false;
             }
         }
@@ -115,17 +141,17 @@ public partial class OctopusVariablesMatchDocumentationRule
         /// <summary>
         /// Find possible references to Octopus variables in configuration files and transforms.
         /// </summary>
-        public void VisitConfiguration()
+        public void VisitConfiguration(ProjectFile project)
         {
             foreach (var path in project.ConfigurationPaths)
             {
-                VisitConfigurationPath(path);
+                VisitConfigurationPath(project, path);
             }
         }
 
-        private void VisitConfigurationPath(string path)
+        private void VisitConfigurationPath(ProjectFile project, string path)
         {
-            VisitOctostacheTemplate(path);
+            VisitOctostacheTemplate(project, path);
             VisitAppSettings(path);
         }
 
@@ -157,7 +183,7 @@ public partial class OctopusVariablesMatchDocumentationRule
             }
         }
 
-        private void VisitOctostacheTemplate(string path)
+        private void VisitOctostacheTemplate(ProjectFile project, string path)
         {
             try
             {
@@ -166,7 +192,7 @@ public partial class OctopusVariablesMatchDocumentationRule
                     var maybeTemplate = reader.ReadToEnd();
                     if (!TemplateParser.TryParseTemplate(maybeTemplate, out var template, out var error, true))
                     {
-                        RecordFailure($"Failed to parse configuration file '{path}': {error}");
+                        RecordFailure(project, $"Failed to parse configuration file '{path}': {error}");
                         return;
                     }
                     var collector = new SymbolCollector();
@@ -176,7 +202,7 @@ public partial class OctopusVariablesMatchDocumentationRule
             }
             catch (Exception ex)
             {
-                RecordFailure($"Error while parsing configuration file '{path}': {ex.Message}");
+                RecordFailure(project, $"Error while parsing configuration file '{path}': {ex.Message}");
             }
         }
 
@@ -186,15 +212,15 @@ public partial class OctopusVariablesMatchDocumentationRule
         /// <remarks>
         /// These are only considered to be definitely variables if they also appear in documentation or configuration.
         /// </remarks>
-        public void VisitDeploymentScripts(StringExpandableTokenEvaluator tokenEvaluator)
+        public void VisitDeploymentScripts(ProjectFile project, StringExpandableTokenEvaluator tokenEvaluator)
         {
             foreach (var path in project.DeploymentScriptPaths)
             {
-                VisitDeploymentScriptPath(path, tokenEvaluator);
+                VisitDeploymentScriptPath(project, path, tokenEvaluator);
             }
         }
 
-        private void VisitDeploymentScriptPath(string path, StringExpandableTokenEvaluator tokenEvaluator)
+        private void VisitDeploymentScriptPath(ProjectFile project, string path, StringExpandableTokenEvaluator tokenEvaluator)
         {
             try
             {
@@ -206,7 +232,7 @@ public partial class OctopusVariablesMatchDocumentationRule
                     {
                         foreach (var error in errors)
                         {
-                            RecordFailure($"{path}: {error.Message}");
+                            RecordFailure(project, $"{path}: {error.Message}");
                         }
                         return;
                     }
@@ -217,7 +243,7 @@ public partial class OctopusVariablesMatchDocumentationRule
             }
             catch (Exception ex)
             {
-                RecordFailure($"Error while parsing PowerShell file '{path}': {ex.Message}");
+                RecordFailure(project, $"Error while parsing PowerShell file '{path}': {ex.Message}");
             }
         }
 
@@ -242,7 +268,7 @@ public partial class OctopusVariablesMatchDocumentationRule
             }
         }
 
-        public void CorrelateVariables()
+        public void CorrelateVariables(ProjectFile project)
         {
             var probablyDeploymentVariables = MaybeDeploymentVariables
                 .Intersect(ConfigurationVariables.Select(x => x.Name).Union(DocumentedVariables), StringComparer.OrdinalIgnoreCase)
@@ -255,7 +281,7 @@ public partial class OctopusVariablesMatchDocumentationRule
                 .ToArray();
             foreach (var x in undocumentedVariables)
             {
-                RecordFailure($"Variable is undocumented: {x}");
+                RecordFailure(project, $"Variable is undocumented: {x}");
             }
 
             var unusedVariables = DocumentedVariables
@@ -264,7 +290,7 @@ public partial class OctopusVariablesMatchDocumentationRule
                 .ToArray();
             foreach (var x in unusedVariables)
             {
-                RecordFailure($"Variable is unused: {x}");
+                RecordFailure(project, $"Variable is unused: {x}");
             }
 
             var inconsistentlyCasedVariables = ConfigurationVariables.Select(x => x.Name).Union(DocumentedVariables).Union(probablyDeploymentVariables)
@@ -273,7 +299,7 @@ public partial class OctopusVariablesMatchDocumentationRule
                 .ToArray();
             foreach (var xs in inconsistentlyCasedVariables)
             {
-                RecordFailure($"Variable casing is inconsistent: {string.Join(", ", xs)}");
+                RecordFailure(project, $"Variable casing is inconsistent: {string.Join(", ", xs)}");
             }
         }
     }
