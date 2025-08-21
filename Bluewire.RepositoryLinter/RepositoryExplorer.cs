@@ -88,6 +88,9 @@ namespace Bluewire.RepositoryLinter
                 if (StringComparer.OrdinalIgnoreCase.Equals(Path.GetExtension(path), ".xml"))
                 {
                     if (path.Contains("/Config/", StringComparison.OrdinalIgnoreCase)) return true;
+                    if (path.Contains(".Debug.", StringComparison.OrdinalIgnoreCase)) return true;
+                    if (path.Contains(".Release.", StringComparison.OrdinalIgnoreCase)) return true;
+                    if (path.Contains(".Octopus.", StringComparison.OrdinalIgnoreCase)) return true;
                 }
                 return false;
             }
@@ -121,6 +124,7 @@ namespace Bluewire.RepositoryLinter
                 targetFrameworks.UnionWith(propertyGroups.Elements("TargetFramework").Select(x => x.Value));
 
                 var packageReferences = xml.Elements("Project").Elements("ItemGroup").Elements("PackageReference");
+                var projectReferences = xml.Elements("Project").Elements("ItemGroup").Elements("ProjectReference");
 
                 // Topmost readme file only:
                 var readme = readmeFiles.Select(x => x.Path).Where(x => Path.GetDirectoryName(x) == Path.GetDirectoryName(path)).SingleOrDefault();
@@ -134,6 +138,7 @@ namespace Bluewire.RepositoryLinter
                     ReadMePath = readme,
                     ConfigurationPaths = configurationFiles.Select(x => x.Path).ToImmutableArray(),
                     DeploymentScriptPaths = deploymentScripts.Select(x => x.Path).ToImmutableArray(),
+                    Dependencies = ReadProjectReferences(projectReferences).ToImmutableArray(),
                 };
             }
             catch (Exception ex)
@@ -172,6 +177,19 @@ namespace Bluewire.RepositoryLinter
             }
         }
 
+        private IEnumerable<string> ReadProjectReferences(IEnumerable<XElement> projectReferences)
+        {
+            foreach (var element in projectReferences)
+            {
+                var name = element.Attribute("Include")?.Value;
+                if (name == null)
+                {
+                    throw new ArgumentException("ProjectReference element has no Include attribute.");
+                }
+                yield return name;
+            }
+        }
+
         private ProjectProperty ReadProjectProperty(XElement element)
         {
             return new ProjectProperty(element.Name.LocalName, element.Value, element.Attribute("Condition")?.Value);
@@ -189,6 +207,7 @@ namespace Bluewire.RepositoryLinter
         public ImmutableArray<string> ConfigurationPaths { get; init; } = ImmutableArray<string>.Empty;
         public ImmutableArray<string> DeploymentScriptPaths { get; init; } = ImmutableArray<string>.Empty;
         public Exception? Exception { get; init; }
+        public ImmutableArray<string> Dependencies { get; init; } = ImmutableArray<string>.Empty;
     }
 
     public struct PackageReference
