@@ -43,6 +43,7 @@ public class Constants
             },
         },
         new SubjectRepository("epro-dictation-app"),
+        new SubjectRepository("epro-document-backup"),
         new SubjectRepository("epro-filedrop"),
         new SubjectRepository("epro-masterfiles"),
         new SubjectRepository("epro-metaparser"),
