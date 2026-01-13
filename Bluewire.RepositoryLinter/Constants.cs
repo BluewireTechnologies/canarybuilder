@@ -66,6 +66,7 @@ public class Constants
         new SubjectRepository("Bluewire.Reporting"),
         new SubjectRepository("Bluewire.Snomed"),
         new SubjectRepository("Bluewire.Speech"),
+        new SubjectRepository("Bluewire.Text"),
         new SubjectRepository("Bluewire.Webhooks"),
         new SubjectRepository("canarybuilder"),
     }.ToImmutableArray();
