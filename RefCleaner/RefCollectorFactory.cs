@@ -14,6 +14,8 @@ namespace RefCleaner
         private readonly string repositoryPath;
         private readonly string remoteName;
 
+        public bool Aggressive { get; set; }
+
         public RefCollectorFactory(string repositoryPath, string remoteName, IConsoleInvocationLogger logger = null)
         {
             this.repositoryPath = repositoryPath;
@@ -62,7 +64,7 @@ namespace RefCleaner
             yield return new KeepAllReleaseBranches();
             yield return new KeepAllPersonalBranches();
             yield return new KeepRecentBranches(DateTimeOffset.Now.AddMonths(-1));
-            yield return new DiscardMergedBranches(new MergedBranchTester(branchProvider));
+            yield return new DiscardMergedBranches(new MergedBranchTester(branchProvider), Aggressive);
         }
 
         private readonly Lazy<Task<GitSession>> sharedGitSession;

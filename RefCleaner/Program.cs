@@ -41,7 +41,7 @@ namespace RefCleaner
 
         private async Task<int> Run()
         {
-            var factory = new RefCollectorFactory(RepositoryPath, RemoteName, Log.Console.IsDebugEnabled ? new ConsoleInvocationLogger() : null);
+            var factory = new RefCollectorFactory(RepositoryPath, RemoteName, Log.Console.IsDebugEnabled ? new ConsoleInvocationLogger() : null) { Aggressive = Aggressive };
 
             var collectors = new List<IRefCollector>
             {
