@@ -22,6 +22,7 @@ public class NoPreReleasePackagesRule
         {
             foreach (var package in project.Packages)
             {
+                if (Constants.ToleratePrereleasePackages.Contains(package.Name)) continue;
                 if (IsPreRelease(package))
                 {
                     yield return new Failure
