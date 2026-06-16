@@ -90,6 +90,19 @@ public class Constants
         "net8.0-android",
     }.ToImmutableHashSet();
 
+    public static readonly ImmutableHashSet<string> ToleratePrereleasePackages = new []
+    {
+        "Azure.AI.OpenAI",              // AI service needs Responses API.
+        "Google.Cloud.Speech.V2",       // Remove this ASAP.
+
+        // Latest Lucene major version probably won't have a non-beta release any time soon:
+        "Lucene.Net",
+        "Lucene.Net.Analysis.Common",
+        "Lucene.Net.Sandbox",
+        "Lucene.Net.Queries",
+        "Lucene.Net.QueryParser",
+    }.ToImmutableHashSet();
+
     public static readonly ImmutableDictionary<string, Version> MinimumPackageVersions = new Dictionary<string, Version>
     {
         ["NUnit.ConsoleRunner"] = new Version(3, 16, 2),
