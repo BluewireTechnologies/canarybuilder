@@ -24,10 +24,11 @@ namespace Bluewire.RepositoryLinter
                 CheckMaximumPackageVersions = true,
                 CheckSemVerProjectsHaveLocalVersionPrefix = true,
                 CheckOctopusVariablesMatchDocumentation = true,
+                CheckLog4NetLoggersUseAppenderRef = true,
             };
         public static BranchRules None => default;
 
-        public bool HasAnyRules => ReportLoadFailures || CheckTargetFrameworks || CheckPreReleasePackages || CheckMinimumPackageVersions || CheckMaximumPackageVersions || CheckSemVerProjectsHaveLocalVersionPrefix || CheckOctopusVariablesMatchDocumentation;
+        public bool HasAnyRules => ReportLoadFailures || CheckTargetFrameworks || CheckPreReleasePackages || CheckMinimumPackageVersions || CheckMaximumPackageVersions || CheckSemVerProjectsHaveLocalVersionPrefix || CheckOctopusVariablesMatchDocumentation || CheckLog4NetLoggersUseAppenderRef;
 
         public bool ReportLoadFailures { get; init; }
         public bool CheckTargetFrameworks { get; init; }
@@ -36,6 +37,7 @@ namespace Bluewire.RepositoryLinter
         public bool CheckMaximumPackageVersions { get; init; }
         public bool CheckSemVerProjectsHaveLocalVersionPrefix { get; init; }
         public bool CheckOctopusVariablesMatchDocumentation { get; init; }
+        public bool CheckLog4NetLoggersUseAppenderRef { get; init; }
     }
 
     public class RepositoryExplorer
