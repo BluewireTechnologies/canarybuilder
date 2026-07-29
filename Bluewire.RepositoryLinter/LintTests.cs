@@ -53,6 +53,7 @@ namespace Bluewire.RepositoryLinter
                 failures.AddRange(new PackagesAreSupportedByBuildAgentsRule(subject).GetFailures(branchCase.Branch, branchCase.Projects));
                 failures.AddRange(new SemVerProjectsHaveLocalVersionPrefixRule(subject).GetFailures(branchCase.Branch, branchCase.Projects));
                 failures.AddRange(new OctopusVariablesMatchDocumentationRule(subject, workingCopy, session).GetFailures(branchCase.Branch, branchCase.Projects));
+                failures.AddRange(new Log4NetLoggersUseAppenderRefRule(subject, workingCopy, session).GetFailures(branchCase.Branch, branchCase.Projects));
 
                 if (!failures.Any()) continue;
 
@@ -183,6 +184,23 @@ namespace Bluewire.RepositoryLinter
             await foreach (var branchCase in explorer.GetProjectFiles(session, x => x.CheckOctopusVariablesMatchDocumentation))
             {
                 var failures = new OctopusVariablesMatchDocumentationRule(subject, workingCopy, session).GetFailures(branchCase.Branch, branchCase.Projects).ToArray();
+                ReportForSingleRule(branchCase.Branch, failures);
+                failureCount += failures.Length;
+            }
+            Assert.That(failureCount, Is.Zero);
+        }
+
+        [Explicit]
+        [TestCaseSource(typeof(Constants), nameof(Constants.Repositories))]
+        public async Task Log4NetLoggersUseAppenderRef(SubjectRepository subject)
+        {
+            var workingCopy = GetWorkingCopy(subject);
+            var explorer = new RepositoryExplorer(workingCopy, subject);
+
+            var failureCount = 0;
+            await foreach (var branchCase in explorer.GetProjectFiles(session, x => x.CheckOctopusVariablesMatchDocumentation))
+            {
+                var failures = new Log4NetLoggersUseAppenderRefRule(subject, workingCopy, session).GetFailures(branchCase.Branch, branchCase.Projects).ToArray();
                 ReportForSingleRule(branchCase.Branch, failures);
                 failureCount += failures.Length;
             }
