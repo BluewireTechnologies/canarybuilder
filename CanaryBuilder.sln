@@ -49,6 +49,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bluewire.Stash.Service", "B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bluewire.RepositoryLinter", "Bluewire.RepositoryLinter\Bluewire.RepositoryLinter.csproj", "{3ABC6014-0390-4A13-BF1D-1A7881C9432A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JiraTime", "JiraTime\JiraTime.csproj", "{C38FB15D-9669-45DF-9CC3-8B7EE0631E13}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -147,6 +149,10 @@ Global
 		{3ABC6014-0390-4A13-BF1D-1A7881C9432A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3ABC6014-0390-4A13-BF1D-1A7881C9432A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3ABC6014-0390-4A13-BF1D-1A7881C9432A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C38FB15D-9669-45DF-9CC3-8B7EE0631E13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C38FB15D-9669-45DF-9CC3-8B7EE0631E13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C38FB15D-9669-45DF-9CC3-8B7EE0631E13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C38FB15D-9669-45DF-9CC3-8B7EE0631E13}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

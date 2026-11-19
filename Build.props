@@ -25,6 +25,7 @@
         <OutputBinaryProjects Include="Bluewire.Tools.Runner\Bluewire.Tools.Runner.csproj" />
         <OutputBinaryProjects Include="RefCleaner\RefCleaner.csproj" />
         <OutputBinaryProjects Include="Bluewire.Stash.Tool\Bluewire.Stash.Tool.csproj" />
+        <PublishProjects Include="JiraTime\JiraTime.csproj" />
     </ItemGroup>
     <PropertyGroup>
         <DotCoverConfigurationFile>DotCover.coverage.xml</DotCoverConfigurationFile>

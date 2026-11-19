@@ -38,6 +38,8 @@
         <OutputBinaries></OutputBinaries>
         <!-- Projects which produce files which should be copied directly to the output directory. -->
         <OutputBinaryProjects></OutputBinaryProjects>
+        <!-- Projects for which the Publish target should be used to generate output. -->
+        <PublishProjects></PublishProjects>
     </ItemDefinitionGroup>
 
     <!-- Do not add project references to this file. Add them in Build.props instead. -->
@@ -67,6 +69,7 @@
             <_AllProjects Include="@(NUnitProjects)" />
             <_AllProjects Include="@(OctoPackProjects)" />
             <_AllProjects Include="@(OutputBinaryProjects)" />
+            <_AllProjects Include="@(PublishProjects)" />
             <_AllProjects Include="SolutionPackages\SolutionPackages.*proj" />
         </ItemGroup>
         <MSBuild Projects="@(_AllProjects)" Targets="Restore" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="@(_BuildProperties);RestorePackagesPath=$(MSBuildProjectDirectory)\packages" />
@@ -79,6 +82,7 @@
         <MSBuild Projects="@(NugetProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="@(_BuildProperties)"/>
         <Copy SourceFiles="@(OutputBinaries)" DestinationFiles="@(OutputBinaries->'$(OutputDirectory)\%(FileName)%(Extension)')" />
         <MSBuild Projects="@(OctoPackProjects)" Targets="Build" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="@(_BuildProperties);RunOctoPack=true;OctoPackPublishPackageToFileShare=$(OutputDirectory)" />
+        <MSBuild Projects="@(PublishProjects)" Targets="Publish" ToolsVersion="$(PreferredMSBuildToolsVersion)" BuildInParallel="true" Properties="@(_BuildProperties);PublishDir=$(OutputDirectory)" />
     </Target>
 
     <Target Name="PrepareOutputDirectory" DependsOnTargets="ValidateParameters">
