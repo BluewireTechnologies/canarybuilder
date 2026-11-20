@@ -166,6 +166,8 @@ Backup*/
 UpgradeLog*.XML
 UpgradeLog*.htm
 
+**/launchSettings.json
+
 # SQL Server files
 *.mdf
 *.ldf

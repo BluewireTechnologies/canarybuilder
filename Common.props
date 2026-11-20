@@ -7,6 +7,13 @@
 
     <UseTeamCityLogging>False</UseTeamCityLogging>
     <UseTeamCityLogging Condition="'$(TEAMCITY_VERSION)' != ''">True</UseTeamCityLogging>
+    
+    <!--
+        SourceLink inspects the repository working copy for version information. Even if SourceLink is
+        disabled, this information is still fetched and injected into the AssemblyInformationalVersion.
+        This breaks our own versioning system.
+      -->
+    <EnableSourceControlManagerQueries>False</EnableSourceControlManagerQueries>
   </PropertyGroup>
 
 </Project>

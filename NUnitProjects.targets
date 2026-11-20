@@ -69,6 +69,7 @@
     <Message Text="Using dotCover at: $(DotCoverRunnerPath)" Condition="'$(DotCoverRunnerPath)' != ''" />
     <ItemGroup>
         <NUnitFilters Include="cat != ExcludeFromCodeCoverage" />
+        <DotNetTestFilters Include="TestCategory!=ExcludeFromCodeCoverage" />
     </ItemGroup>
   </Target>
 
@@ -129,7 +130,7 @@
       <_NUnitArguments Include='$(NUnitTestAssemblies)' />
     </ItemGroup>
     <PropertyGroup>
-      <_NUnitArgumentString Condition="'@(NUnitFilters)' != ''">@(_NUnitArguments, ' ') --where "@(NUnitFilters, ' and ')"</_NUnitArgumentString>
+      <_NUnitArgumentString Condition="'@(NUnitFilters)' != ''">@(_NUnitArguments, ' ') --where "@(NUnitFilters->'(%(Identity))', ' and ')"</_NUnitArgumentString>
       <_NUnitArgumentString Condition="'@(NUnitFilters)' == ''">@(_NUnitArguments, ' ')</_NUnitArgumentString>
     </PropertyGroup>
     
@@ -138,8 +139,8 @@
       <_DotNetTestArguments Include='$(NUnitTestAssemblies)' />
     </ItemGroup>
     <PropertyGroup>
-      <_DotNetTestArgumentString Condition="'@(NUnitFilters)' != ''">@(_DotNetTestArguments, ' ') --filter "@(NUnitFilters, ' and ')"</_DotNetTestArgumentString>
-      <_DotNetTestArgumentString Condition="'@(NUnitFilters)' == ''">@(_DotNetTestArguments, ' ')</_DotNetTestArgumentString>
+      <_DotNetTestArgumentString Condition="'@(DotNetTestFilters)' != ''">@(_DotNetTestArguments, ' ') --filter "@(DotNetTestFilters->'(%(Identity))', ' &amp; ')"</_DotNetTestArgumentString>
+      <_DotNetTestArgumentString Condition="'@(DotNetTestFilters)' == ''">@(_DotNetTestArguments, ' ')</_DotNetTestArgumentString>
     </PropertyGroup>
     
     <Exec Command="dotnet test $(_DotNetTestArgumentString)" Condition="'%(NUnitTestAssemblies.UseDotNetTest)' == 'True'" />
@@ -165,7 +166,7 @@
       <_NUnitArguments Include='"%(NUnitTestAssemblies.Identity)"' />
     </ItemGroup>
     <PropertyGroup>
-      <_NUnitArgumentString Condition="'@(NUnitFilters)' != ''">@(_NUnitArguments, ' ') --where "@(NUnitFilters, ' and ')"</_NUnitArgumentString>
+      <_NUnitArgumentString Condition="'@(NUnitFilters)' != ''">@(_NUnitArguments, ' ') --where "@(NUnitFilters->'(%(Identity))', ' and ')"</_NUnitArgumentString>
       <_NUnitArgumentString Condition="'@(NUnitFilters)' == ''">@(_NUnitArguments, ' ')</_NUnitArgumentString>
     </PropertyGroup>
     
@@ -175,8 +176,8 @@
       <_DotNetTestArguments Include='"%(NUnitTestAssemblies.Identity)"' />
     </ItemGroup>
     <PropertyGroup>
-      <_DotNetTestArgumentString Condition="'@(NUnitFilters)' != ''">@(_DotNetTestArguments, ' ') --filter "@(NUnitFilters, ' and ')"</_DotNetTestArgumentString>
-      <_DotNetTestArgumentString Condition="'@(NUnitFilters)' == ''">@(_DotNetTestArguments, ' ')</_DotNetTestArgumentString>
+      <_DotNetTestArgumentString Condition="'@(DotNetTestFilters)' != ''">@(_DotNetTestArguments, ' ') --filter "@(DotNetTestFilters->'(%(Identity))', ' &amp; ')"</_DotNetTestArgumentString>
+      <_DotNetTestArgumentString Condition="'@(DotNetTestFilters)' == ''">@(_DotNetTestArguments, ' ')</_DotNetTestArgumentString>
     </PropertyGroup>
 
     <ItemGroup>
